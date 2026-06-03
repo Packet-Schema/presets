@@ -1,0 +1,36 @@
+{
+  "name": "@packet-schema/presets",
+  "version": "0.1.0",
+  "description": "Built-in PSDL presets for Packet Schema (TCP, UDP, IPv4/6, TLS, QUIC, DNS, …)",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "presets",
+    "schemas"
+  ],
+  "scripts": {
+    "build:presets": "tsx scripts/build.ts",
+    "build": "npm run build:presets && tsc",
+    "prebuild": "npm run build:presets",
+    "pretest": "npm run build:presets",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@packet-schema/core": "^0.1.0"
+  },
+  "devDependencies": {
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5.8.3",
+    "yaml": "^2.7.1"
+  }
+}
