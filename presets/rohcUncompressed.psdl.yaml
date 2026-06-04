@@ -3,7 +3,7 @@ version: "0.5"
 name: ROHC Uncompressed
 rowBits: 32
 byteOrder: BE
-description: "Robust Header Compression (ROHC) Uncompressed profile packet (RFC 5795). ROHC is a framework for compressing headers of IP and upper-layer protocols over links with limited bandwidth. Profile 0x0000 (Uncompressed) passes packets through without compression, making it a baseline and fallback profile. A ROHC packet stream may begin with optional Padding octets (0xE0), an optional Add-CID octet for small CIDs (0x00–0x0F prefix nibble 0), followed by a Packet Type Indicator byte, a Profile byte identifying the compression profile, a CRC byte for integrity, and the uncompressed headers payload. The rohcPaddingPresent and rohcAddCidPresent control flags must be provided externally to enable the optional leading fields."
+description: "Robust Header Compression (ROHC) Uncompressed profile packet (RFC 5795). ROHC is a framework for compressing headers of IP and upper-layer protocols over links with limited bandwidth. Profile 0x0000 (Uncompressed) passes packets through without compression, making it a baseline and fallback profile. A ROHC packet stream may begin with optional Padding octets (0xE0), an optional Add-CID octet for small CIDs (prefix nibble 0xE (1110b), octets 0xE1–0xEF), followed by a Packet Type Indicator byte, a Profile byte identifying the compression profile, a CRC byte for integrity, and the uncompressed headers payload. The rohcPaddingPresent and rohcAddCidPresent control flags must be provided externally to enable the optional leading fields."
 
 body:
   - kind: optional
@@ -22,7 +22,7 @@ body:
       name: Add-CID Octet
       type: { kind: int, bits: 8 }
       category: identifier
-      doc: "Add-CID octet encoding a small CID (0–15) for the channel on which this packet is sent. The upper nibble is 0xE (1110b) and the lower nibble carries the CID value. Used only when the ROHC channel is configured for small CIDs (1 byte); for large CIDs the CID is carried inside the packet header instead. [RFC 5795 §5.2.1]"
+      doc: "Add-CID octet encoding a small CID (1–15) for the channel on which this packet is sent. The upper nibble is 0xE (1110b) and the lower nibble carries the CID value (0x1–0xF), so the octet ranges over 0xE1–0xEF. CID 0 is never carried by an Add-CID octet (it is the implicit/absent case), since 0xE0 is the Padding octet. Used only when the ROHC channel is configured for small CIDs (1 byte); for large CIDs the CID is carried inside the packet header instead. [RFC 5795 §5.2.1]"
 
   - id: rohcPacketType
     name: Packet Type Indicator
@@ -31,10 +31,10 @@ body:
       bits: 8
       variants:
         253: "IR (Initialisation and Refresh)"
-        252: "IR-DYN (Dynamic Chain Refresh)"
-        0: "Normal (Uncompressed)"
+        252: "IR (Initialisation and Refresh)"
+        248: "IR-DYN (Dynamic Chain Refresh)"
     category: type
-    doc: "ROHC packet type byte indicating the packet's role in the compression context lifecycle. 0xFD (253)=IR packet carrying full static and dynamic header chains; 0xFC (252)=IR-DYN packet carrying only the dynamic chain; 0x00=Normal packet carrying uncompressed headers for profile 0x0000. [RFC 5795 §5.2.2 §5.2.3 §5.7.1]"
+    doc: "ROHC packet type byte indicating the packet's role in the compression context lifecycle. The IR packet uses the 7-bit prefix 1111110, so both 0xFC (252) and 0xFD (253) are IR packets carrying full static and dynamic header chains; 0xF8 (248)=IR-DYN packet carrying only the dynamic chain. A Normal packet under the Uncompressed profile (0x0000) has no type-indicator octet: it is the verbatim IP datagram, detected by the IP version nibble in its first octet (0100=IPv4, 0110=IPv6) rather than by a 0x00 byte. [RFC 5795 §5.2 §5.4.2 §5.7.1]"
 
   - id: rohcProfile
     name: Profile

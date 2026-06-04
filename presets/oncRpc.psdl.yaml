@@ -120,44 +120,158 @@ body:
                 0: MSG_ACCEPTED
                 1: MSG_DENIED
             category: type
-            doc: Top-level reply discriminator. MSG_ACCEPTED (0) means the call was accepted by the server RPC layer (the remote procedure may still return an application error). MSG_DENIED (1) means the call was rejected before dispatch, e.g. due to an RPC version mismatch or authentication failure. [RFC 5531 §8]
-          - id: replyVerfFlavor
-            name: Reply Verifier Flavor
-            type:
-              kind: bits
-              n: 32
-            category: type
-            doc: Verifier flavor returned by the server in the reply. Present for both MSG_ACCEPTED and MSG_DENIED replies. For AUTH_NONE calls this is typically AUTH_NONE (0) with length 0. [RFC 5531 §8]
-          - id: replyVerfLength
-            name: Reply Verifier Length
-            type:
-              kind: bits
-              n: 32
-            category: length
-            doc: Length in bytes of the server's reply Verifier body. For AUTH_NONE this is 0 and the body is absent. For RPCSEC_GSS this carries the server's GSS-API response token length. [RFC 5531 §8]
-          - id: replyVerfBody
-            name: Reply Verifier Body
-            type:
-              kind: bytes
-              n:
-                kind: ref
-                field: replyVerfLength
-            category: variable
-            doc: Opaque server verifier body. Absent when Reply Verifier Length is 0 (AUTH_NONE). For RPCSEC_GSS this contains the server's GSS-API token authenticating the reply. [RFC 5531 §8]
-          - id: acceptStat
-            name: Accept/Reject Status
-            type:
-              kind: enum
-              bits: 32
-              variants:
-                0: SUCCESS
-                1: PROG_UNAVAIL
-                2: PROG_MISMATCH
-                3: PROC_UNAVAIL
-                4: GARBAGE_ARGS
-                5: SYSTEM_ERR
-            category: type
-            doc: "For MSG_ACCEPTED replies: SUCCESS (0) means the procedure completed; PROG_UNAVAIL (1), PROG_MISMATCH (2), PROC_UNAVAIL (3), GARBAGE_ARGS (4), and SYSTEM_ERR (5) report specific dispatch failures. For MSG_DENIED replies this field carries the reject status: RPC_MISMATCH (0) or AUTH_ERROR (1). [RFC 5531 §8]"
+            doc: Top-level reply discriminator. MSG_ACCEPTED (0) means the call was accepted by the server RPC layer (the remote procedure may still return an application error). MSG_DENIED (1) means the call was rejected before dispatch, e.g. due to an RPC version mismatch or authentication failure. The body that follows is a union switch on this field. [RFC 5531 §9]
+          - kind: switch
+            id: replyData
+            name: Reply Data
+            on:
+              kind: ref
+              field: replyStat
+            cases:
+              "0":
+                id: acceptedReply
+                doc: Accepted Reply
+                fields:
+                  - id: replyVerfFlavor
+                    name: Reply Verifier Flavor
+                    type:
+                      kind: bits
+                      n: 32
+                    category: type
+                    doc: Verifier flavor returned by the server in an accepted reply. For AUTH_NONE calls this is typically AUTH_NONE (0) with length 0; for RPCSEC_GSS it carries the server's per-message verifier. [RFC 5531 §9]
+                  - id: replyVerfLength
+                    name: Reply Verifier Length
+                    type:
+                      kind: bits
+                      n: 32
+                    category: length
+                    doc: Length in bytes of the server's reply Verifier body. For AUTH_NONE this is 0 and the body is absent. For RPCSEC_GSS this carries the server's GSS-API response token length. [RFC 5531 §9]
+                  - id: replyVerfBody
+                    name: Reply Verifier Body
+                    type:
+                      kind: bytes
+                      n:
+                        kind: ref
+                        field: replyVerfLength
+                    category: variable
+                    doc: Opaque server verifier body. Absent when Reply Verifier Length is 0 (AUTH_NONE). For RPCSEC_GSS this contains the server's GSS-API token authenticating the reply. [RFC 5531 §9]
+                  - id: acceptStat
+                    name: Accept Status
+                    type:
+                      kind: enum
+                      bits: 32
+                      variants:
+                        0: SUCCESS
+                        1: PROG_UNAVAIL
+                        2: PROG_MISMATCH
+                        3: PROC_UNAVAIL
+                        4: GARBAGE_ARGS
+                        5: SYSTEM_ERR
+                    category: type
+                    doc: "Dispatch status of an accepted call: SUCCESS (0) means the procedure completed (opaque application results follow); PROG_UNAVAIL (1), PROG_MISMATCH (2), PROC_UNAVAIL (3), GARBAGE_ARGS (4), and SYSTEM_ERR (5) report specific dispatch failures. PROG_MISMATCH is followed by a {low,high} supported-version range. [RFC 5531 §9]"
+                  - kind: switch
+                    id: acceptData
+                    name: Accept Data
+                    on:
+                      kind: ref
+                      field: acceptStat
+                    cases:
+                      "2":
+                        id: acceptProgMismatch
+                        doc: PROG_MISMATCH version range
+                        fields:
+                          - id: acceptMismatchLow
+                            name: Lowest Version
+                            type:
+                              kind: bits
+                              n: 32
+                            category: variable
+                            doc: Lowest program version supported by the server. Sent when accept_stat is PROG_MISMATCH so the client can renegotiate. [RFC 5531 §9]
+                          - id: acceptMismatchHigh
+                            name: Highest Version
+                            type:
+                              kind: bits
+                              n: 32
+                            category: variable
+                            doc: Highest program version supported by the server. Sent when accept_stat is PROG_MISMATCH so the client can renegotiate. [RFC 5531 §9]
+                      "0":
+                        id: acceptSuccess
+                        doc: SUCCESS results
+                        fields:
+                          - id: acceptResults
+                            name: Procedure Results
+                            type:
+                              kind: bytes
+                              n:
+                                kind: remaining
+                            category: variable
+                            doc: Opaque application-defined procedure results that follow a SUCCESS accept status. Their format is determined by the program/version/procedure, not by the RPC layer. [RFC 5531 §9]
+              "1":
+                id: rejectedReply
+                doc: Rejected Reply
+                fields:
+                  - id: rejectStat
+                    name: Reject Status
+                    type:
+                      kind: enum
+                      bits: 32
+                      variants:
+                        0: RPC_MISMATCH
+                        1: AUTH_ERROR
+                    category: type
+                    doc: "Reason a call was denied before dispatch: RPC_MISMATCH (0) means the server does not support the requested RPC protocol version (a {low,high} range follows); AUTH_ERROR (1) means authentication failed (an auth_stat code follows). A rejected reply carries NO verifier. [RFC 5531 §9]"
+                  - kind: switch
+                    id: rejectData
+                    name: Reject Data
+                    on:
+                      kind: ref
+                      field: rejectStat
+                    cases:
+                      "0":
+                        id: rejectRpcMismatch
+                        doc: RPC_MISMATCH version range
+                        fields:
+                          - id: rejectMismatchLow
+                            name: Lowest RPC Version
+                            type:
+                              kind: bits
+                              n: 32
+                            category: variable
+                            doc: Lowest RPC protocol version supported by the server. Sent when reject_stat is RPC_MISMATCH. [RFC 5531 §9]
+                          - id: rejectMismatchHigh
+                            name: Highest RPC Version
+                            type:
+                              kind: bits
+                              n: 32
+                            category: variable
+                            doc: Highest RPC protocol version supported by the server. Sent when reject_stat is RPC_MISMATCH. [RFC 5531 §9]
+                      "1":
+                        id: rejectAuthError
+                        doc: AUTH_ERROR auth_stat
+                        fields:
+                          - id: authStat
+                            name: Auth Status
+                            type:
+                              kind: enum
+                              bits: 32
+                              variants:
+                                0: AUTH_OK
+                                1: AUTH_BADCRED
+                                2: AUTH_REJECTEDCRED
+                                3: AUTH_BADVERF
+                                4: AUTH_REJECTEDVERF
+                                5: AUTH_TOOWEAK
+                                6: AUTH_INVALIDRESP
+                                7: AUTH_FAILED
+                                8: AUTH_KERB_GENERIC
+                                9: AUTH_TIMEEXPIRE
+                                10: AUTH_TKT_FILE
+                                11: AUTH_DECODE
+                                12: AUTH_NET_ADDR
+                                13: RPCSEC_GSS_CREDPROBLEM
+                                14: RPCSEC_GSS_CTXPROBLEM
+                            category: type
+                            doc: Authentication failure code accompanying an AUTH_ERROR reject. Codes 1-7 are the base auth_stat values; 8-12 are Kerberos errors; 13-14 are RPCSEC_GSS context errors. [RFC 5531 §9]
       "_":
         id: rpcBodyOpaque
         doc: RPC Body (Unknown Type)

@@ -25,7 +25,7 @@ body:
     name: Max Resp Code
     type: { kind: int, bits: 16 }
     category: identifier
-    doc: "Maximum Response Code — specifies the maximum time (in milliseconds) allowed before sending a responding Report. If Max Resp Code < 32768 it is the literal response time in milliseconds; otherwise it is a floating-point value encoded as 1-bit exp flag, 3-bit mantissa, 11-bit fraction (Exp/Mant format). Zero is used in MLDv1 backwards-compatibility contexts. Typical value: 10000 (= 10 seconds). [RFC 3810 §5.1.3]"
+    doc: "Maximum Response Code — specifies the maximum time (in milliseconds) allowed before sending a responding Report. If Max Resp Code < 32768 it is the literal response time in milliseconds; otherwise it is a floating-point value encoded as a 1-bit flag, 3-bit exp, 12-bit mant; Delay = (mant | 0x1000) << (exp+3). Zero is used in MLDv1 backwards-compatibility contexts. Typical value: 10000 (= 10 seconds). [RFC 3810 §5.1.3]"
   - id: reserved
     name: Reserved
     type: { kind: bits, n: 16 }

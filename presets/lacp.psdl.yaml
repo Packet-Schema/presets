@@ -68,41 +68,11 @@ body:
         id: actorState
         name: Actor State
         children:
-          - id: actorActivity
-            name: LACP Activity
+          - id: actorExpired
+            name: Expired
             type: { kind: bits, n: 1 }
             category: flags
-            doc: Actor LACP Activity bit (bit 0). 1=Active LACP — the Actor transmits LACPDUs periodically. 0=Passive LACP — the Actor transmits only in response to received LACPDUs. [IEEE 802.3ad §43.4.2.2 / IEEE 802.1AX-2014 §6.4.2 Table 6-3]
-
-          - id: actorTimeout
-            name: LACP Timeout
-            type: { kind: bits, n: 1 }
-            category: flags
-            doc: Actor LACP Timeout bit (bit 1). 1=Short Timeout (1 s transmission interval, 3 s expiry). 0=Long Timeout (30 s transmission interval, 90 s expiry). Short timeout is used for fast failover. [IEEE 802.3ad §43.4.2.2 / IEEE 802.1AX-2014 §6.4.2 Table 6-3]
-
-          - id: actorAggregation
-            name: Aggregation
-            type: { kind: bits, n: 1 }
-            category: flags
-            doc: Actor Aggregation bit (bit 2). 1=the link is aggregatable (may be part of a multi-link LAG). 0=Individual — the link can only operate as a single point-to-point link and will not be aggregated. [IEEE 802.3ad §43.4.2.2 / IEEE 802.1AX-2014 §6.4.2 Table 6-3]
-
-          - id: actorSynchronization
-            name: Synchronization
-            type: { kind: bits, n: 1 }
-            category: flags
-            doc: Actor Synchronization bit (bit 3). 1=this port has been allocated to the correct LAG and agrees with its Partner on key/system/port parameters. 0=out of sync. Both actor and partner must be In Sync before a port may distribute traffic. [IEEE 802.3ad §43.4.2.2 / IEEE 802.1AX-2014 §6.4.2 Table 6-3]
-
-          - id: actorCollecting
-            name: Collecting
-            type: { kind: bits, n: 1 }
-            category: flags
-            doc: Actor Collecting bit (bit 4). 1=the Actor's receive engine is enabled and collecting incoming frames on this link. Set only when Synchronization=1 and the Collector max-delay has elapsed. [IEEE 802.3ad §43.4.2.2 / IEEE 802.1AX-2014 §6.4.2 Table 6-3]
-
-          - id: actorDistributing
-            name: Distributing
-            type: { kind: bits, n: 1 }
-            category: flags
-            doc: Actor Distributing bit (bit 5). 1=the Actor's transmit engine is enabled and distributing (transmitting) frames on this link. Set only after Collecting is enabled. Collecting and Distributing are set/cleared together in most implementations. [IEEE 802.3ad §43.4.2.2 / IEEE 802.1AX-2014 §6.4.2 Table 6-3]
+            doc: Actor Expired bit (bit 7, MSB 0x80). 1=the Actor's receive machine is in the EXPIRED state — no LACPDU has arrived within the current timeout window and short-timeout recovery is in progress. [IEEE 802.3ad §43.4.2.2 / IEEE 802.1AX-2014 §6.4.2 Table 6-3]
 
           - id: actorDefaulted
             name: Defaulted
@@ -110,11 +80,41 @@ body:
             category: flags
             doc: Actor Defaulted bit (bit 6). 1=the Actor is using administratively configured default Partner information because no LACPDU has been received from the Partner. Cleared when a valid LACPDU is received. [IEEE 802.3ad §43.4.2.2 / IEEE 802.1AX-2014 §6.4.2 Table 6-3]
 
-          - id: actorExpired
-            name: Expired
+          - id: actorDistributing
+            name: Distributing
             type: { kind: bits, n: 1 }
             category: flags
-            doc: Actor Expired bit (bit 7). 1=the Actor's receive machine is in the EXPIRED state — no LACPDU has arrived within the current timeout window and short-timeout recovery is in progress. [IEEE 802.3ad §43.4.2.2 / IEEE 802.1AX-2014 §6.4.2 Table 6-3]
+            doc: Actor Distributing bit (bit 5). 1=the Actor's transmit engine is enabled and distributing (transmitting) frames on this link. Set only after Collecting is enabled. Collecting and Distributing are set/cleared together in most implementations. [IEEE 802.3ad §43.4.2.2 / IEEE 802.1AX-2014 §6.4.2 Table 6-3]
+
+          - id: actorCollecting
+            name: Collecting
+            type: { kind: bits, n: 1 }
+            category: flags
+            doc: Actor Collecting bit (bit 4). 1=the Actor's receive engine is enabled and collecting incoming frames on this link. Set only when Synchronization=1 and the Collector max-delay has elapsed. [IEEE 802.3ad §43.4.2.2 / IEEE 802.1AX-2014 §6.4.2 Table 6-3]
+
+          - id: actorSynchronization
+            name: Synchronization
+            type: { kind: bits, n: 1 }
+            category: flags
+            doc: Actor Synchronization bit (bit 3). 1=this port has been allocated to the correct LAG and agrees with its Partner on key/system/port parameters. 0=out of sync. Both actor and partner must be In Sync before a port may distribute traffic. [IEEE 802.3ad §43.4.2.2 / IEEE 802.1AX-2014 §6.4.2 Table 6-3]
+
+          - id: actorAggregation
+            name: Aggregation
+            type: { kind: bits, n: 1 }
+            category: flags
+            doc: Actor Aggregation bit (bit 2). 1=the link is aggregatable (may be part of a multi-link LAG). 0=Individual — the link can only operate as a single point-to-point link and will not be aggregated. [IEEE 802.3ad §43.4.2.2 / IEEE 802.1AX-2014 §6.4.2 Table 6-3]
+
+          - id: actorTimeout
+            name: LACP Timeout
+            type: { kind: bits, n: 1 }
+            category: flags
+            doc: Actor LACP Timeout bit (bit 1). 1=Short Timeout (1 s transmission interval, 3 s expiry). 0=Long Timeout (30 s transmission interval, 90 s expiry). Short timeout is used for fast failover. [IEEE 802.3ad §43.4.2.2 / IEEE 802.1AX-2014 §6.4.2 Table 6-3]
+
+          - id: actorActivity
+            name: LACP Activity
+            type: { kind: bits, n: 1 }
+            category: flags
+            doc: Actor LACP Activity bit (bit 0, LSB 0x01). 1=Active LACP — the Actor transmits LACPDUs periodically. 0=Passive LACP — the Actor transmits only in response to received LACPDUs. [IEEE 802.3ad §43.4.2.2 / IEEE 802.1AX-2014 §6.4.2 Table 6-3]
 
       - id: actorReserved
         name: Actor Reserved
@@ -172,41 +172,11 @@ body:
         id: partnerState
         name: Partner State
         children:
-          - id: partnerActivity
-            name: LACP Activity
+          - id: partnerExpired
+            name: Expired
             type: { kind: bits, n: 1 }
             category: flags
-            doc: Partner LACP Activity bit (bit 0) as last received. 1=Partner is in Active mode. Reflects the Partner's own Activity bit from the most recent LACPDU. [IEEE 802.3ad §43.4.2.2 / IEEE 802.1AX-2014 §6.4.2 Table 6-3]
-
-          - id: partnerTimeout
-            name: LACP Timeout
-            type: { kind: bits, n: 1 }
-            category: flags
-            doc: Partner LACP Timeout bit (bit 1) as last received. 1=Short Timeout. Reflects the Partner's timeout preference from the most recent LACPDU. [IEEE 802.3ad §43.4.2.2 / IEEE 802.1AX-2014 §6.4.2 Table 6-3]
-
-          - id: partnerAggregation
-            name: Aggregation
-            type: { kind: bits, n: 1 }
-            category: flags
-            doc: Partner Aggregation bit (bit 2) as last received. 1=Partner's port is aggregatable. Both Actor and Partner Aggregation bits must be 1 for the link to join a multi-port LAG. [IEEE 802.3ad §43.4.2.2 / IEEE 802.1AX-2014 §6.4.2 Table 6-3]
-
-          - id: partnerSynchronization
-            name: Synchronization
-            type: { kind: bits, n: 1 }
-            category: flags
-            doc: Partner Synchronization bit (bit 3) as last received. 1=Partner considers this link In Sync. Both Actor and Partner Synchronization must be 1 before the link is placed into the active forwarding set. [IEEE 802.3ad §43.4.2.2 / IEEE 802.1AX-2014 §6.4.2 Table 6-3]
-
-          - id: partnerCollecting
-            name: Collecting
-            type: { kind: bits, n: 1 }
-            category: flags
-            doc: Partner Collecting bit (bit 4) as last received. 1=Partner's receive engine is collecting on this link. Used by the Actor to confirm the bidirectional data path is established. [IEEE 802.3ad §43.4.2.2 / IEEE 802.1AX-2014 §6.4.2 Table 6-3]
-
-          - id: partnerDistributing
-            name: Distributing
-            type: { kind: bits, n: 1 }
-            category: flags
-            doc: Partner Distributing bit (bit 5) as last received. 1=Partner's transmit engine is distributing frames on this link. When both sides have Collecting=1 and Distributing=1 the bonded link is fully operational. [IEEE 802.3ad §43.4.2.2 / IEEE 802.1AX-2014 §6.4.2 Table 6-3]
+            doc: Partner Expired bit (bit 7, MSB 0x80) as last received. 1=Partner's receive machine is in EXPIRED state. The Actor can use this to detect that the Partner is recovering from a timeout event. [IEEE 802.3ad §43.4.2.2 / IEEE 802.1AX-2014 §6.4.2 Table 6-3]
 
           - id: partnerDefaulted
             name: Defaulted
@@ -214,11 +184,41 @@ body:
             category: flags
             doc: Partner Defaulted bit (bit 6) as last received. 1=Partner is currently using default (administrative) Actor information because it has not received any LACPDU from the Actor within its timeout window. [IEEE 802.3ad §43.4.2.2 / IEEE 802.1AX-2014 §6.4.2 Table 6-3]
 
-          - id: partnerExpired
-            name: Expired
+          - id: partnerDistributing
+            name: Distributing
             type: { kind: bits, n: 1 }
             category: flags
-            doc: Partner Expired bit (bit 7) as last received. 1=Partner's receive machine is in EXPIRED state. The Actor can use this to detect that the Partner is recovering from a timeout event. [IEEE 802.3ad §43.4.2.2 / IEEE 802.1AX-2014 §6.4.2 Table 6-3]
+            doc: Partner Distributing bit (bit 5) as last received. 1=Partner's transmit engine is distributing frames on this link. When both sides have Collecting=1 and Distributing=1 the bonded link is fully operational. [IEEE 802.3ad §43.4.2.2 / IEEE 802.1AX-2014 §6.4.2 Table 6-3]
+
+          - id: partnerCollecting
+            name: Collecting
+            type: { kind: bits, n: 1 }
+            category: flags
+            doc: Partner Collecting bit (bit 4) as last received. 1=Partner's receive engine is collecting on this link. Used by the Actor to confirm the bidirectional data path is established. [IEEE 802.3ad §43.4.2.2 / IEEE 802.1AX-2014 §6.4.2 Table 6-3]
+
+          - id: partnerSynchronization
+            name: Synchronization
+            type: { kind: bits, n: 1 }
+            category: flags
+            doc: Partner Synchronization bit (bit 3) as last received. 1=Partner considers this link In Sync. Both Actor and Partner Synchronization must be 1 before the link is placed into the active forwarding set. [IEEE 802.3ad §43.4.2.2 / IEEE 802.1AX-2014 §6.4.2 Table 6-3]
+
+          - id: partnerAggregation
+            name: Aggregation
+            type: { kind: bits, n: 1 }
+            category: flags
+            doc: Partner Aggregation bit (bit 2) as last received. 1=Partner's port is aggregatable. Both Actor and Partner Aggregation bits must be 1 for the link to join a multi-port LAG. [IEEE 802.3ad §43.4.2.2 / IEEE 802.1AX-2014 §6.4.2 Table 6-3]
+
+          - id: partnerTimeout
+            name: LACP Timeout
+            type: { kind: bits, n: 1 }
+            category: flags
+            doc: Partner LACP Timeout bit (bit 1) as last received. 1=Short Timeout. Reflects the Partner's timeout preference from the most recent LACPDU. [IEEE 802.3ad §43.4.2.2 / IEEE 802.1AX-2014 §6.4.2 Table 6-3]
+
+          - id: partnerActivity
+            name: LACP Activity
+            type: { kind: bits, n: 1 }
+            category: flags
+            doc: Partner LACP Activity bit (bit 0, LSB 0x01) as last received. 1=Partner is in Active mode. Reflects the Partner's own Activity bit from the most recent LACPDU. [IEEE 802.3ad §43.4.2.2 / IEEE 802.1AX-2014 §6.4.2 Table 6-3]
 
       - id: partnerReserved
         name: Partner Reserved

@@ -3,7 +3,7 @@ version: "0.5"
 name: OSPFv2 Link State Update
 rowBits: 32
 byteOrder: BE
-description: OSPFv2 Link State Update packet (RFC 2328 Appendix A.3.4, packet type 4). 24-byte OSPF common header followed by a 4-byte LSA count and a variable-length list of LSAs. Link State Update packets are the mechanism by which LSAs are flooded throughout an OSPF area; a router sends them in response to Link State Request packets received during Database Exchange, and also whenever it re-originates or relays a newer LSA instance. Each LSA is represented here by its 20-byte header, which contains all fields needed to identify, sequence, and validate the LSA.
+description: OSPFv2 Link State Update packet (RFC 2328 Appendix A.3.5, packet type 4). 24-byte OSPF common header followed by a 4-byte LSA count and a variable-length list of LSAs. Link State Update packets are the mechanism by which LSAs are flooded throughout an OSPF area; a router sends them in response to Link State Request packets received during Database Exchange, and also whenever it re-originates or relays a newer LSA instance. Each LSA is represented here by its 20-byte header, which contains all fields needed to identify, sequence, and validate the LSA.
 body:
   - id: version
     name: Version
@@ -52,12 +52,12 @@ body:
     name: Number of LSAs
     type: { kind: int, bits: 32 }
     category: length
-    doc: Count of LSAs contained in this Link State Update packet. Each LSA immediately follows in sequence; a value of zero is valid and indicates an empty update. [RFC 2328 §A.3.4]
+    doc: Count of LSAs contained in this Link State Update packet. Each LSA immediately follows in sequence; a value of zero is valid and indicates an empty update. [RFC 2328 §A.3.5]
   - kind: repeat
     id: lsas
     name: LSA List
     category: variable
-    doc: Zero or more LSA headers carried by this Link State Update. Each entry is a 20-byte LSA header that identifies and sequences the LSA. LS Type values — 1=Router-LSA, 2=Network-LSA, 3=Summary-LSA (IP network), 4=Summary-LSA (ASBR), 5=AS-external-LSA — determine the portion of the routing domain being described. [RFC 2328 §A.3.4 / §A.4.1]
+    doc: Zero or more LSA headers carried by this Link State Update. Each entry is a 20-byte LSA header that identifies and sequences the LSA. LS Type values — 1=Router-LSA, 2=Network-LSA, 3=Summary-LSA (IP network), 4=Summary-LSA (ASBR), 5=AS-external-LSA — determine the portion of the routing domain being described. [RFC 2328 §A.3.5 / §A.4.1]
     element:
       id: lsaRecord
       fields:

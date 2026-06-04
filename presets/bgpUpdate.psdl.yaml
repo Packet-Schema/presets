@@ -47,6 +47,6 @@ body:
     doc: Opaque bytes. Concatenation of Path Attribute TLVs, each `<Attribute Flags (1 B) + Attribute Type Code (1 B) + Attribute Length (1 or 2 B, controlled by the Extended Length bit in Flags) + Attribute Value>`. Flags bits (MSB-first) are Optional / Transitive / Partial / Extended-Length, followed by 4 reserved bits. Well-known mandatory attribute codes include 1 = ORIGIN, 2 = AS_PATH, 3 = NEXT_HOP; optional non-transitive includes 4 = MED; optional transitive includes 7 = AGGREGATOR, 8 = COMMUNITIES, 14 = MP_REACH_NLRI, 15 = MP_UNREACH_NLRI (RFC 4760). フル仕様 (TLV を 1 件ずつ展開した版) は別 preset 化を想定。 [RFC 4271 §4.3 / §5]
   - id: bgpNlri
     name: Network Layer Reachability Information
-    type: { kind: bytes, n: { kind: ref, field: bgpNlriBytes } }
+    type: { kind: bytes, n: { kind: remaining } }
     category: variable
     doc: Opaque bytes. List of `<Length, Prefix>` 2-tuples announcing routes that share the Path Attributes above — same encoding as Withdrawn Routes. The NLRI field has no explicit length; its size is `Length - 23 - Total Path Attribute Length - Withdrawn Routes Length` (i.e. it runs to the end of the message). For multiprotocol BGP (RFC 4760) the IPv4-unicast NLRI here is empty and reachability is carried inside the MP_REACH_NLRI / MP_UNREACH_NLRI path attributes instead. 詳細な prefix 展開は別 preset 化を想定。 [RFC 4271 §4.3]

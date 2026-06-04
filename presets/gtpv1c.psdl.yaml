@@ -131,8 +131,8 @@ body:
     name: Length
     type: { kind: int, bits: 16 }
     category: length
-    defaultValue: 4
-    doc: "Total length in octets of the GTPv1-C message excluding the mandatory first 4 bytes (flags, Message Type, and this Length field itself). The value covers the TEID (4 bytes), optional block (4 bytes when present), and all IEs. [3GPP TS 29.060 §6]"
+    defaultValue: 0
+    doc: "Length in octets of the payload following the mandatory part of the GTP header, i.e. the rest of the packet after the first 8 octets (flags, Message Type, this Length field, and TEID). The TEID is part of the mandatory 8-byte header and is therefore NOT included in this count. The optional block (Sequence Number, N-PDU Number, Next Extension Header Type — 4 bytes when present) and all IEs ARE included. An empty message (no optional block, no IEs) has Length=0. [3GPP TS 29.060 §6]"
 
   - id: gtpcTEID
     name: TEID

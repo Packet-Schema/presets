@@ -74,9 +74,10 @@ body:
               15: "CLOSE"
               16: "PATH-KEY"
               17: "XRO"
-              19: "OF"
+              19: "MONITORING"
+              21: "OF"
           category: type
-          doc: "PCEP Object Class identifying the high-level purpose of this object. Key classes: 1=OPEN (session parameters), 2=RP (Request Parameters), 3=NO-PATH (no feasible path exists), 4=END-POINTS (source/destination), 5=BANDWIDTH, 6=METRIC, 7=ERO (Explicit Route), 8=RRO (Reported Route), 9=LSPA (LSP Attributes), 10=IRO (Include Route), 11=SVEC (Synchronisation Vector), 12=NOTIFICATION, 13=PCEP-ERROR, 14=LOAD-BALANCING, 15=CLOSE, 17=XRO (Exclude Route), 19=OF (Objective Function). [RFC 5440 §7 / §9]"
+          doc: "PCEP Object Class identifying the high-level purpose of this object. Key classes: 1=OPEN (session parameters), 2=RP (Request Parameters), 3=NO-PATH (no feasible path exists), 4=END-POINTS (source/destination), 5=BANDWIDTH, 6=METRIC, 7=ERO (Explicit Route), 8=RRO (Reported Route), 9=LSPA (LSP Attributes), 10=IRO (Include Route), 11=SVEC (Synchronisation Vector), 12=NOTIFICATION, 13=PCEP-ERROR, 14=LOAD-BALANCING, 15=CLOSE, 17=XRO (Exclude Route), 19=MONITORING (RFC 5886), 21=OF (Objective Function, RFC 5541). [RFC 5440 §7 / §9 / IANA PCEP Objects registry]"
         - kind: group
           id: pcepObjTypeFlags
           name: Type / Flags
@@ -114,4 +115,4 @@ body:
           type: { kind: bytes, n: { kind: op, op: "-", a: { kind: ref, field: pcepObjectLength }, b: { kind: lit, value: 4 } } }
           category: payload-marker
           doc: "Object Body, exactly (pcepObjectLength - 4) bytes. Content and encoding are determined by the Object Class and Object Type fields. For example: OPEN body carries Version, Keepalive-Timer, Dead-Timer, SID (Session ID); RP body carries Flags and Request-ID-Number; ERO/RRO bodies carry sequences of sub-objects (IPv4/IPv6 prefix, AS number, label). [RFC 5440 §7]"
-    count: { kind: ref, field: pcepObjectCount }
+    count: eos

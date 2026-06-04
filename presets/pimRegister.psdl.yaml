@@ -39,12 +39,12 @@ body:
         name: B
         type: { kind: int, bits: 1 }
         category: flags
-        doc: "Border (B) bit. Set to 1 when the DR sending this Register is at the border of a PIM domain and the encapsulated packet originated from a directly connected source outside the domain. Allows the RP to identify inter-domain registrations. [RFC 7761 §4.9.2]"
+        doc: "Border (B) bit. Deprecated by RFC 7761: it MUST be set to zero on transmission and MUST be ignored on reception. (Formerly used to signal inter-domain border registrations.) [RFC 7761 §4.9.3]"
       - id: pimNullRegisterBit
         name: N
         type: { kind: int, bits: 1 }
         category: flags
-        doc: "Null-Register (N) bit. When set to 1, the Register message carries no encapsulated data; used by the DR to probe whether the RP still has active receivers on the shared tree, allowing the RP to send Register-Stop before the register suppression timer expires. [RFC 7761 §4.9.4]"
+        doc: "Null-Register (N) bit. When set to 1, the Register message carries no encapsulated data; used by the DR to probe whether the RP still has active receivers on the shared tree, allowing the RP to send Register-Stop before the register suppression timer expires. [RFC 7761 §4.9.3]"
       - id: pimRegisterReserved
         name: Reserved
         type: { kind: int, bits: 30 }
@@ -53,6 +53,6 @@ body:
 
   - id: pimRegisterData
     name: Multicast Data Packet
-    type: { kind: bytes, n: { kind: ref, field: pimRegisterDataBytes } }
+    type: { kind: bytes, n: { kind: remaining } }
     category: payload-marker
-    doc: "The original multicast IP data packet (IPv4 or IPv6) tunneled from the DR to the RP inside the Register message. When the Null-Register (N) bit is set, this field is empty (zero bytes). The RP decapsulates this packet and forwards it onto the shared tree. [RFC 7761 §4.9.1]"
+    doc: "The original multicast IP data packet (IPv4 or IPv6) tunneled from the DR to the RP inside the Register message. When the Null-Register (N) bit is set, this field is empty (zero bytes). The RP decapsulates this packet and forwards it onto the shared tree. [RFC 7761 §4.9.3]"

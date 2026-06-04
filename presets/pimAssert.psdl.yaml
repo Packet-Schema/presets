@@ -52,9 +52,14 @@ body:
         doc: "Bidirectional PIM bit. When set, the group uses BIDIR-PIM bidirectional trees. 0 for standard PIM-SM assert processing. [RFC 7761 §4.9.1]"
       - id: grpReserved
         name: Reserved
-        type: { kind: bits, n: 7 }
+        type: { kind: bits, n: 6 }
         category: reserved
         doc: "Reserved flag bits in the Encoded-Group-Address; MUST be zero on transmit and ignored on receipt. [RFC 7761 §4.9.1]"
+      - id: grpZ
+        name: Z
+        type: { kind: bits, n: 1 }
+        category: flags
+        doc: "Admin Scope Zone (Z) bit. Indicates that the group range is an admin scope zone. This is used in the Bootstrap Router mechanism only. [RFC 7761 §4.9.1]"
       - id: grpMaskLen
         name: Mask Len
         type: { kind: int, bits: 8 }

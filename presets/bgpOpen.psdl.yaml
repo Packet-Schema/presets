@@ -51,24 +51,30 @@ body:
     type: { kind: int, bits: 8 }
     category: length
     doc: Total length in octets of the Optional Parameters field that follows. A value of 0 indicates that no Optional Parameters are present. Each Optional Parameter is encoded as a TLV triple (Parm-Type 1 B + Parm-Length 1 B + Parm-Value). [RFC 4271 §4.2]
-  - kind: repeat
-    id: bgpOptParms
-    element:
-      id: bgpOptParm
-      fields:
-        - id: parmType
-          name: Parm Type
-          type: { kind: int, bits: 8 }
-          category: type
-          doc: Optional Parameter type code. Currently only type 2 (Capabilities Advertisement, RFC 5492) is defined. A BGP speaker that does not recognise a type code MUST close the connection with a NOTIFICATION (Error Code 2, Subcode 8 — Unsupported Optional Parameter). [RFC 4271 §4.2 / RFC 5492]
-        - id: parmLen
-          name: Parm Length
-          type: { kind: int, bits: 8 }
-          category: length
-          doc: Length in octets of the following Parm Value field for this individual parameter. [RFC 4271 §4.2]
-        - id: parmValue
-          name: Parm Value
-          type: { kind: bytes, n: { kind: ref, field: parmLen } }
-          category: variable
-          doc: Parameter value whose interpretation depends on Parm Type. For type 2 (Capabilities), this field contains one or more Capability TLVs, each with a 1-octet Capability Code, a 1-octet Capability Length, and a variable-length Capability Value (e.g. Code 1 = Multiprotocol Extensions RFC 4760, Code 65 = 4-octet AS Number RFC 6793, Code 128 = Route Refresh RFC 2918). [RFC 5492]
-    count: { kind: ref, field: optParmLen }
+  - kind: bounded
+    id: bgpOptParmsScope
+    name: Optional Parameters
+    bytes: { kind: ref, field: optParmLen }
+    doc: Byte-bounded region holding the Optional Parameters TLVs. Its size equals the Optional Parameters Length (optParmLen) in octets; as many TLVs as fit are parsed within it. [RFC 4271 §4.2]
+    fields:
+      - kind: repeat
+        id: bgpOptParms
+        element:
+          id: bgpOptParm
+          fields:
+            - id: parmType
+              name: Parm Type
+              type: { kind: int, bits: 8 }
+              category: type
+              doc: Optional Parameter type code. Currently only type 2 (Capabilities Advertisement, RFC 5492) is defined. A BGP speaker that does not recognise a type code MUST close the connection with a NOTIFICATION (Error Code 2, Subcode 4 — Unsupported Optional Parameter). [RFC 4271 §4.2 / RFC 5492]
+            - id: parmLen
+              name: Parm Length
+              type: { kind: int, bits: 8 }
+              category: length
+              doc: Length in octets of the following Parm Value field for this individual parameter. [RFC 4271 §4.2]
+            - id: parmValue
+              name: Parm Value
+              type: { kind: bytes, n: { kind: ref, field: parmLen } }
+              category: variable
+              doc: Parameter value whose interpretation depends on Parm Type. For type 2 (Capabilities), this field contains one or more Capability TLVs, each with a 1-octet Capability Code, a 1-octet Capability Length, and a variable-length Capability Value (e.g. Code 1 = Multiprotocol Extensions RFC 4760, Code 65 = 4-octet AS Number RFC 6793, Code 128 = Route Refresh RFC 2918). [RFC 5492]
+        count: eos

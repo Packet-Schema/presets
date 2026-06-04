@@ -3,7 +3,7 @@ version: "0.5"
 name: TACACS+ Packet
 rowBits: 32
 byteOrder: BE
-description: "TACACS+ (Terminal Access Controller Access-Control System Plus) packet (RFC 8907). An AAA protocol for network device administration — Authentication, Authorization, and Accounting — operating over TCP port 49. The fixed 12-byte header carries Version (Major 4, Minor 0 or 1), Type (Authentication/Authorization/Accounting), Sequence Number, Flags, Session ID, and Body Length. The variable-length Body immediately follows; it is XOR-obfuscated (not encrypted) using a pseudo-random pad derived from a shared secret, the Session ID, and a sequence number (RFC 8907 §4.5). The Unencrypted flag (TAC_PLUS_UNENCRYPTED_FLAG 0x04) in the Flags byte disables obfuscation when set. RFC 8907 obsoletes the earlier Cisco draft; the term 'encryption' is retained in field names for historical compatibility but the mechanism is XOR obfuscation."
+description: "TACACS+ (Terminal Access Controller Access-Control System Plus) packet (RFC 8907). An AAA protocol for network device administration — Authentication, Authorization, and Accounting — operating over TCP port 49. The fixed 12-byte header carries Version (Major 0xc, Minor 0 or 1), Type (Authentication/Authorization/Accounting), Sequence Number, Flags, Session ID, and Body Length. The variable-length Body immediately follows; it is XOR-obfuscated (not encrypted) using a pseudo-random pad derived from a shared secret, the Session ID, and a sequence number (RFC 8907 §4.5). The Unencrypted flag (TAC_PLUS_UNENCRYPTED_FLAG 0x01) in the Flags byte disables obfuscation when set. RFC 8907 obsoletes the earlier Cisco draft; the term 'encryption' is retained in field names for historical compatibility but the mechanism is XOR obfuscation."
 
 body:
   - kind: group
@@ -14,8 +14,8 @@ body:
         name: Major Version
         type: { kind: int, bits: 4 }
         category: type
-        defaultValue: 4
-        doc: "TACACS+ major version number. MUST be 4 (binary 0100) for all TACACS+ packets. A receiver MUST discard any packet whose major version is not 4. [RFC 8907 §4.1]"
+        defaultValue: 12
+        doc: "TACACS+ major version number. MUST be 0xc (binary 1100) for all TACACS+ packets. A receiver MUST discard any packet whose major version is not 0xc. [RFC 8907 §4.1]"
       - id: tacacsMinorVersion
         name: Minor Version
         type:
@@ -63,18 +63,17 @@ body:
         category: flags
         defaultValue: 0
         doc: "TAC_PLUS_SINGLE_CONNECT_FLAG (0x04). When set, indicates that the sender supports multiplexing multiple TACACS+ sessions over a single TCP connection (single-connect mode). Both peers MUST set this flag to use single-connect mode; if either peer does not set it the connection MUST carry only one session. [RFC 8907 §4.3]"
+      - id: tacacsFlagsReservedBit1
+        name: Reserved
+        type: { kind: bits, n: 1 }
+        category: reserved
+        doc: "Bit 1 of the Flags byte. Reserved for future use; MUST be set to zero on transmission and ignored on receipt. [RFC 8907 §4.1]"
       - id: tacacsUnencryptedFlag
         name: Unencrypted
         type: { kind: int, bits: 1 }
         category: flags
         defaultValue: 0
-        doc: "TAC_PLUS_UNENCRYPTED_FLAG (0x02). When set to 1, the Body is transmitted in cleartext (no XOR obfuscation). When 0, the Body is XOR-obfuscated using a pad derived from MD5(shared-secret + session-id + version + seq-no) chained iteratively. Use of unobfuscated packets is NOT RECOMMENDED in production environments. [RFC 8907 §4.5]"
-      - id: tacacsMoreFlag
-        name: More
-        type: { kind: int, bits: 1 }
-        category: flags
-        defaultValue: 0
-        doc: "Historically labelled TAC_PLUS_MORE (0x01). Reserved and MUST be set to zero; retained in the flag byte layout for backward compatibility with pre-RFC implementations. [RFC 8907 §4.1]"
+        doc: "TAC_PLUS_UNENCRYPTED_FLAG (0x01), the least-significant bit (bit 0) of the Flags byte. When set to 1, the Body is transmitted in cleartext (no XOR obfuscation). When 0, the Body is XOR-obfuscated using a pad derived from MD5(shared-secret + session-id + version + seq-no) chained iteratively. Use of unobfuscated packets is NOT RECOMMENDED in production environments. [RFC 8907 §4.5]"
 
   - id: tacacsSessionId
     name: Session ID

@@ -116,60 +116,66 @@ body:
     category: length
     doc: "Total length of the IKE message in bytes, including the 28-byte fixed IKE header and all payloads. The receiver uses this to determine the end of the message when the transport does not provide message boundaries (e.g., TCP encapsulation per RFC 8229). [RFC 7296 §3.1]"
 
-  - kind: repeat
-    id: ikev2Payloads
-    name: Generic Payload Headers
-    category: variable
-    element:
-      id: ikev2PayloadRecord
-      fields:
-        - id: ikev2PayloadNextPayload
-          name: Next Payload
-          type:
-            kind: enum
-            bits: 8
-            variants:
-              0: "No Next Payload"
-              33: "SA (Security Association)"
-              34: "KE (Key Exchange)"
-              35: "IDi (Identification - Initiator)"
-              36: "IDr (Identification - Responder)"
-              37: "CERT (Certificate)"
-              38: "CERTREQ (Certificate Request)"
-              39: "AUTH (Authentication)"
-              40: "Ni/Nr (Nonce)"
-              41: "N (Notify)"
-              42: "D (Delete)"
-              43: "V (Vendor ID)"
-              44: "TSi (Traffic Selector - Initiator)"
-              45: "TSr (Traffic Selector - Responder)"
-              46: "SK (Encrypted and Authenticated)"
-              47: "CP (Configuration)"
-              48: "EAP (Extensible Authentication)"
-          category: type
-          doc: "Payload type of the next payload in the chain, or 0 if this is the last payload. Forms a linked list through the entire IKE message. Each Generic Payload Header's Next Payload field points to the type of the following payload. [RFC 7296 §3.2]"
-        - kind: group
-          id: ikev2PayloadCritical
-          name: C / Reserved
-          children:
-            - id: ikev2PayloadCritical
-              name: C
-              type: { kind: int, bits: 1 }
-              category: flags
-              doc: "Critical (C) flag. If set to 1, the sender indicates that the payload is critical; if the receiver does not understand the payload type, it MUST reject the message with a NOTIFY payload of type UNSUPPORTED_CRITICAL_PAYLOAD. If 0, the receiver MAY ignore an unknown payload type. [RFC 7296 §3.2]"
-            - id: ikev2PayloadReserved
-              name: Reserved
-              type: { kind: int, bits: 7 }
-              category: reserved
-              doc: "Reserved bits in the second byte of the Generic Payload Header. MUST be sent as zero and MUST be ignored on receipt. [RFC 7296 §3.2]"
-        - id: ikev2PayloadLength
-          name: Payload Length
-          type: { kind: int, bits: 16 }
-          category: length
-          doc: "Length in bytes of this payload, including the 4-byte Generic Payload Header itself. The next payload (if any) immediately follows at the offset indicated by this length. The minimum value is 4 (an empty payload body). [RFC 7296 §3.2]"
-        - id: ikev2PayloadData
-          name: Payload Data
-          type: { kind: bytes, n: { kind: ref, field: ikev2PayloadDataLen } }
-          category: variable
-          doc: "Payload-type-specific data, ikev2PayloadDataLen bytes long (= Payload Length - 4). Format varies by payload type: SA contains proposals and transforms, KE contains a DH public value, Nonce contains random data, AUTH contains authentication data, NOTIFY carries notification codes and data, etc. [RFC 7296 §3.2]"
-    count: { kind: ref, field: ikev2PayloadCount }
+  - kind: bounded
+    id: ikev2PayloadsScope
+    name: IKE Payloads
+    bytes: { kind: op, op: '-', a: { kind: ref, field: ikev2Length }, b: { kind: lit, value: 28 } }
+    doc: "The payloads occupy the message bytes following the 28-byte fixed IKE header, for a total of (Length - 28) octets. Payloads form a Next-Payload-terminated chain (each Generic Payload Header's Next Payload field names the following payload type, with 0 marking the last) and are bounded by the header Length field; there is no payload-count field on the wire. [RFC 7296 §3.1 / §3.2]"
+    fields:
+      - kind: repeat
+        id: ikev2Payloads
+        name: Generic Payload Headers
+        category: variable
+        element:
+          id: ikev2PayloadRecord
+          fields:
+            - id: ikev2PayloadNextPayload
+              name: Next Payload
+              type:
+                kind: enum
+                bits: 8
+                variants:
+                  0: "No Next Payload"
+                  33: "SA (Security Association)"
+                  34: "KE (Key Exchange)"
+                  35: "IDi (Identification - Initiator)"
+                  36: "IDr (Identification - Responder)"
+                  37: "CERT (Certificate)"
+                  38: "CERTREQ (Certificate Request)"
+                  39: "AUTH (Authentication)"
+                  40: "Ni/Nr (Nonce)"
+                  41: "N (Notify)"
+                  42: "D (Delete)"
+                  43: "V (Vendor ID)"
+                  44: "TSi (Traffic Selector - Initiator)"
+                  45: "TSr (Traffic Selector - Responder)"
+                  46: "SK (Encrypted and Authenticated)"
+                  47: "CP (Configuration)"
+                  48: "EAP (Extensible Authentication)"
+              category: type
+              doc: "Payload type of the next payload in the chain, or 0 if this is the last payload. Forms a linked list through the entire IKE message. Each Generic Payload Header's Next Payload field points to the type of the following payload. [RFC 7296 §3.2]"
+            - kind: group
+              id: ikev2PayloadFlags
+              name: C / Reserved
+              children:
+                - id: ikev2PayloadCritical
+                  name: C
+                  type: { kind: int, bits: 1 }
+                  category: flags
+                  doc: "Critical (C) flag. If set to 1, the sender indicates that the payload is critical; if the receiver does not understand the payload type, it MUST reject the message with a NOTIFY payload of type UNSUPPORTED_CRITICAL_PAYLOAD. If 0, the receiver MAY ignore an unknown payload type. [RFC 7296 §3.2]"
+                - id: ikev2PayloadReserved
+                  name: Reserved
+                  type: { kind: int, bits: 7 }
+                  category: reserved
+                  doc: "Reserved bits in the second byte of the Generic Payload Header. MUST be sent as zero and MUST be ignored on receipt. [RFC 7296 §3.2]"
+            - id: ikev2PayloadLength
+              name: Payload Length
+              type: { kind: int, bits: 16 }
+              category: length
+              doc: "Length in bytes of this payload, including the 4-byte Generic Payload Header itself. The next payload (if any) immediately follows at the offset indicated by this length. The minimum value is 4 (an empty payload body). [RFC 7296 §3.2]"
+            - id: ikev2PayloadData
+              name: Payload Data
+              type: { kind: bytes, n: { kind: op, op: '-', a: { kind: ref, field: ikev2PayloadLength }, b: { kind: lit, value: 4 } } }
+              category: variable
+              doc: "Payload-type-specific data, (Payload Length - 4) bytes long. Format varies by payload type: SA contains proposals and transforms, KE contains a DH public value, Nonce contains random data, AUTH contains authentication data, NOTIFY carries notification codes and data, etc. [RFC 7296 §3.2]"
+        count: eos

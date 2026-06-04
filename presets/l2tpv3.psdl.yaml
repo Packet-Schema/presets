@@ -37,7 +37,7 @@ body:
       name: L2-Specific Sublayer
       type: { kind: int, bits: 32 }
       category: variable
-      doc: "32-bit Default L2-Specific Sublayer, present when negotiated via the L2-Specific Sublayer AVP. Bit layout (MSB first): 1-bit S (Sequence) flag, 15-bit sequence number, 16-bit reserved (MUST be zero). The sequence number provides per-session in-order delivery detection for pseudowire payloads; a value of 0 in the S flag indicates the sequence number field is not valid. When no L2-Specific Sublayer type was negotiated this field is absent. [RFC 3931 §4.1.1 / RFC 4719 §2.1]"
+      doc: "32-bit Default L2-Specific Sublayer, present when negotiated via the L2-Specific Sublayer AVP. Bit layout (MSB first): 1 reserved bit, 1-bit S (Sequence) flag, 6 reserved bits, then a 24-bit Sequence Number (a free-running counter of 2^24 values). The sequence number provides per-session in-order delivery detection for pseudowire payloads; a value of 0 in the S flag indicates the sequence number field is not valid. When no L2-Specific Sublayer type was negotiated this field is absent. [RFC 3931 §4.6 / RFC 4719 §2.1]"
 
   - id: l2Payload
     name: L2 Payload

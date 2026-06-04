@@ -4,7 +4,7 @@ name: RSVP Common Header + Object
 rowBits: 32
 byteOrder: BE
 description: >-
-  Resource ReSerVation Protocol (RSVP) common header followed by a sequence of typed objects (RFC 2205). The 8-byte common header carries the RSVP version (4 bits), flags (4 bits), message type (1=Path, 2=Resv, 3=PathErr, 4=ResvErr, 5=PathTear, 6=ResvTear, 7=ResvConf), checksum, Send TTL, reserved byte, and total message length. Each object has a 4-byte object header (ObjLength, Class-Num, C-Type) followed by variable-length contents. Key class numbers: 1=SESSION, 3=RSVP_HOP, 5=TIME_VALUES, 9=FLOWSPEC, 12=SENDER_TEMPLATE.
+  Resource ReSerVation Protocol (RSVP) common header followed by a sequence of typed objects (RFC 2205). The 8-byte common header carries the RSVP version (4 bits), flags (4 bits), message type (1=Path, 2=Resv, 3=PathErr, 4=ResvErr, 5=PathTear, 6=ResvTear, 7=ResvConf), checksum, Send TTL, reserved byte, and total message length. Each object has a 4-byte object header (ObjLength, Class-Num, C-Type) followed by variable-length contents. Key class numbers: 1=SESSION, 3=RSVP_HOP, 5=TIME_VALUES, 9=FLOWSPEC, 11=SENDER_TEMPLATE, 12=SENDER_TSPEC.
 body:
   - kind: group
     id: rsvpCommonHeader
@@ -76,7 +76,7 @@ body:
           name: Class-Num
           type: { kind: int, bits: 8 }
           category: type
-          doc: Object class number identifying the information carried. 1=SESSION (destination address, protocol ID, destination port), 3=RSVP_HOP (previous/next RSVP-capable hop address and Logical Interface Handle), 5=TIME_VALUES (refresh period R in milliseconds), 9=FLOWSPEC (requested QoS parameters), 12=SENDER_TEMPLATE (sender IP address and source port). High-order two bits encode handling rules for unknown classes (ignore / forward / send error). [RFC 2205 §3.1]
+          doc: Object class number identifying the information carried. 1=SESSION (destination address, protocol ID, destination port), 3=RSVP_HOP (previous/next RSVP-capable hop address and Logical Interface Handle), 5=TIME_VALUES (refresh period R in milliseconds), 9=FLOWSPEC (requested QoS parameters), 11=SENDER_TEMPLATE (sender IP address and source port), 12=SENDER_TSPEC (sender traffic specification). High-order two bits encode handling rules for unknown classes (ignore / forward / send error). [RFC 2205 §3.1]
         - id: rsvpObjCType
           name: C-Type
           type: { kind: int, bits: 8 }
@@ -94,4 +94,4 @@ body:
           category: variable
           doc: >-
             Object-specific payload following the 4-byte object header, (ObjLength - 4) bytes long. Content format is defined by Class-Num and C-Type. Example — SESSION IPv4 (Class 1, C-Type 1): 4-byte IPv4 DestAddress + 1-byte Protocol ID + 1-byte Flags + 2-byte DstPort (RFC 2205 §A.1). Example — TIME_VALUES (Class 5, C-Type 1): 4-byte Refresh Period R in milliseconds (RFC 2205 §A.2). [RFC 2205 §3.1]
-    count: { kind: ref, field: rsvpObjectCount }
+    count: eos

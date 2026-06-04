@@ -18,6 +18,19 @@ body:
       - { id: res, name: Reserved, type: { kind: int, bits: 3 }, category: reserved, doc: "Reserved bits; must be set to zero by senders and ignored by receivers." }
       - { id: type, name: Type, type: { kind: int, bits: 4 }, category: type, doc: "Packet type: 0=Request, 1=Response, 2=Data, 3=Ack, 4=DataAck, 5=CloseReq, 6=Close, 7=Reset, 8=Sync, 9=SyncAck." }
       - { id: x, name: X, type: { kind: int, bits: 1 }, category: flags, doc: "Extended sequence numbers flag: 0 uses 24-bit sequence numbers, 1 uses 48-bit sequence numbers." }
-  - { id: seqNumHigh, name: Sequence Number High, type: { kind: int, bits: 24 }, category: identifier, doc: "High 24 bits of the sequence number; when X=0 this field contains the complete 24-bit sequence number." }
-  - { kind: optional, when: { kind: ref, field: "x" }, container: { id: reserved2, name: Reserved2, type: { kind: int, bits: 16 }, category: reserved, doc: "Reserved field present only when X=1; must be set to zero." } }
-  - { kind: optional, when: { kind: ref, field: "x" }, container: { id: seqNumLow, name: Sequence Number Low, type: { kind: int, bits: 32 }, category: identifier, doc: "Low 32 bits of the 48-bit sequence number; present only when X=1." } }
+  - kind: switch
+    id: seqNum
+    on: { kind: ref, field: "x" }
+    doc: "Sequence Number layout depends on X. X=0: a 24-bit Sequence Number directly after the flags byte (12-byte generic header). X=1: an 8-bit Reserved field followed by a contiguous 48-bit Sequence Number (16-byte generic header). [RFC 4340 §5.1]"
+    cases:
+      "0":
+        id: shortSeq
+        doc: "Short sequence number form (X=0)."
+        fields:
+          - { id: seqNum24, name: Sequence Number, type: { kind: int, bits: 24 }, category: identifier, doc: "Complete 24-bit sequence number; used when X=0." }
+      "1":
+        id: longSeq
+        doc: "Long sequence number form (X=1)."
+        fields:
+          - { id: reserved2, name: Reserved, type: { kind: int, bits: 8 }, category: reserved, doc: "Reserved field present only when X=1; must be set to zero by senders and ignored by receivers." }
+          - { id: seqNum48, name: Sequence Number, type: { kind: int, bits: 48 }, category: identifier, doc: "Contiguous 48-bit sequence number (16 bits completing word 3 plus 32 bits in word 4); present only when X=1." }

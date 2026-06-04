@@ -73,7 +73,7 @@ body:
           id: nextHeader_byProto
           on:
             kind: ref
-            field: nextHeader_proto
+            field: nextHeader
           cases:
             "0":
               id: nextHeader_proto_0
@@ -255,6 +255,4 @@ body:
                     kind: bits
                     n: 48
                   doc: One or more TLV-encoded options examined only by the packet's destination node(s), padded to an 8-byte boundary. [RFC 8200 §4.2, §4.6]
-    count:
-      kind: ref
-      field: nextHeader_chainCount
+    count: eos

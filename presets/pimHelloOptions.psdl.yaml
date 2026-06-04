@@ -7,8 +7,9 @@ description: >-
   PIM Hello message with expanded option decoding (RFC 7761, message type 0).
   Sent periodically by PIM routers to discover neighbours and negotiate
   parameters.  The fixed 32-bit header (Version=2, Type=0, Reserved, Checksum)
-  is followed by a count of TLV options and a sequence of those options.  Each
-  option carries a 16-bit Type, a 16-bit Length and a variable-length Value.
+  is followed by a sequence of TLV options that runs to the end of the
+  datagram.  Each option carries a 16-bit Type, a 16-bit Length and a
+  variable-length Value.
   Well-known types are decoded individually via a Switch: 1=Holdtime (16-bit
   seconds), 2=LAN Prune Delay (T-bit + Propagation Delay + Override Interval),
   19=DR Priority (32-bit), 20=Generation ID (32-bit), 24=Address List
@@ -47,28 +48,11 @@ body:
       One's-complement checksum computed over the entire PIM Hello message
       with this field set to zero.  A receiver MUST verify the checksum and
       silently discard the message on failure. [RFC 7761 §4.9]
-  - id: pimHelloOptCount
-    name: Option Count
-    type: { kind: int, bits: 16 }
-    category: length
-    doc: >-
-      Number of TLV Hello Options that follow in this message.  Not present in
-      the wire format defined by RFC 7761 (which uses end-of-datagram
-      termination); this field is a visualiser-level count added to drive the
-      fixed-count repeat below.  Set to the actual number of options when
-      constructing a packet for display. [RFC 7761 §4.9.2]
-  - id: pimHelloOptPad
-    name: Reserved
-    type: { kind: int, bits: 16 }
-    category: reserved
-    doc: >-
-      Padding to maintain 32-bit row alignment after the Option Count field;
-      MUST be set to zero on transmission and ignored on receipt. [RFC 7761 §4.9]
   - kind: repeat
     id: pimHelloOptions
     name: Hello Options
     category: variable
-    count: { kind: ref, field: pimHelloOptCount }
+    count: eos
     element:
       id: pimHelloOption
       fields:

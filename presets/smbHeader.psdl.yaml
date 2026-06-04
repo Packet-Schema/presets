@@ -73,7 +73,7 @@ body:
       kind: bits
       n: 32
     category: flags
-    doc: Bitmask of processing flags. Bit 0 (SMB2_FLAGS_SERVER_TO_REDIR=0x00000001) indicates server-to-client direction. Bit 1 (ASYNC_COMMAND=0x00000002) indicates asynchronous processing; AsyncId replaces the Reserved+TreeId fields. Bit 2 (RELATED_OPERATIONS=0x00000004) marks a compounded chained request. Bit 3 (SIGNED=0x00000008) means the Signature field is valid. Bit 28 (PRIORITY_MASK) carries I/O priority in SMB 3.1.1. [MS-SMB2 §2.2.1]
+    doc: Bitmask of processing flags. Bit 0 (SMB2_FLAGS_SERVER_TO_REDIR=0x00000001) indicates server-to-client direction. Bit 1 (ASYNC_COMMAND=0x00000002) indicates asynchronous processing; AsyncId replaces the Reserved+TreeId fields. Bit 2 (RELATED_OPERATIONS=0x00000004) marks a compounded chained request. Bit 3 (SIGNED=0x00000008) means the Signature field is valid. PRIORITY_MASK = 0x00000070 (bits 4-6) carries I/O priority in SMB 3.1.1. [MS-SMB2 §2.2.1]
   - id: nextCommand
     name: Next Command
     type:

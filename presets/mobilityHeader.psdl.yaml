@@ -3,7 +3,7 @@ version: "0.5"
 name: Mobile IPv6 Mobility Header
 rowBits: 32
 byteOrder: BE
-description: "Mobile IPv6 Mobility Header (RFC 6275, IPv6 Next Header 135). A variable-length header carried directly in an IPv6 packet or as the final extension header before the upper-layer payload. The fixed portion — Payload Proto (8 b), Header Len (8 b), MH Type (8 b), Reserved (8 b), Checksum (16 b), and Reserved (16 b) — is 8 bytes (the two Reserved bytes after Checksum close the fixed header to a 64-bit boundary). Message Data follows and is selected by MH Type: Binding Update (type 5) carries Sequence, four flags (A/H/L/K), a 12-bit reserved field, and Lifetime; all other types carry raw Message Data bytes. The header length field (Header Len) encodes the total length in 8-octet units minus 1, consistent with other IPv6 extension headers."
+description: "Mobile IPv6 Mobility Header (RFC 6275, IPv6 Next Header 135). A variable-length header carried directly in an IPv6 packet or as the final extension header before the upper-layer payload. The named fixed fields — Payload Proto (8 b), Header Len (8 b), MH Type (8 b), Reserved (8 b), and Checksum (16 b) — total 6 octets, and Message Data begins immediately after the Checksum (occupying the right half of the Checksum row). Message Data is selected by MH Type: Binding Update (type 5) carries Sequence, four flags (A/H/L/K), a 12-bit reserved field, and Lifetime; all other types carry raw Message Data bytes. The total header length is a multiple of 8 octets per the Header Len semantics, consistent with other IPv6 extension headers."
 
 body:
   - id: mh6PayloadProto
@@ -107,6 +107,6 @@ body:
         fields:
         - id: mh6MessageBytes
           name: Message Data
-          type: { kind: bytes, n: { kind: ref, field: mh6MessageDataLen } }
+          type: { kind: bytes, n: { kind: remaining } }
           category: variable
-          doc: "Raw message data whose length and interpretation depend on MH Type. For types other than Binding Update (5), the layout is defined by the relevant RFC section for that type (e.g. BRR §6.1.2, HoTI §6.1.3, CoTI §6.1.4, HoT §6.1.5, CoT §6.1.6, BA §6.1.8, BE §6.1.9). The byte count mh6MessageDataLen is derived externally from the Header Len field. [RFC 6275 §6.1]"
+          doc: "Raw message data whose length and interpretation depend on MH Type. For types other than Binding Update (5), the layout is defined by the relevant RFC section for that type (e.g. BRR §6.1.2, HoTI §6.1.3, CoTI §6.1.4, HoT §6.1.5, CoT §6.1.6, BA §6.1.8, BE §6.1.9). It occupies the remaining bytes of the Mobility Header, whose total extent is given by the Header Len field. [RFC 6275 §6.1]"

@@ -24,15 +24,18 @@ body:
           bits: 8
           variants:
             1: "Update"
+            2: "Request"
             3: "Query"
             4: "Reply"
             5: "Hello"
-            6: "SIA-Query"
-            7: "SIA-Reply"
-            8: "Request"
+            6: "Reserved (IPX-SAP)"
+            7: "Reserved (PROBE)"
+            8: "Reserved (ACK)"
+            10: "SIA-Query"
+            11: "SIA-Reply"
         category: type
         defaultValue: 5
-        doc: "Packet type. 1=Update (carries routing information changes), 3=Query (requests best-path information from neighbours), 4=Reply (response to a Query), 5=Hello (neighbour discovery and keepalive), 6=SIA-Query / 7=SIA-Reply (Stuck-In-Active recovery per RFC 7868 §5.4.4), 8=Request. [RFC 7868 §6.1]"
+        doc: "Packet type. 1=Update (carries routing information changes), 2=Request (requests specific information from a neighbour), 3=Query (requests best-path information from neighbours), 4=Reply (response to a Query), 5=Hello (neighbour discovery and keepalive), 6/7/8=Reserved (legacy IPX-SAP, PROBE, ACK), 10=SIA-Query / 11=SIA-Reply (Stuck-In-Active recovery per RFC 7868 §5.4.4). [RFC 7868 §6.5]"
 
       - id: eigrpChecksum
         name: Checksum
@@ -44,7 +47,7 @@ body:
     name: Flags
     type: { kind: bits, n: 32 }
     category: flags
-    doc: "32-bit flags field. Bit 0 (MSB): Init flag — set on the first Update sent to a new neighbour to trigger a full topology-table exchange. Bit 1: CR (Conditionally Received) — set when the packet may be received by a neighbour that has not yet established a full adjacency. Bits 2–31 are reserved and MUST be set to zero on transmission. [RFC 7868 §6.1]"
+    doc: "32-bit flags field. INIT-Flag = 0x01 (low-order bit) — set on the first Update sent to a new neighbour to trigger a full topology-table exchange. CR-Flag = 0x02 (Conditionally Received) — set when the packet may be received by a neighbour that has not yet established a full adjacency. RS-Flag = 0x04 (Restart) and EOT-Flag = 0x08 (End-of-Table) are used during graceful restart. All remaining high-order bits are reserved and MUST be set to zero on transmission. [RFC 7868 §6.5]"
 
   - id: eigrpSequence
     name: Sequence Number
@@ -84,16 +87,16 @@ body:
             bits: 16
             variants:
               1: "General Parameters (0x0001)"
+              5: "Multicast Sequence (0x0005)"
+              6: "Peer Information (0x0006)"
+              7: "Peer Termination (0x0007)"
               258: "IP Internal Route (0x0102)"
               259: "IP External Route (0x0103)"
               260: "IP Community (0x0104)"
-              512: "IPv6 Internal Route (0x0200)"
-              513: "IPv6 External Route (0x0201)"
-              1024: "Multicast Sequence (0x0400)"
-              1025: "Peer Stubbing Info (0x0401)"
-              1026: "Peer Termination (0x0402)"
+              1026: "IPv6 Internal Route (0x0402)"
+              1027: "IPv6 External Route (0x0403)"
           category: type
-          doc: "TLV type code identifying the content of this record. 0x0001=General Parameters (hello interval, hold time, K-values, and neighbour flags used to verify compatibility); 0x0102=IP Internal Route (EIGRP-originated prefix reachable within the AS); 0x0103=IP External Route (prefix redistributed from another routing domain, carrying the original protocol attributes); 0x0200/0x0201=IPv6 equivalents; 0x0400=Multicast Sequence used by EIGRP multicast reliable transport; 0x0401=Peer Stubbing Info advertising stub-router capability; 0x0402=Peer Termination graceful neighbour shutdown. [RFC 7868 §6.2–6.9]"
+          doc: "TLV type code identifying the content of this record. 0x0001=General Parameters (hello interval, hold time, K-values, and neighbour flags used to verify compatibility); 0x0005=Multicast Sequence used by EIGRP multicast reliable transport; 0x0006=Peer Information; 0x0007=Peer Termination graceful neighbour shutdown; 0x0102=IP Internal Route (EIGRP-originated prefix reachable within the AS); 0x0103=IP External Route (prefix redistributed from another routing domain, carrying the original protocol attributes); 0x0402/0x0403=IPv6 Internal/External Route equivalents. [RFC 7868 §6.2–6.9]"
 
         - id: eigrpTlvLen
           name: TLV Length

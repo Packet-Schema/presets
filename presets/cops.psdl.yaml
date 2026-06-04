@@ -3,7 +3,7 @@ version: "0.5"
 name: COPS (Common Open Policy Service)
 rowBits: 32
 byteOrder: BE
-description: "Common Open Policy Service (COPS) protocol (RFC 2748). A simple query-and-response protocol used for policy-based admission control between a Policy Enforcement Point (PEP) and a remote Policy Decision Point (PDP). All COPS messages share a fixed 8-byte header: a 4-bit Version (always 1), a 4-bit Flags field, an 8-bit Op-Code identifying the message type (1=Request, 2=Decision, 3=Report State, 4=Delete Request State, 5=Synchronize State Request, 6=Keep-Alive, 7=Install Decision, 8=Remove Decision), a 16-bit Client-Type identifying the policy client, and a 32-bit Message Length giving the total byte count of the message including the header. Following the header, zero or more typed objects are carried; each object begins with a 2-byte Length, a 1-byte C-Num (object class), and a 1-byte C-Type (class sub-type), followed by the object's data payload. The number of objects to decode is supplied externally via copsObjCount; the byte length of each object's contents is derived from the object's own Length field minus the 4-byte object header."
+description: "Common Open Policy Service (COPS) protocol (RFC 2748). A simple query-and-response protocol used for policy-based admission control between a Policy Enforcement Point (PEP) and a remote Policy Decision Point (PDP). All COPS messages share a fixed 8-byte header: a 4-bit Version (always 1), a 4-bit Flags field, an 8-bit Op-Code identifying the message type (1=Request, 2=Decision, 3=Report State, 4=Delete Request State, 5=Synchronize State Request, 6=Client-Open (OPN), 7=Client-Accept (CAT), 8=Client-Close (CC), 9=Keep-Alive (KA), 10=Synchronize Complete (SSC)), a 16-bit Client-Type identifying the policy client, and a 32-bit Message Length giving the total byte count of the message including the header. Following the header, zero or more typed objects are carried; each object begins with a 2-byte Length, a 1-byte C-Num (object class), and a 1-byte C-Type (class sub-type), followed by the object's data payload. The number of objects to decode is supplied externally via copsObjCount; the byte length of each object's contents is derived from the object's own Length field minus the 4-byte object header."
 
 body:
   - kind: group
@@ -40,12 +40,14 @@ body:
             3: "Report State (RPT)"
             4: "Delete Request State (DRQ)"
             5: "Synchronize State Request (SSQ)"
-            6: "Keep-Alive (KA)"
-            7: "Install Decision (DEC)"
-            8: "Remove Decision (DEC)"
+            6: "Client-Open (OPN)"
+            7: "Client-Accept (CAT)"
+            8: "Client-Close (CC)"
+            9: "Keep-Alive (KA)"
+            10: "Synchronize Complete (SSC)"
         category: type
         defaultValue: 1
-        doc: "COPS operation code identifying the message type. 1=Request (PEP→PDP, request a policy decision), 2=Decision (PDP→PEP, install or remove policy), 3=Report State (PEP→PDP, report enforcement result), 4=Delete Request State (PEP→PDP, delete a previously issued request), 5=Synchronize State Request (PDP→PEP, request PEP to re-send state), 6=Keep-Alive (either direction, maintain connection), 7=Client-Open (PEP→PDP, announce client type), 8=Client-Accept/Close. [RFC 2748 §2.1, §3]"
+        doc: "COPS operation code identifying the message type. 1=Request (PEP→PDP, request a policy decision), 2=Decision (PDP→PEP, install or remove policy), 3=Report State (PEP→PDP, report enforcement result), 4=Delete Request State (PEP→PDP, delete a previously issued request), 5=Synchronize State Request (PDP→PEP, request PEP to re-send state), 6=Client-Open (PEP→PDP, announce client type), 7=Client-Accept (CAT, PDP→PEP, accept client connection), 8=Client-Close (CC, either direction, close client connection), 9=Keep-Alive (either direction, maintain connection), 10=Synchronize Complete (PEP→PDP, synchronization complete). [RFC 2748 §2.1, §3]"
 
       - id: copsClientType
         name: Client-Type

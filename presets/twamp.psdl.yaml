@@ -43,4 +43,4 @@ body:
     name: Padding
     type: { kind: bytes, n: { kind: ref, field: twampPadBytes } }
     category: payload-marker
-    doc: "Zero-filled padding bytes appended after the fixed fields to reach the desired test packet size. The count twampPadBytes is supplied externally from the Session-Sender port configuration negotiated during TWAMP-Control setup. When zero, no padding is present and the packet is exactly 14 bytes. [RFC 5357 §4.1.2]"
+    doc: "Zero-filled padding bytes appended after the fixed fields to reach the desired test packet size. The count twampPadBytes is supplied externally from the Session-Sender port configuration negotiated during TWAMP-Control setup. When zero, no padding is present and the packet is exactly 16 bytes. [RFC 5357 §4.1.2]"

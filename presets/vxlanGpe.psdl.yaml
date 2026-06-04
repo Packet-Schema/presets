@@ -35,11 +35,11 @@ body:
         type: { kind: int, bits: 1 }
         category: flags
         doc: "Next Protocol present flag. When set to 1 the Next Protocol field is valid and indicates the inner payload type. MUST be set to 1 for VXLAN-GPE; distinguishes GPE from legacy VXLAN. [draft-ietf-nvo3-vxlan-gpe §3.2]"
-      - id: r3
-        name: Reserved 3
+      - id: bFlag
+        name: BUM Traffic Flag (B)
         type: { kind: int, bits: 1 }
-        category: reserved
-        doc: "Reserved bit, MUST be transmitted as zero and ignored on receipt. [draft-ietf-nvo3-vxlan-gpe §3.2]"
+        category: flags
+        doc: "When set to 1, marks ingress-replicated BUM (Broadcast, Unknown-unicast, Multicast) traffic, allowing the egress VTEP to differentiate known vs unknown unicast. [draft-ietf-nvo3-vxlan-gpe §3]"
       - id: oFlag
         name: OAM Flag (O)
         type: { kind: int, bits: 1 }

@@ -123,7 +123,13 @@ body:
             doc: "IANA-assigned SMI Network Management Private Enterprise Code (RFC 2578) identifying the vendor namespace for this AVP's Code. Present only when the V flag is set. Examples: 10415=3GPP, 193=Ericsson, 2011=Nokia, 12645=ETSI. [RFC 6733 §4.1 / IANA PEN registry]"
         - id: avpData
           name: AVP Data
-          type: { kind: bytes, n: { kind: ref, field: diameterAvpDataLen } }
+          type:
+            kind: bytes
+            n:
+              kind: cond
+              test: { kind: ref, field: avpFlagV }
+              t: { kind: op, op: "-", a: { kind: ref, field: avpLength }, b: { kind: lit, value: 12 } }
+              f: { kind: op, op: "-", a: { kind: ref, field: avpLength }, b: { kind: lit, value: 8 } }
           category: variable
           doc: "The AVP value. Format depends on AVP Code: OctetString, Integer32, Integer64, Unsigned32, Unsigned64, Float32, Float64, Grouped, Enumerated, UTF8String, DiameterIdentity, DiameterURI, Address, Time, or IPFilterRule as specified per-AVP in the Diameter application RFCs. [RFC 6733 §4.2]"
-    count: { kind: ref, field: diameterAvpCount }
+    count: eos

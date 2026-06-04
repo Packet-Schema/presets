@@ -3,7 +3,7 @@ version: "0.5"
 name: LDP PDU
 rowBits: 32
 byteOrder: BE
-description: "Label Distribution Protocol (LDP) Protocol Data Unit (RFC 5036). LDP is used by MPLS routers (Label Switching Routers, LSRs) to exchange label bindings — the mappings from IP Forwarding Equivalence Classes (FECs) to MPLS labels — so that a consistent Label Switched Path (LSP) can be established through the network. Every LDP PDU begins with a 10-byte header carrying the LDP Version, PDU Length, LSR Identifier, and Label Space ID, followed by a sequence of LDP Messages. Each message has a 2-byte type field (with a U-bit), a 2-byte length, a 4-byte Message ID, and a variable-length TLV Parameters section. LDP sessions are carried over TCP port 646; LDP Hello discovery uses UDP port 646. Common message types: 0x0100=Hello, 0x0200=Initialization, 0x0300=KeepAlive, 0x0400=Address, 0x0500=Label Mapping."
+description: "Label Distribution Protocol (LDP) Protocol Data Unit (RFC 5036). LDP is used by MPLS routers (Label Switching Routers, LSRs) to exchange label bindings — the mappings from IP Forwarding Equivalence Classes (FECs) to MPLS labels — so that a consistent Label Switched Path (LSP) can be established through the network. Every LDP PDU begins with a 10-byte header carrying the LDP Version, PDU Length, LSR Identifier, and Label Space ID, followed by a sequence of LDP Messages. Each message has a 2-byte type field (with a U-bit), a 2-byte length, a 4-byte Message ID, and a variable-length TLV Parameters section. LDP sessions are carried over TCP port 646; LDP Hello discovery uses UDP port 646. Common message types: 0x0100=Hello, 0x0200=Initialization, 0x0201=KeepAlive, 0x0300=Address, 0x0400=Label Mapping."
 
 body:
   - kind: group
@@ -55,18 +55,19 @@ body:
                 kind: enum
                 bits: 15
                 variants:
+                  1:    "Notification (0x0001)"
                   256:  "Hello (0x0100)"
                   512:  "Initialization (0x0200)"
-                  768:  "KeepAlive (0x0300)"
-                  1024: "Address (0x0400)"
-                  1280: "Label Mapping (0x0500)"
-                  1281: "Label Request (0x0501)"
-                  1282: "Label Withdraw (0x0502)"
-                  1283: "Label Release (0x0503)"
-                  1284: "Label Abort Request (0x0504)"
-                  769:  "Notification (0x0301)"
+                  513:  "KeepAlive (0x0201)"
+                  768:  "Address (0x0300)"
+                  769:  "Address Withdraw (0x0301)"
+                  1024: "Label Mapping (0x0400)"
+                  1025: "Label Request (0x0401)"
+                  1026: "Label Withdraw (0x0402)"
+                  1027: "Label Release (0x0403)"
+                  1028: "Label Abort Request (0x0404)"
               category: type
-              doc: "15-bit LDP message type (U-bit stripped). 0x0100=Hello (link/targeted discovery), 0x0200=Initialization (session parameter negotiation), 0x0300=KeepAlive (session liveness), 0x0301=Notification (error/status reporting), 0x0400=Address (advertising interface addresses), 0x0500=Label Mapping (FEC-to-label binding advertisement), 0x0501=Label Request, 0x0502=Label Withdraw, 0x0503=Label Release, 0x0504=Label Abort Request. [RFC 5036 §3.5]"
+              doc: "15-bit LDP message type (U-bit stripped). 0x0001=Notification (error/status reporting), 0x0100=Hello (link/targeted discovery), 0x0200=Initialization (session parameter negotiation), 0x0201=KeepAlive (session liveness), 0x0300=Address (advertising interface addresses), 0x0301=Address Withdraw, 0x0400=Label Mapping (FEC-to-label binding advertisement), 0x0401=Label Request, 0x0402=Label Withdraw, 0x0403=Label Release, 0x0404=Label Abort Request. [RFC 5036 §3.5]"
         - id: ldpMsgLength
           name: Message Length
           type: { kind: int, bits: 16 }
@@ -77,14 +78,9 @@ body:
           type: { kind: int, bits: 32 }
           category: identifier
           doc: "32-bit value assigned by the message originator and used to uniquely identify the message within the LDP session. A Notification message echoes this ID in its Status TLV to indicate which message caused the error. Each LSR maintains a monotonically increasing counter and increments it for every new message; the counter wraps to 1 (not 0) after reaching 0xFFFFFFFF. [RFC 5036 §3.5.1]"
-        - id: ldpMsgParamBytes
-          name: Parameters Length
-          type: { kind: int, bits: 16 }
-          category: length
-          doc: "Byte length of the Parameters (TLV) section that follows within this LDP message. Derived from ldpMsgLength minus 4 (Message ID) minus 2 (this field). Carried here as an explicit length so the PSDL bytes field can reference it directly. [RFC 5036 §3.5.1]"
         - id: ldpMsgParams
           name: Parameters (TLVs)
-          type: { kind: bytes, n: { kind: ref, field: ldpMsgParamBytes } }
+          type: { kind: bytes, n: { kind: op, op: "-", a: { kind: ref, field: ldpMsgLength }, b: { kind: lit, value: 4 } } }
           category: variable
           doc: "Variable-length sequence of Type-Length-Value (TLV) objects carrying the message-specific parameters. Each TLV begins with a 2-byte Type (with a U-bit and F-bit in the high two bits), a 2-byte Length, and a Length-byte Value. Example TLV types: 0x0001=FEC (Forwarding Equivalence Class, list of FEC elements), 0x0200=Generic Label (20-bit MPLS label + 3-bit TC + 1-bit S), 0x0300=Address List (AFI + list of interface addresses), 0x0301=Notification Status (32-bit status code + message ID + message type), 0x0400=Common Hello Parameters (hold time + flags for targeted/request). [RFC 5036 §3.4 / §3.5]"
-    count: { kind: ref, field: ldpMsgCount }
+    count: eos

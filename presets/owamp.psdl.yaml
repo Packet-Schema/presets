@@ -3,7 +3,7 @@ version: "0.5"
 name: OWAMP-Test (Unauthenticated)
 rowBits: 32
 byteOrder: BE
-description: One-Way Active Measurement Protocol (OWAMP) Test packet, unauthenticated mode (RFC 4656). Sent by the Session-Sender to the Session-Reflector (or to a passive collector) over UDP. The fixed portion consists of a 32-bit Sequence Number, a 64-bit NTP Timestamp, and a 16-bit Error Estimate (S/Z flags + scale + multiplier). A variable-length Padding field of owampPadBytes bytes follows; the padding length is negotiated during OWAMP-Control session setup (OWAMP-Control Request-Session message) and is typically 27 bytes for IPv4 to pad the packet to 41 bytes total, ensuring minimal interference from header compression.
+description: One-Way Active Measurement Protocol (OWAMP) Test packet, unauthenticated mode (RFC 4656). Sent by the Session-Sender to the Session-Receiver over UDP. The fixed portion consists of a 32-bit Sequence Number, a 64-bit NTP Timestamp, and a 16-bit Error Estimate (S/Z flags + scale + multiplier). A variable-length Padding field of owampPadBytes bytes follows; the padding length is negotiated during OWAMP-Control session setup (OWAMP-Control Request-Session message) and is typically 27 bytes for IPv4 to pad the packet to 41 bytes total, ensuring minimal interference from header compression.
 
 body:
   - id: sequenceNumber
@@ -45,12 +45,12 @@ body:
         name: Scale
         type: { kind: int, bits: 6 }
         category: variable
-        doc: "Binary scale factor for the timestamp error. The effective error bound is Multiplier × 2^Scale seconds (NTP short format). Scale values 0–62 are defined; scale 63 is reserved. A scale of 0 with multiplier 1 represents approximately 15 nanoseconds precision. [RFC 4656 §4.1.2]"
+        doc: "Binary scale factor for the timestamp error. The effective error bound is Multiplier × 2^(-32) × 2^Scale seconds (the timestamp is an NTP 64-bit value, so the base unit is 2^-32 s). Scale is a 6-bit unsigned exponent (0–63); no value is reserved. A scale of 0 with multiplier 1 represents 2^-32 s ≈ 0.23 nanoseconds. [RFC 4656 §4.1.2]"
       - id: errorEstimateMultiplier
         name: Multiplier
         type: { kind: int, bits: 8 }
         category: variable
-        doc: "Unsigned multiplier for the timestamp error estimate. The effective error bound is Multiplier × 2^Scale seconds. A value of 1 with scale 0 encodes approximately 15 ns; a value of 0 means the error estimate is not available (the sender SHOULD avoid transmitting this). [RFC 4656 §4.1.2]"
+        doc: "Unsigned multiplier for the timestamp error estimate. The effective error bound is Multiplier × 2^(-32) × 2^Scale seconds. A value of 1 with scale 0 encodes 2^-32 s ≈ 0.23 ns. Multiplier MUST NOT be zero; if Multiplier is zero the packet SHOULD be considered corrupt and discarded. [RFC 4656 §4.1.2]"
 
   - id: padding
     name: Padding

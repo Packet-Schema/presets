@@ -40,18 +40,24 @@ body:
         category: length
         doc: "Total length of the NSH header in 4-byte words, including the Base Header, Service Path Header, and all Context Headers. The minimum value is 2 (8 bytes: Base Header + Service Path Header with no context); MDType=1 requires a value of 6 (24 bytes). Used by receivers to locate the encapsulated payload immediately following the NSH header. [RFC 8300 §2.2]"
 
+      - id: nshReserved
+        name: U (Unassigned)
+        type: { kind: int, bits: 4 }
+        category: reserved
+        doc: "Four unassigned bits. MUST be set to 0 by the sender and ignored by the receiver. Reserved for future use by the IETF. [RFC 8300 §2.2]"
+
       - id: nshMdType
         name: MD Type
         type:
           kind: enum
-          bits: 8
+          bits: 4
           variants:
             0: "Reserved"
             1: "Fixed-Length Context Headers"
             2: "Variable-Length Context Headers"
-            255: "Experimental"
+            15: "Experimental"
         category: type
-        doc: "Metadata (MD) Type. Specifies the format and semantics of the Context Headers following the Service Path Header. 1=Fixed-Length (four mandatory 32-bit context words, total NSH header = 24 bytes); 2=Variable-Length (zero or more TLV context items whose aggregate length is derived from the Length field); 0 and 255 are reserved. [RFC 8300 §2.2, §2.5, §2.6]"
+        doc: "Metadata (MD) Type. Specifies the format and semantics of the Context Headers following the Service Path Header. 1=Fixed-Length (four mandatory 32-bit context words, total NSH header = 24 bytes); 2=Variable-Length (zero or more TLV context items whose aggregate length is derived from the Length field); 0 is reserved and 0xF (15) is for experimentation and testing. [RFC 8300 §2.2, §2.5, §2.6]"
 
       - id: nshNextProtocol
         name: Next Protocol

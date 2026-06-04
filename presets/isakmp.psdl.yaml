@@ -79,30 +79,30 @@ body:
     id: isakmpFlags
     name: Flags
     children:
-      - id: isakmpFlagEncryption
-        name: E
-        type: { kind: int, bits: 1 }
-        category: flags
-        defaultValue: 0
-        doc: "Encryption (E) flag. When set, all payloads following the ISAKMP header are encrypted using the negotiated encryption algorithm and key. The encryption covers everything after the fixed 28-byte header. In IKEv2 (RFC 7296) this bit position is replaced by the Response (R) flag and encryption is mandatory for all payloads after IKE_SA_INIT. [RFC 2408 §3.1]"
-      - id: isakmpFlagCommit
-        name: C
-        type: { kind: int, bits: 1 }
-        category: flags
-        defaultValue: 0
-        doc: "Commit (C) flag. Used to ensure that encrypted material (e.g. a session key) is not used before the SA that protects it has been fully established. When set, the receiver must send a CONNECTED notification before the sender may use the SA. [RFC 2408 §3.1]"
-      - id: isakmpFlagAuthOnly
-        name: A
-        type: { kind: int, bits: 1 }
-        category: flags
-        defaultValue: 0
-        doc: "Authentication Only (A) flag. Indicates that no encryption is performed but authentication/integrity protection is applied. Defined for use with the Authentication Only exchange type (value 3). Not present in IKEv2 (RFC 7296). [RFC 2408 §3.1]"
       - id: isakmpFlagReserved
         name: Reserved
         type: { kind: int, bits: 5 }
         category: reserved
         defaultValue: 0
-        doc: "Reserved bits (5 bits). MUST be set to zero by the sender and MUST be ignored by the receiver. [RFC 2408 §3.1]"
+        doc: "Reserved bits (5 bits, high bits 7-3). MUST be set to zero by the sender and MUST be ignored by the receiver. [RFC 2408 §3.1]"
+      - id: isakmpFlagAuthOnly
+        name: A
+        type: { kind: int, bits: 1 }
+        category: flags
+        defaultValue: 0
+        doc: "Authentication Only (A) flag, bit 2 of the Flags byte. Indicates that no encryption is performed but authentication/integrity protection is applied. Defined for use with the Authentication Only exchange type (value 3). Not present in IKEv2 (RFC 7296). [RFC 2408 §3.1]"
+      - id: isakmpFlagCommit
+        name: C
+        type: { kind: int, bits: 1 }
+        category: flags
+        defaultValue: 0
+        doc: "Commit (C) flag, bit 1 of the Flags byte. Used to ensure that encrypted material (e.g. a session key) is not used before the SA that protects it has been fully established. When set, the receiver must send a CONNECTED notification before the sender may use the SA. [RFC 2408 §3.1]"
+      - id: isakmpFlagEncryption
+        name: E
+        type: { kind: int, bits: 1 }
+        category: flags
+        defaultValue: 0
+        doc: "Encryption (E) flag, bit 0 (LSB) of the Flags byte. When set, all payloads following the ISAKMP header are encrypted using the negotiated encryption algorithm and key. The encryption covers everything after the fixed 28-byte header. In IKEv2 (RFC 7296) this bit position is replaced by the Response (R) flag and encryption is mandatory for all payloads after IKE_SA_INIT. [RFC 2408 §3.1]"
 
   - id: isakmpMessageId
     name: Message ID
@@ -167,4 +167,4 @@ body:
               b: { kind: lit, value: 4 }
           category: payload-marker
           doc: "Opaque payload body, exactly (Payload Length - 4) bytes. Internal structure depends on the payload type identified by the preceding Next Payload field: SA payloads carry DOI, Situation, and nested Proposal/Transform sub-payloads; KE payloads carry a Diffie-Hellman public value; Hash/Signature payloads carry authentication data; Nonce payloads carry random data for freshness. When the Encryption (E) flag is set in the ISAKMP header, the payload data in all payloads is the ciphertext, and the generic header fields above are still in cleartext. [RFC 2408 §3.2–§3.15]"
-    count: { kind: ref, field: isakmpPayloadCount }
+    count: eos

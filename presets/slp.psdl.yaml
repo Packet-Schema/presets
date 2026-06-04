@@ -3,7 +3,7 @@ version: "0.5"
 name: SLP v2 Header
 rowBits: 32
 byteOrder: BE
-description: "Service Location Protocol version 2 (SLP v2) common header (RFC 2608). SLP provides a scalable framework for the discovery and selection of network services; user agents (UAs) query service agents (SAs) or directory agents (DAs) without requiring prior knowledge of service locations. The 14-byte fixed header is followed by a variable-length Language Tag and a variable-length function-specific body. Function IDs include: SrvRqst(1), SrvRply(2), SrvReg(3), SrvDereg(6), AttrRqst(8), AttrRply(9), DAAdvert(11), SrvTypeRqst(9), SrvTypeRply(10). SLP operates over UDP/TCP port 427."
+description: "Service Location Protocol version 2 (SLP v2) common header (RFC 2608). SLP provides a scalable framework for the discovery and selection of network services; user agents (UAs) query service agents (SAs) or directory agents (DAs) without requiring prior knowledge of service locations. The 14-byte fixed header is followed by a variable-length Language Tag and a variable-length function-specific body. Function IDs include: SrvRqst(1), SrvRply(2), SrvReg(3), SrvDereg(4), SrvAck(5), AttrRqst(6), AttrRply(7), DAAdvert(8), SrvTypeRqst(9), SrvTypeRply(10), SAAdvert(11). SLP operates over UDP/TCP port 427."
 
 body:
   - kind: group
@@ -103,6 +103,6 @@ body:
 
   - id: slpBody
     name: Body
-    type: { kind: bytes, n: { kind: ref, field: slpBodyBytes } }
+    type: { kind: bytes, n: { kind: remaining } }
     category: payload-marker
-    doc: "Function-specific message body whose structure depends on Function-ID. For SrvRqst: PR-list, service-type, scope-list, predicate, SLP SPI. For SrvRply: error code + URL entries. For SrvReg: URL entry + service-type + scope-list + attr-list + attr-auths. The byte count is supplied by slpBodyBytes, an external length reference. [RFC 2608 §9-§10]"
+    doc: "Function-specific message body whose structure depends on Function-ID. For SrvRqst: PR-list, service-type, scope-list, predicate, SLP SPI. For SrvRply: error code + URL entries. For SrvReg: URL entry + service-type + scope-list + attr-list + attr-auths. Occupies the remainder of the message after the Language Tag, bounded by the Length field. [RFC 2608 §9-§10]"

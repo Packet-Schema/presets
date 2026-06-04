@@ -98,7 +98,7 @@ body:
             name: Route Monitoring Body
             type: { kind: bytes, n: { kind: ref, field: bmpBodyBytes } }
             category: payload-marker
-            doc: "Encapsulated BGP PDU — typically a BGP UPDATE message (RFC 4271 §4.3) as received from the monitored peer, preceded by the BGP 16-byte marker, 2-byte length, and 1-byte type fields. The byte count is derived externally as bmpLength minus the Common Header (6 B) and Per-Peer Header (48 B). [RFC 7854 §4.3]"
+            doc: "Encapsulated BGP PDU — typically a BGP UPDATE message (RFC 4271 §4.3) as received from the monitored peer, preceded by the BGP 16-byte marker, 2-byte length, and 1-byte type fields. The byte count is derived externally as bmpLength minus the Common Header (6 B) and Per-Peer Header (48 B). [RFC 7854 §4.6]"
 
       "1":
         id: bmpStatisticsReport
@@ -154,12 +154,12 @@ body:
             name: Stats Count
             type: { kind: int, bits: 32 }
             category: length
-            doc: "Number of Statistics TLV records that follow in the Statistics Report body. Each record carries a 2-byte Stat Type, 2-byte Stat Len, and Stat Len bytes of value. [RFC 7854 §4.7]"
+            doc: "Number of Statistics TLV records that follow in the Statistics Report body. Each record carries a 2-byte Stat Type, 2-byte Stat Len, and Stat Len bytes of value. [RFC 7854 §4.8]"
           - id: sr_body
             name: Statistics Report Body
             type: { kind: bytes, n: { kind: ref, field: bmpBodyBytes } }
             category: payload-marker
-            doc: "Sequence of Statistics TLV records. Each TLV: Stat Type (2 B) + Stat Len (2 B) + Stat Data (Stat Len B). Example types: 0=prefixes rejected by inbound policy, 1=duplicate prefix advertisements, 6=number of routes in Adj-RIBs-In, 7=number of routes in Loc-RIB. bmpBodyBytes is derived externally. [RFC 7854 §4.7]"
+            doc: "Sequence of Statistics TLV records. Each TLV: Stat Type (2 B) + Stat Len (2 B) + Stat Data (Stat Len B). Example types: 0=prefixes rejected by inbound policy, 1=duplicate prefix advertisements, 6=number of routes in Adj-RIBs-In, 7=number of routes in Loc-RIB. bmpBodyBytes is derived externally. [RFC 7854 §4.8]"
 
       "2":
         id: bmpPeerDown
@@ -284,22 +284,22 @@ body:
             name: Local Address
             type: { kind: bits, n: 128 }
             category: addressing
-            doc: "Local IP address used for the BGP TCP session. For IPv4, the lower 32 bits carry the address and upper 96 bits are zero. For IPv6 the full 128 bits are used. [RFC 7854 §4.8]"
+            doc: "Local IP address used for the BGP TCP session. For IPv4, the lower 32 bits carry the address and upper 96 bits are zero. For IPv6 the full 128 bits are used. [RFC 7854 §4.10]"
           - id: pu_localPort
             name: Local Port
             type: { kind: int, bits: 16 }
             category: addressing
-            doc: "Local TCP port number of the BGP session. Set to 0 if the session was not established over TCP or if the port is unavailable. [RFC 7854 §4.8]"
+            doc: "Local TCP port number of the BGP session. Set to 0 if the session was not established over TCP or if the port is unavailable. [RFC 7854 §4.10]"
           - id: pu_remotePort
             name: Remote Port
             type: { kind: int, bits: 16 }
             category: addressing
-            doc: "Remote TCP port number of the BGP session (typically 179 for standard BGP). Set to 0 if unavailable. [RFC 7854 §4.8]"
+            doc: "Remote TCP port number of the BGP session (typically 179 for standard BGP). Set to 0 if unavailable. [RFC 7854 §4.10]"
           - id: pu_body
             name: Peer Up Body
             type: { kind: bytes, n: { kind: ref, field: bmpBodyBytes } }
             category: payload-marker
-            doc: "Concatenation of the OPEN message sent to the peer and the OPEN message received from the peer, each a complete BGP PDU (RFC 4271 §4.2), followed by optional Information TLVs (e.g. VRF/Table name). bmpBodyBytes is derived externally as bmpLength minus Common Header (6 B), Per-Peer Header (48 B), and the fixed Peer Up fields above (32 B). [RFC 7854 §4.8]"
+            doc: "Concatenation of the OPEN message sent to the peer and the OPEN message received from the peer, each a complete BGP PDU (RFC 4271 §4.2), followed by optional Information TLVs (e.g. VRF/Table name). bmpBodyBytes is derived externally as bmpLength minus Common Header (6 B), Per-Peer Header (48 B), and the fixed Peer Up fields above (32 B). [RFC 7854 §4.10]"
 
       "4":
         id: bmpInitiation
@@ -309,7 +309,7 @@ body:
             name: Initiation Body
             type: { kind: bytes, n: { kind: ref, field: bmpBodyBytes } }
             category: payload-marker
-            doc: "One or more Information TLVs sent when the BMP session is first established. Each TLV: Type (2 B) + Length (2 B) + Value (Length B). Type 0=string (free-form UTF-8), Type 1=sysDescr (SNMP sysDescr), Type 2=sysName (SNMP sysName). No Per-Peer Header precedes this body. bmpBodyBytes is derived externally as bmpLength minus 6 B Common Header. [RFC 7854 §4.4]"
+            doc: "One or more Information TLVs sent when the BMP session is first established. Each TLV: Type (2 B) + Length (2 B) + Value (Length B). Type 0=string (free-form UTF-8), Type 1=sysDescr (SNMP sysDescr), Type 2=sysName (SNMP sysName). No Per-Peer Header precedes this body. bmpBodyBytes is derived externally as bmpLength minus 6 B Common Header. [RFC 7854 §4.3]"
 
       "5":
         id: bmpTermination
@@ -375,7 +375,7 @@ body:
             name: Route Mirroring Body
             type: { kind: bytes, n: { kind: ref, field: bmpBodyBytes } }
             category: payload-marker
-            doc: "One or more Route Mirroring TLVs. Each TLV: Type (2 B) + Length (2 B) + Value (Length B). Type 0=BGP Message (verbatim BGP PDU copy, including 16-byte marker), Type 1=Information (2-B code indicating message loss or incomplete mirroring). bmpBodyBytes is derived externally. [RFC 7854 §4.6]"
+            doc: "One or more Route Mirroring TLVs. Each TLV: Type (2 B) + Length (2 B) + Value (Length B). Type 0=BGP Message (verbatim BGP PDU copy, including 16-byte marker), Type 1=Information (2-B code indicating message loss or incomplete mirroring). bmpBodyBytes is derived externally. [RFC 7854 §4.7]"
 
       "_":
         id: bmpUnknown

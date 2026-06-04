@@ -25,14 +25,12 @@ const PRESETS_DIR = join(__dirname, "..", "presets");
 
 // $defs whose occurrences are recursive / child-bearing; stub to `true` so a
 // node is validated for its OWN shape only and we recurse into children below.
-const STUB = new Set([
-  "Container",
-  "Struct",
-  "NamedStruct",
-  "Expr",
-  "RepeatCount",
-  "Constraint",
-]);
+// Only the container-bearing defs are stubbed — we recurse into those manually
+// to produce localized errors. Everything else (Expr, RepeatCount, Constraint)
+// is validated in place so malformed / shorthand expressions (bytes.n,
+// bounded.bytes, repeat.count, virtual.expr, switch.on, optional.when) are
+// caught here, matching the strict build validator.
+const STUB = new Set(["Container", "Struct", "NamedStruct"]);
 
 // Map a container's `kind` to its $def name (absent kind ⇒ Field).
 const KIND_DEF: Record<string, string> = {

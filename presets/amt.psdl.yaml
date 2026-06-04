@@ -77,17 +77,22 @@ body:
         id: amtRequest
         doc: "Request"
         fields:
+          - id: amtReqReserved1
+            name: Reserved
+            type: { kind: int, bits: 7 }
+            category: reserved
+            doc: "Reserved bits preceding the P flag in the Request message. MUST be set to zero by the sender and ignored by the receiver. [RFC 7450 §5.3]"
           - id: amtReqP
             name: P
             type: { kind: int, bits: 1 }
             category: flags
             defaultValue: 0
             doc: "P (IPv6) flag. When set to 1 the gateway is requesting an IPv6 Membership Query (MLD); when 0 it is requesting an IPv4 query (IGMP). Signals to the relay which version of the group membership protocol to encapsulate in the Membership Query response. [RFC 7450 §5.3]"
-          - id: amtReqReserved
+          - id: amtReqReserved2
             name: Reserved
-            type: { kind: int, bits: 23 }
+            type: { kind: int, bits: 16 }
             category: reserved
-            doc: "Reserved bits in the Request message. MUST be set to zero by the sender and ignored by the receiver. [RFC 7450 §5.3]"
+            doc: "Reserved bits following the P flag, filling out the first 32-bit word of the Request message. MUST be set to zero by the sender and ignored by the receiver. [RFC 7450 §5.3]"
           - id: amtReqNonce
             name: Request Nonce
             type: { kind: int, bits: 32 }
@@ -98,6 +103,11 @@ body:
         id: amtMembershipQuery
         doc: "Membership Query"
         fields:
+          - id: amtMqReserved
+            name: Reserved
+            type: { kind: int, bits: 6 }
+            category: reserved
+            doc: "Reserved bits in the Membership Query fixed header, preceding the L and G flags. MUST be set to zero by the sender and ignored by the receiver. [RFC 7450 §5.4]"
           - id: amtMqL
             name: L
             type: { kind: int, bits: 1 }
@@ -110,11 +120,6 @@ body:
             category: flags
             defaultValue: 0
             doc: "G (gateway address change) flag. When set to 1, the relay is notifying the gateway that it has detected a change in the gateway's IP address or UDP port (e.g. after a NAT rebinding) and the gateway SHOULD send a new Request. [RFC 7450 §5.4]"
-          - id: amtMqReserved
-            name: Reserved
-            type: { kind: int, bits: 6 }
-            category: reserved
-            doc: "Reserved bits in the Membership Query fixed header. MUST be set to zero by the sender and ignored by the receiver. [RFC 7450 §5.4]"
           - id: amtMqResponseMac
             name: Response MAC
             type: { kind: bits, n: 48 }

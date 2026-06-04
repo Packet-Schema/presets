@@ -3,7 +3,7 @@ version: "0.5"
 name: RSVP-TE Path Message
 rowBits: 32
 byteOrder: BE
-description: "RSVP-TE Path message (RFC 3209) — an extension of RSVP (RFC 2205) for establishing Traffic-Engineered Label Switched Paths (LSPs) in MPLS networks. The packet begins with the RSVP Common Header (8 bytes): Version (4 bits), Flags (4 bits), Message Type (8 bits, value 1 for Path), Checksum (16 bits), Send TTL (8 bits), Reserved (8 bits), and RSVP Message Length (16 bits). The header is followed by a sequence of RSVP objects, each consisting of a 16-bit Object Length, an 8-bit Class-Num, an 8-bit C-Type, and variable-length object contents. Key RSVP-TE object classes include: 1=SESSION, 3=HOP (RSVP_HOP), 5=TIME_VALUES, 8=STYLE, 9=FLOWSPEC, 10=FILTER_SPEC, 11=SENDER_TEMPLATE, 12=SENDER_TSPEC, 14=ADSPEC, 16=EXPLICIT_ROUTE (ERO), 19=LABEL_REQUEST, 20=LABEL, 207=SESSION_ATTRIBUTE. RSVP-TE enables constraint-based routing, fast-reroute (RFC 4090), and GMPLS extensions (RFC 3473) for carrier MPLS-TE deployments."
+description: "RSVP-TE Path message (RFC 3209) — an extension of RSVP (RFC 2205) for establishing Traffic-Engineered Label Switched Paths (LSPs) in MPLS networks. The packet begins with the RSVP Common Header (8 bytes): Version (4 bits), Flags (4 bits), Message Type (8 bits, value 1 for Path), Checksum (16 bits), Send TTL (8 bits), Reserved (8 bits), and RSVP Message Length (16 bits). The header is followed by a sequence of RSVP objects, each consisting of a 16-bit Object Length, an 8-bit Class-Num, an 8-bit C-Type, and variable-length object contents. Key RSVP-TE object classes include: 1=SESSION, 3=HOP (RSVP_HOP), 5=TIME_VALUES, 8=STYLE, 9=FLOWSPEC, 10=FILTER_SPEC, 11=SENDER_TEMPLATE, 12=SENDER_TSPEC, 13=ADSPEC, 14=POLICY_DATA, 16=LABEL (RSVP_LABEL), 19=LABEL_REQUEST, 20=EXPLICIT_ROUTE (ERO), 21=RECORD_ROUTE (RRO), 207=SESSION_ATTRIBUTE. RSVP-TE enables constraint-based routing, fast-reroute (RFC 4090), and GMPLS extensions (RFC 3473) for carrier MPLS-TE deployments."
 
 body:
   - kind: group
@@ -36,11 +36,11 @@ body:
             5: "PathTear"
             6: "ResvTear"
             7: "ResvConf"
-            20: "Bundle"
-            25: "Hello"
+            12: "Bundle"
+            20: "Hello"
         category: type
         defaultValue: 1
-        doc: "RSVP message type. 1=Path (sent by senders to establish or refresh an LSP along the explicit route), 2=Resv (sent by receivers upstream to reserve resources), 3=PathErr, 4=ResvErr, 5=PathTear, 6=ResvTear, 7=ResvConf, 20=Bundle (RFC 2961), 25=Hello (RFC 3209 §5.3). Path messages carry LABEL_REQUEST, ERO, and SESSION_ATTRIBUTE objects required for MPLS-TE LSP setup. [RFC 2205 §3.1, RFC 3209 §2]"
+        doc: "RSVP message type. 1=Path (sent by senders to establish or refresh an LSP along the explicit route), 2=Resv (sent by receivers upstream to reserve resources), 3=PathErr, 4=ResvErr, 5=PathTear, 6=ResvTear, 7=ResvConf, 12=Bundle (RFC 2961), 20=Hello (RFC 3209 §5.3). Path messages carry LABEL_REQUEST, ERO, and SESSION_ATTRIBUTE objects required for MPLS-TE LSP setup. [RFC 2205 §3.1, RFC 3209 §2]"
 
       - id: rsvpTeChecksum
         name: Checksum
@@ -105,21 +105,22 @@ body:
               10: "FILTER_SPEC"
               11: "SENDER_TEMPLATE"
               12: "SENDER_TSPEC"
-              14: "ADSPEC"
-              16: "EXPLICIT_ROUTE"
+              13: "ADSPEC"
+              14: "POLICY_DATA"
+              16: "LABEL"
               19: "LABEL_REQUEST"
-              20: "LABEL"
-              21: "EXPLICIT_ROUTE_HOP"
-              204: "FAST_REROUTE"
+              20: "EXPLICIT_ROUTE"
+              21: "RECORD_ROUTE"
+              205: "FAST_REROUTE"
               207: "SESSION_ATTRIBUTE"
           category: type
-          doc: "RSVP object class number. Identifies the semantic role of the object within the Path message. Key MPLS-TE classes: 1=SESSION (destination address + tunnel ID + LSP ID), 3=RSVP_HOP (previous-hop PHOP/NHOP address for path refresh), 5=TIME_VALUES (refresh period in ms), 9=FLOWSPEC (traffic parameters), 12=SENDER_TSPEC (token bucket spec for admission control), 16=EXPLICIT_ROUTE/ERO (strict and loose hops for constraint-based routing), 19=LABEL_REQUEST (requested label type: 0x0800=MPLS), 20=LABEL (allocated label value), 207=SESSION_ATTRIBUTE (LSP name, flags, setup/hold priority for preemption). The high two bits encode error handling: 0b00=discard silently, 0b01=discard and send PathErr, 0b10=forward unknown object, 0b11=forward and send PathErr. [RFC 2205 §3.1.4, RFC 3209 §4]"
+          doc: "RSVP object class number. Identifies the semantic role of the object within the Path message. Key MPLS-TE classes: 1=SESSION (destination address + tunnel ID + LSP ID), 3=RSVP_HOP (previous-hop PHOP/NHOP address for path refresh), 5=TIME_VALUES (refresh period in ms), 9=FLOWSPEC (traffic parameters), 12=SENDER_TSPEC (token bucket spec for admission control), 16=LABEL/RSVP_LABEL (allocated label value), 19=LABEL_REQUEST (requested label type: 0x0800=MPLS), 20=EXPLICIT_ROUTE/ERO (strict and loose hops for constraint-based routing), 21=RECORD_ROUTE/RRO (recorded path hops), 207=SESSION_ATTRIBUTE (LSP name, flags, setup/hold priority for preemption). The high two bits encode error handling: 0b00=discard silently, 0b01=discard and send PathErr, 0b10=forward unknown object, 0b11=forward and send PathErr. [RFC 2205 §3.1.4, RFC 3209 §4]"
 
         - id: rsvpTeCType
           name: C-Type
           type: { kind: int, bits: 8 }
           category: type
-          doc: "C-Type (class-type) sub-identifier scoped within Class-Num. Allows multiple encodings of the same object class. Common C-Type values: SESSION Class-Num 1: C-Type 7=IPv4 LSP Session (RFC 3209 §4.6.1); RSVP_HOP Class-Num 3: C-Type 1=IPv4 (RFC 2205); EXPLICIT_ROUTE Class-Num 16: C-Type 1=Type 1 ERO (RFC 3209 §4.3); LABEL_REQUEST Class-Num 19: C-Type 1=without label range (MPLS, RFC 3209 §4.1); LABEL Class-Num 20: C-Type 1=generalized label (RFC 3473); SESSION_ATTRIBUTE Class-Num 207: C-Type 7=with resource colors / C-Type 1=without (RFC 3209 §4.7). [RFC 2205 §3.1.4, RFC 3209 §4]"
+          doc: "C-Type (class-type) sub-identifier scoped within Class-Num. Allows multiple encodings of the same object class. Common C-Type values: SESSION Class-Num 1: C-Type 7=IPv4 LSP Session (RFC 3209 §4.6.1); RSVP_HOP Class-Num 3: C-Type 1=IPv4 (RFC 2205); LABEL Class-Num 16: C-Type 1=generalized label (RFC 3473); LABEL_REQUEST Class-Num 19: C-Type 1=without label range (MPLS, RFC 3209 §4.1); EXPLICIT_ROUTE Class-Num 20: C-Type 1=Type 1 ERO (RFC 3209 §4.3); SESSION_ATTRIBUTE Class-Num 207: C-Type 7=with resource colors / C-Type 1=without (RFC 3209 §4.7). [RFC 2205 §3.1.4, RFC 3209 §4]"
 
         - id: rsvpTeObjContents
           name: Contents
@@ -131,4 +132,4 @@ body:
               a: { kind: ref, field: rsvpTeObjLength }
               b: { kind: lit, value: 4 }
           category: variable
-          doc: "Object contents payload: ObjLength minus the 4-byte object header bytes. Interpretation is determined by Class-Num and C-Type. LABEL_REQUEST (Class 19, C-Type 1): 16-bit Reserved + 16-bit L3PID (0x0800=IPv4/MPLS). EXPLICIT_ROUTE (Class 16, C-Type 1): sequence of ERO sub-objects each with Type(1B)+Length(1B)+Value encoding IPv4/IPv6 prefix or AS hops with L-bit for loose routing. SESSION_ATTRIBUTE (Class 207, C-Type 7): Setup Priority(1B)+Hold Priority(1B)+Flags(1B)+Name Length(1B)+Session Name(variable)+Resource Colors(4B). LABEL (Class 20, C-Type 1): 32-bit generalised label value (bottom-of-stack label for MPLS). SENDER_TSPEC (Class 12, C-Type 2): IntServ token bucket spec — service header + TB parameter set (peak rate, token rate, bucket depth, min policed unit, max packet size). [RFC 2205 §3.1.4, RFC 3209 §4.1–4.7, RFC 3473 §2.1]"
+          doc: "Object contents payload: ObjLength minus the 4-byte object header bytes. Interpretation is determined by Class-Num and C-Type. LABEL_REQUEST (Class 19, C-Type 1): 16-bit Reserved + 16-bit L3PID (0x0800=IPv4/MPLS). EXPLICIT_ROUTE (Class 20, C-Type 1): sequence of ERO sub-objects each with Type(1B)+Length(1B)+Value encoding IPv4/IPv6 prefix or AS hops with L-bit for loose routing. SESSION_ATTRIBUTE (Class 207, C-Type 7): Setup Priority(1B)+Hold Priority(1B)+Flags(1B)+Name Length(1B)+Session Name(variable)+Resource Colors(4B). LABEL (Class 16, C-Type 1): 32-bit generalised label value (bottom-of-stack label for MPLS). SENDER_TSPEC (Class 12, C-Type 2): IntServ token bucket spec — service header + TB parameter set (peak rate, token rate, bucket depth, min policed unit, max packet size). [RFC 2205 §3.1.4, RFC 3209 §4.1–4.7, RFC 3473 §2.1]"

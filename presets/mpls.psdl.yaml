@@ -9,7 +9,7 @@ body:
     name: Label
     type: { kind: int, bits: 20 }
     category: addressing
-    doc: 20-bit label value. Locally significant between two adjacent Label Switched Routers (LSRs). Special labels — 0 IPv4 Explicit NULL (signals PHP to replace label 0 with IP forwarding), 2 IPv6 Explicit NULL, 3 Implicit NULL / Penultimate Hop Popping trigger (PHP — the previous-hop LSR removes the label before delivery), 4 OAM Alert, 13 Router Alert — are defined by RFC 3032 and updated by RFC 7274. All other values 0..15 are Reserved. [RFC 3032 §2.1 / RFC 7274]
+    doc: 20-bit label value. Locally significant between two adjacent Label Switched Routers (LSRs). Special labels — 0 IPv4 Explicit NULL (signals PHP to replace label 0 with IP forwarding), 2 IPv6 Explicit NULL, 3 Implicit NULL / Penultimate Hop Popping trigger (PHP — the previous-hop LSR removes the label before delivery), 1 Router Alert, 13 Generic Associated Channel Label (GAL), 14 OAM Alert — are defined by RFC 3032 and updated by RFC 7274. All other values 0..15 are Reserved. [RFC 3032 §2.1 / RFC 7274]
   - kind: group
     id: tcSGroup
     name: TC / S

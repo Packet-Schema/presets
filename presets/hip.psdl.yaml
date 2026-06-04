@@ -24,6 +24,12 @@ body:
     id: hipPacketTypeGroup
     name: Packet Type
     children:
+      - id: hipReservedBit
+        name: "Reserved (0)"
+        type: { kind: int, bits: 1 }
+        category: reserved
+        defaultValue: 0
+        doc: "Reserved bit — MUST be set to zero by the sender and ignored by the receiver. Placed as the MSB of the byte shared with Packet Type, preceding the 7-bit Packet Type field. [RFC 7401 §5.1]"
       - id: hipPacketType
         name: Packet Type
         type:
@@ -41,12 +47,6 @@ body:
         category: type
         defaultValue: 1
         doc: "Identifies the HIP packet type. The four base-exchange types are: 1=I1 (first message from initiator, starts the exchange), 2=R1 (responder's puzzle challenge), 3=I2 (initiator's puzzle solution and key material), 4=R2 (responder finalises and confirms the HIP association). Additional types include UPDATE (16), NOTIFY (17), CLOSE (18), and CLOSE_ACK (19) for association maintenance and teardown. [RFC 7401 §5.1 / §5.3]"
-      - id: hipReservedBit
-        name: "Reserved (0)"
-        type: { kind: int, bits: 1 }
-        category: reserved
-        defaultValue: 0
-        doc: "Reserved bit — MUST be set to zero by the sender and ignored by the receiver. Placed as the MSB of the byte shared with Packet Type to satisfy the 7-bit Packet Type layout. [RFC 7401 §5.1]"
 
   - kind: group
     id: hipVersionGroup
@@ -95,28 +95,32 @@ body:
     category: addressing
     doc: "Host Identity Tag (HIT) of the intended packet receiver — 128-bit cryptographic identifier derived from the receiver's public Host Identity key. In I1 the Receiver HIT MAY be all-zeros if the Initiator does not yet know it. In subsequent base-exchange messages the correct peer HIT MUST be used. Hosts use this field to demultiplex incoming HIP packets to the correct HIP association. [RFC 7401 §5.1 / §3]"
 
-  - kind: repeat
-    id: hipParameters
+  - kind: bounded
+    id: hipParametersScope
     name: HIP Parameters
-    category: variable
-    element:
-      id: hipParam
-      fields:
-        - id: hipParamType
-          name: Type
-          type: { kind: int, bits: 16 }
-          category: type
-          doc: "HIP Parameter Type number (big-endian). Parameters MUST appear in ascending Type order within a HIP packet. The Type also encodes two flags in its two least-significant bits: bit 0 (Critical bit) — if 1 and the receiver does not understand this Type, the packet MUST be dropped; if 0, the parameter MAY be ignored. Bit 1 is reserved. Well-known Types include: 2=R1_COUNTER (R1), 257=PUZZLE (R1), 258=SOLUTION (I2), 512=SEQ (UPDATE), 513=ACK (UPDATE), 640=DIFFIE_HELLMAN (R1/I2), 705=HIP_TRANSFORM (R1/I2), 2048=ESP_INFO (I2/R2), 3001=HOST_ID (R1/I2), 61505=HIP_SIGNATURE_2 (R1), 61633=HIP_SIGNATURE (I2/R2), 65498=HIP_MAC (UPDATE), 65500=HIP_MAC_2 (R2). [RFC 7401 §5.2]"
-        - id: hipParamLen
-          name: Length
-          type: { kind: int, bits: 16 }
-          category: length
-          doc: "Length of the Parameter value (Contents) in bytes, NOT including the 4-byte Type+Length header and NOT including any trailing padding. The actual memory consumed by this parameter is: 4 + Length + (0..7 padding bytes) rounded up to the next 8-byte boundary. A Length of zero is permitted. [RFC 7401 §5.2]"
-        - id: hipParamContents
-          name: Contents
-          type: { kind: bytes, n: { kind: ref, field: hipParamLen } }
-          category: variable
-          doc: "Parameter value bytes. Interpretation depends on the Type field; formats are defined per-type in RFC 7401 §5.2 and related specifications. Examples: PUZZLE contains a #K difficulty byte, a Lifetime byte, an Opaque value, and a random puzzle I value; SOLUTION carries the matching J value; HOST_ID carries a DER-encoded public key and optional FQDN; HIP_SIGNATURE carries the algorithm identifier and a DER-encoded signature over the HIP packet. The Contents field is immediately followed by 0–7 zero-padding bytes to align the next parameter on an 8-byte boundary (padding bytes are not counted in Length). [RFC 7401 §5.2]"
-    count:
-      kind: ref
-      field: hipParamCount
+    bytes: { kind: op, op: "-", a: { kind: op, op: "*", a: { kind: ref, field: hipHeaderLength }, b: { kind: lit, value: 8 } }, b: { kind: lit, value: 32 } }
+    doc: "Byte-bounded region holding the trailing TLV Parameter chain. HIP carries no parameter-count field: its size is derived from Header Length, which gives the HIP header length in 8-byte units not counting the first 8 bytes. The total header is 8 + hipHeaderLength×8 bytes; the fixed header is 40 bytes, so the parameter region spans hipHeaderLength×8 − 32 bytes. As many TLV Parameters as fit are parsed within it. [RFC 7401 §5.1 / §5.2]"
+    fields:
+      - kind: repeat
+        id: hipParameters
+        name: HIP Parameters
+        category: variable
+        element:
+          id: hipParam
+          fields:
+            - id: hipParamType
+              name: Type
+              type: { kind: int, bits: 16 }
+              category: type
+              doc: "HIP Parameter Type number (big-endian). Parameters MUST appear in ascending Type order within a HIP packet. The Type also encodes two flags in its two least-significant bits: bit 0 (Critical bit) — if 1 and the receiver does not understand this Type, the packet MUST be dropped; if 0, the parameter MAY be ignored. Bit 1 is reserved. Well-known Types include: 65=ESP_INFO (I2/R2), 129=R1_COUNTER (R1), 257=PUZZLE (R1), 321=SOLUTION (I2), 385=SEQ (UPDATE), 449=ACK (UPDATE), 513=DIFFIE_HELLMAN (R1/I2), 577=HIP_TRANSFORM (R1/I2), 579=HIP_CIPHER (R1/I2), 705=HOST_ID (R1/I2), 61505=HIP_MAC (UPDATE), 61569=HIP_MAC_2 (R2), 61633=HIP_SIGNATURE_2 (R1), 61697=HIP_SIGNATURE (I2/R2). [RFC 7401 §5.2 / IANA HIP Parameters registry]"
+            - id: hipParamLen
+              name: Length
+              type: { kind: int, bits: 16 }
+              category: length
+              doc: "Length of the Parameter value (Contents) in bytes, NOT including the 4-byte Type+Length header and NOT including any trailing padding. The actual memory consumed by this parameter is: 4 + Length + (0..7 padding bytes) rounded up to the next 8-byte boundary. A Length of zero is permitted. [RFC 7401 §5.2]"
+            - id: hipParamContents
+              name: Contents
+              type: { kind: bytes, n: { kind: ref, field: hipParamLen } }
+              category: variable
+              doc: "Parameter value bytes. Interpretation depends on the Type field; formats are defined per-type in RFC 7401 §5.2 and related specifications. Examples: PUZZLE contains a #K difficulty byte, a Lifetime byte, an Opaque value, and a random puzzle I value; SOLUTION carries the matching J value; HOST_ID carries a DER-encoded public key and optional FQDN; HIP_SIGNATURE carries the algorithm identifier and a DER-encoded signature over the HIP packet. The Contents field is immediately followed by 0–7 zero-padding bytes to align the next parameter on an 8-byte boundary (padding bytes are not counted in Length). [RFC 7401 §5.2]"
+        count: eos

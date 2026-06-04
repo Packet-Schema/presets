@@ -32,8 +32,8 @@ body:
             4: "ODATA"
             5: "RDATA"
             8: "NAK"
-            9: "NCF"
-            10: "NNAK"
+            9: "NNAK"
+            10: "NCF"
             13: "SPMR"
         category: type
         defaultValue: 4
@@ -164,13 +164,28 @@ body:
             doc: "Reserved field after the Source NLA AFI. MUST be set to zero by the sender and ignored by the receiver. [RFC 3208 §11]"
           - id: pgmNakSrcNla
             name: Source NLA
-            type: { kind: bytes, n: { kind: ref, field: pgmBodyBytes } }
+            type: { kind: bytes, n: { kind: lookup, key: { kind: ref, field: pgmNakSrcNlaAfi }, table: { "1": 4, "2": 16 } } }
             category: addressing
-            doc: "Network layer address of the multicast source toward which the NAK is being directed (unicast path for repair). For AFI_IP: 4 bytes IPv4; for AFI_IP6: 16 bytes IPv6. pgmBodyBytes supplies the external byte count. [RFC 3208 §11]"
+            doc: "Network layer address of the multicast source toward which the NAK is being directed (unicast path for repair). For AFI_IP (AFI=1): 4 bytes IPv4; for AFI_IP6 (AFI=2): 16 bytes IPv6. The width is derived from the preceding Source NLA AFI. [RFC 3208 §11]"
+          - id: pgmNakGrpNlaAfi
+            name: Multicast Group NLA AFI
+            type: { kind: int, bits: 16 }
+            category: type
+            doc: "Address Family Indicator for the Multicast Group NLA. 1=IPv4, 2=IPv6. Determines the width of the Multicast Group NLA field that follows. [RFC 3208 §11]"
+          - id: pgmNakGrpReserved
+            name: Reserved
+            type: { kind: int, bits: 16 }
+            category: reserved
+            doc: "Reserved field after the Multicast Group NLA AFI. MUST be set to zero by the sender and ignored by the receiver. [RFC 3208 §11]"
+          - id: pgmNakGrpNla
+            name: Multicast Group NLA
+            type: { kind: bytes, n: { kind: lookup, key: { kind: ref, field: pgmNakGrpNlaAfi }, table: { "1": 4, "2": 16 } } }
+            category: addressing
+            doc: "Network layer address of the multicast group for which the lost ODATA is being NAKed. For AFI_IP (AFI=1): 4 bytes IPv4; for AFI_IP6 (AFI=2): 16 bytes IPv6. The width is derived from the preceding Multicast Group NLA AFI. Any Option Extensions follow. [RFC 3208 §11]"
 
-      "9":
-        id: pgmNcf
-        doc: "NCF Body"
+      "9,10":
+        id: pgmNcfNnak
+        doc: "NCF (type 10) and NNAK (type 9) body — both use the same NAK-format two-NLA-group layout. [RFC 3208 §8.2/§8.3]"
         fields:
           - id: pgmNcfSqn
             name: Confirmed Sequence Number
@@ -189,9 +204,24 @@ body:
             doc: "Reserved field after the Source NLA AFI in the NCF. MUST be zero on transmit, ignored on receive. [RFC 3208 §12]"
           - id: pgmNcfSrcNla
             name: Source NLA
-            type: { kind: bytes, n: { kind: ref, field: pgmBodyBytes } }
+            type: { kind: bytes, n: { kind: lookup, key: { kind: ref, field: pgmNcfSrcNlaAfi }, table: { "1": 4, "2": 16 } } }
             category: addressing
-            doc: "Network layer address identifying the source path for which the NAK confirmation applies. Receivers that receive a NCF for the requested sequence number SHOULD suppress their pending NAK retransmission timers. pgmBodyBytes supplies the external byte count. [RFC 3208 §12]"
+            doc: "Network layer address identifying the source path for which the NAK confirmation applies. Receivers that receive a NCF for the requested sequence number SHOULD suppress their pending NAK retransmission timers. For AFI_IP (AFI=1): 4 bytes IPv4; for AFI_IP6 (AFI=2): 16 bytes IPv6. The width is derived from the preceding Source NLA AFI. [RFC 3208 §12]"
+          - id: pgmNcfGrpNlaAfi
+            name: Multicast Group NLA AFI
+            type: { kind: int, bits: 16 }
+            category: type
+            doc: "Address Family Indicator for the NCF Multicast Group NLA. 1=IPv4, 2=IPv6. Determines the width of the Multicast Group NLA field that follows. [RFC 3208 §12]"
+          - id: pgmNcfGrpReserved
+            name: Reserved
+            type: { kind: int, bits: 16 }
+            category: reserved
+            doc: "Reserved field after the Multicast Group NLA AFI in the NCF. MUST be zero on transmit, ignored on receive. [RFC 3208 §12]"
+          - id: pgmNcfGrpNla
+            name: Multicast Group NLA
+            type: { kind: bytes, n: { kind: lookup, key: { kind: ref, field: pgmNcfGrpNlaAfi }, table: { "1": 4, "2": 16 } } }
+            category: addressing
+            doc: "Network layer address of the multicast group for which the NAK confirmation applies. For AFI_IP (AFI=1): 4 bytes IPv4; for AFI_IP6 (AFI=2): 16 bytes IPv6. The width is derived from the preceding Multicast Group NLA AFI. Any Option Extensions follow. [RFC 3208 §12]"
 
       "_":
         id: pgmUnknownBody

@@ -61,7 +61,7 @@ body:
         type: { kind: int, bits: 1 }
         category: flags
         defaultValue: 0
-        doc: "s (Solicit-Map-Request reserved) flag. Set to 1 when the originating ITR wants the ETR to rate-limit or suppress Solicit-Map-Request responses. MUST be 0 unless S flag is also set. [RFC 6833 §5.2]"
+        doc: "s (SMR-invoked) flag. This is the SMR-invoked bit; it is set to 1 when an xTR is sending a Map-Request in response to a received SMR-based Map-Request. [RFC 6830 §6.1.2]"
 
       - id: lispReserved
         name: Reserved
@@ -102,9 +102,9 @@ body:
 
       - id: lispSrcEidAddr
         name: Source EID Address
-        type: { kind: bytes, n: { kind: ref, field: lispSrcEidAddrLen } }
+        type: { kind: bytes, n: { kind: lookup, key: { kind: ref, field: lispSrcEidAfi }, table: { "0": 0, "1": 4, "2": 16 } } }
         category: addressing
-        doc: "Source EID address whose byte length is determined by the Source EID AFI: 0 bytes for AFI=0, 4 bytes for IPv4 (AFI=1), 16 bytes for IPv6 (AFI=2). Identifies the EID of the ITR originating this Map-Request. lispSrcEidAddrLen is an external reference supplying the byte count derived from the AFI. [RFC 6833 §5.2]"
+        doc: "Source EID address whose byte length is determined by the Source EID AFI: 0 bytes for AFI=0, 4 bytes for IPv4 (AFI=1), 16 bytes for IPv6 (AFI=2). Identifies the EID of the ITR originating this Map-Request. [RFC 6833 §5.2]"
 
   - kind: repeat
     id: lispItrRlocs
@@ -120,9 +120,9 @@ body:
           doc: "Address Family Identifier for this ITR-RLOC address. 1=IPv4 (4 bytes), 2=IPv6 (16 bytes), per IANA AFI registry. Determines the length of the following RLOC Address field. [RFC 6833 §5.2 / RFC 3232]"
         - id: lispItrRlocAddr
           name: ITR-RLOC Address
-          type: { kind: bytes, n: { kind: ref, field: lispItrRlocAddrLen } }
+          type: { kind: bytes, n: { kind: lookup, key: { kind: ref, field: lispItrRlocAfi }, table: { "0": 0, "1": 4, "2": 16 } } }
           category: addressing
-          doc: "RLOC address of this ITR, encoded in the address family indicated by the preceding ITR-RLOC AFI (4 bytes for IPv4, 16 bytes for IPv6). The Map-Server or ETR uses these addresses to route the Map-Reply back to the ITR. lispItrRlocAddrLen is an external reference supplying the byte count. [RFC 6833 §5.2]"
+          doc: "RLOC address of this ITR, encoded in the address family indicated by the preceding ITR-RLOC AFI (4 bytes for IPv4, 16 bytes for IPv6). The Map-Server or ETR uses these addresses to route the Map-Reply back to the ITR. [RFC 6833 §5.2]"
     count: { kind: lit, value: 0 }
 
   - kind: repeat
@@ -149,7 +149,7 @@ body:
           doc: "Address Family Identifier for the EID prefix. 1=IPv4, 2=IPv6, per IANA AFI registry. Determines the length of the following EID Prefix field. [RFC 6833 §5.2 / RFC 3232]"
         - id: lispEidPrefix
           name: EID Prefix
-          type: { kind: bytes, n: { kind: ref, field: lispEidPrefixLen } }
+          type: { kind: bytes, n: { kind: lookup, key: { kind: ref, field: lispEidPrefixAfi }, table: { "0": 0, "1": 4, "2": 16 } } }
           category: addressing
-          doc: "EID prefix whose mapping is being requested, encoded in the address family given by EID Prefix AFI (4 bytes for IPv4, 16 bytes for IPv6). Only the most significant EID Mask Length bits are significant; remaining bits SHOULD be zero. lispEidPrefixLen is an external reference supplying the byte count derived from the AFI. [RFC 6833 §5.2]"
+          doc: "EID prefix whose mapping is being requested, encoded in the address family given by EID Prefix AFI (4 bytes for IPv4, 16 bytes for IPv6). Only the most significant EID Mask Length bits are significant; remaining bits SHOULD be zero. [RFC 6833 §5.2]"
     count: { kind: lit, value: 0 }

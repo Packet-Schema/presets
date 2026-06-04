@@ -247,21 +247,21 @@ body:
         type: { kind: bits, n: 1 }
         category: flags
         doc: Partition repair capability. Originally signalled willingness to repair area partitions; rarely used today. [ISO 10589 §9.8]
-      - id: attr_att_delay
-        name: ATT(delay)
-        type: { kind: bits, n: 1 }
-        category: flags
-        doc: ATT bit for the delay metric. Set in an L1 LSP by an L1L2 router to indicate that it is attached to the L2 backbone via this metric, prompting L1-only routers to install a default route. [ISO 10589 §9.8]
-      - id: attr_att_expense
-        name: ATT(expense)
-        type: { kind: bits, n: 1 }
-        category: flags
-        doc: ATT bit for the expense metric. [ISO 10589 §9.8]
       - id: attr_att_error
         name: ATT(error)
         type: { kind: bits, n: 1 }
         category: flags
         doc: ATT bit for the error metric. [ISO 10589 §9.8]
+      - id: attr_att_expense
+        name: ATT(expense)
+        type: { kind: bits, n: 1 }
+        category: flags
+        doc: ATT bit for the expense metric. [ISO 10589 §9.8]
+      - id: attr_att_delay
+        name: ATT(delay)
+        type: { kind: bits, n: 1 }
+        category: flags
+        doc: ATT bit for the delay metric. Set in an L1 LSP by an L1L2 router to indicate that it is attached to the L2 backbone via this metric, prompting L1-only routers to install a default route. [ISO 10589 §9.8]
       - id: attr_att_default
         name: ATT(default)
         type: { kind: bits, n: 1 }

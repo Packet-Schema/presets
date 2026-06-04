@@ -31,9 +31,19 @@ body:
       PIM message type. 4 = Bootstrap (this preset). Other values: 0=Hello,
       1=Register, 2=Register-Stop, 3=Join/Prune, 5=Assert,
       8=Candidate-RP-Advertisement. [RFC 5059 §4]
+  - id: pimNoForward
+    name: N
+    type: { kind: bits, n: 1 }
+    category: flags
+    doc: >-
+      No-Forward bit. When set, this Bootstrap message fragment MUST NOT be
+      forwarded; it is used for unicast BSM delivery (e.g. on a new or
+      rebooting router) so that the fragment is processed locally but not
+      flooded. This bit is specific to the Bootstrap Message header.
+      [RFC 5059 §4]
   - id: pimReserved
     name: Reserved
-    type: { kind: int, bits: 8 }
+    type: { kind: bits, n: 7 }
     category: reserved
     doc: >-
       Reserved bits; MUST be set to zero on transmission and ignored on

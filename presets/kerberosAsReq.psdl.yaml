@@ -104,9 +104,24 @@ body:
         name: msg-type Value
         type: { kind: bytes, n: { kind: ref, field: msgTypeIntLength } }
         category: type
-        doc: "Kerberos message type discriminator. Value 10 (0x0A) identifies AS-REQ; 11=AS-REP, 12=TGS-REQ, 13=TGS-REP, 14=AP-REQ, 15=AP-REP, 20=TGT-REQ (PKINIT), 30=KRB-ERROR. The KDC dispatches messages to the AS or TGS handler based on this field. [RFC 4120 §5.4.1 / §7.5.7]"
+        doc: "Kerberos message type discriminator. Value 10 (0x0A) identifies AS-REQ; 11=AS-REP, 12=TGS-REQ, 13=TGS-REP, 14=AP-REQ, 15=AP-REP, 20=KRB-SAFE, 21=KRB-PRIV, 22=KRB-CRED, 30=KRB-ERROR. The KDC dispatches messages to the AS or TGS handler based on this field. [RFC 4120 §5.4.1 / §7.5.7]"
 
   # ── padata [3] SEQUENCE OF PA-DATA OPTIONAL ───────────────────────────────
+  # padata presence and record count are decode-time decision variables, not
+  # wire fields (the DER structure is self-describing). They are seeded here as
+  # zero-byte virtual fields so the optional `when` and the repeat `count`
+  # resolve. This preset illustrates an AS-REQ that carries one PA-DATA record
+  # (e.g. PA-ENC-TIMESTAMP); set these to 0 to render an AS-REQ with no padata.
+  - kind: virtual
+    id: kerberosHasPadata
+    name: (padata present)
+    expr: { kind: lit, value: 1 }
+    doc: "Decision variable (0 wire bytes): non-zero when the optional padata [3] block is present. Seeded to 1 to illustrate a pre-authenticated AS-REQ. [RFC 4120 §5.2.7]"
+  - kind: virtual
+    id: padataCount
+    name: (padata record count)
+    expr: { kind: lit, value: 1 }
+    doc: "Decision variable (0 wire bytes): number of PA-DATA records in the SEQUENCE OF PA-DATA. Seeded to 1 for this illustrative AS-REQ. [RFC 4120 §5.2.7]"
   - kind: optional
     when: { kind: ref, field: kerberosHasPadata }
     container:
@@ -149,7 +164,7 @@ body:
     id: padataList
     name: PA-DATA Elements
     category: variable
-    doc: "SEQUENCE OF PA-DATA pre-authentication data records. Each record is a SEQUENCE { padata-type [1] Int32, padata-value [2] OCTET STRING }. Common padata-type values: 1=PA-TGS-REQ (TGS ticket), 2=PA-ENC-TIMESTAMP (encrypted timestamp, most common AS pre-auth), 11=PA-ETYPE-INFO, 19=PA-ETYPE-INFO2, 128=PA-PAC-REQUEST (MS extension), 136=PA-FX-FAST-REQUEST (FAST, RFC 6113). The count is driven by a ref to padataCount (default 0 so an empty AS-REQ renders correctly). [RFC 4120 §5.2.7 / §7.5.2]"
+    doc: "SEQUENCE OF PA-DATA pre-authentication data records. Each record is a SEQUENCE { padata-type [1] Int32, padata-value [2] OCTET STRING }. Common padata-type values: 1=PA-TGS-REQ (TGS ticket), 2=PA-ENC-TIMESTAMP (encrypted timestamp, most common AS pre-auth), 11=PA-ETYPE-INFO, 19=PA-ETYPE-INFO2, 128=PA-PAC-REQUEST (MS extension), 136=PA-FX-FAST-REQUEST (FAST, RFC 6113). The count is driven by the padataCount decision variable (seeded to 1 above; set it to 0 to render an AS-REQ with no padata). [RFC 4120 §5.2.7 / §7.5.2]"
     element:
       id: padataRecord
       fields:

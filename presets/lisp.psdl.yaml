@@ -111,15 +111,10 @@ body:
             doc: "8-bit Locator-Status-Bits indicating the up/down reachability status of each source RLOC in the order they appear in the source Map-Reply. Bit 0 is the status of the first RLOC. Meaningful only when L=1; otherwise set to zero. Present in the LSB position of the Instance ID word when I=1. [RFC 6830 §5.3]"
       "_":
         id: lispLSBOnly
-        doc: "Locator-Status-Bits / Reserved"
+        doc: "Locator-Status-Bits"
         fields:
-          - id: lispRsvd24b
-            name: Reserved (24 bit)
-            type: { kind: bits, n: 24 }
-            category: reserved
-            doc: "Upper 24 bits of the second word when I=0. MUST be set to zero and ignored by the ETR. [RFC 6830 §5.3]"
           - id: lispLSBNoInstance
             name: Locator-Status-Bits
-            type: { kind: int, bits: 8 }
+            type: { kind: int, bits: 32 }
             category: flags
-            doc: "8-bit Locator-Status-Bits indicating the up/down reachability status of each source RLOC when I=0 and L=1. Bit 0 corresponds to the first RLOC listed in the source Map-Reply. Set to zero when L=0. [RFC 6830 §5.3]"
+            doc: "32-bit Locator-Status-Bits indicating the up/down reachability status of each source RLOC when I=0. The entire second 32-bit word is used for Locator-Status-Bits; bit 0 corresponds to the first RLOC listed in the source Map-Reply. Meaningful only when L=1; set to zero when L=0. [RFC 6830 §5.3]"

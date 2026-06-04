@@ -53,11 +53,11 @@ body:
       bits: 8
       variants:
         0: "No Authentication"
-        1: "Simple Text Password"
-        2: "IP Authentication Header"
+        1: "Reserved"
+        2: "Reserved"
     category: type
     defaultValue: 0
-    doc: "Authentication type in use. 0=No Authentication, 1=Simple Text Password (the 8-byte Auth Data field carries a plain-text password — considered insecure), 2=IP Authentication Header (deprecated; was never widely implemented). RFC 5798 (VRRPv3) removed authentication entirely due to inadequate security. [RFC 3768 §5.1 / §5.3]"
+    doc: "Authentication type in use. Per RFC 3768 §5.3.6 the only defined method is 0=No Authentication; values 1 and 2 are both Reserved. RFC 3768 §13 removed the RFC 2338 password (was 1=Simple Text Password) and IPSEC/AH (was 2=IP Authentication Header) authentication values, retaining the fields and values only for backwards compatibility with RFC 2338. RFC 5798 (VRRPv3) removed authentication entirely. [RFC 3768 §5.3.6 / §13]"
 
   - id: vrrpAdverInt
     name: Adver Int
@@ -90,4 +90,4 @@ body:
     name: Auth Data
     type: { kind: bits, n: 64 }
     category: variable
-    doc: "Authentication data, always 8 bytes. For Auth Type 0 (No Authentication) this field MUST be set to zero on transmission and MUST be ignored on reception. For Auth Type 1 (Simple Text Password) it carries a null-padded ASCII password of up to 8 characters. For Auth Type 2 (IP AH) it is set to zero (the AH is in the IP header). [RFC 3768 §5.1 / §5.3]"
+    doc: "Authentication data, always 8 bytes. Per RFC 3768 §5.3.10 this field is not used and MUST be set to zero on transmission and MUST be ignored on reception (Auth Type 0). Auth Type values 1 and 2 are Reserved; RFC 3768 §13 removed the RFC 2338 meanings (1=Simple Text Password carried a null-padded ASCII password here; 2=IP AH set it to zero), retaining the field only for backwards compatibility. [RFC 3768 §5.3.10 / §13]"
