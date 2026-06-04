@@ -1,8 +1,9 @@
-# yaml-language-server: $schema=../../schemas/psdl.schema.json
+# yaml-language-server: $schema=../node_modules/@packet-schema/core/schemas/psdl-0.5.yaml
+version: "0.5"
 name: WebSocket Frame
 rowBits: 32
-byteOrder: Network byte order (big-endian, MSB-first). Extended payload length is BE; the 8-byte form's MSB MUST be 0 (max payload 2^63 - 1).
-description: WebSocket data frame (RFC 6455 §5.2) — 2-byte fixed header with FIN/RSV/Opcode + MASK/Length7, optional extended length (126 → +2 B, 127 → +8 B), optional 4-byte Masking Key (MASK=1, mandatory client→server per §5.3), then payload. PSDL 0.4 has no comparison operator, so the 126/127 magic on the 7-bit Payload Length is unpacked with a Switch (default = 0..125 inline).
+byteOrder: BE
+description: WebSocket data frame (RFC 6455 §5.2) — 2-byte fixed header with FIN/RSV/Opcode + MASK/Length7, optional extended length (126 → +2 B, 127 → +8 B), optional 4-byte Masking Key (MASK=1, mandatory client→server per §5.3), then payload. PSDL 0.4 has no comparison operator, so the 126/127 magic on the 7-bit Payload Length is unpacked with a Switch (default = 0..125 inline). Extended payload length is BE; the 8-byte form's MSB MUST be 0 (max payload 2^63 - 1).
 
 body:
   - kind: group
@@ -72,7 +73,7 @@ body:
     cases:
       "126":
         id: extLen16
-        name: Extended Payload Length (16)
+        doc: "Extended Payload Length (16)"
         fields:
           - id: extPayloadLength16
             name: Extended Payload Length (16)
@@ -82,7 +83,7 @@ body:
             doc: "16-bit unsigned Extended Payload Length in network byte order. Present only when Payload Length (7) == 126; carries the actual payload length in the range 126..65535. Values 0..125 MUST NOT be encoded here (minimal-length-encoding rule). [RFC 6455 §5.2]"
       "127":
         id: extLen64
-        name: Extended Payload Length (64)
+        doc: "Extended Payload Length (64)"
         fields:
           - id: extPayloadLength64
             name: Extended Payload Length (64)
@@ -90,13 +91,13 @@ body:
             category: length
             defaultValue: 65536
             doc: "64-bit unsigned Extended Payload Length in network byte order. Present only when Payload Length (7) == 127; the most significant bit MUST be 0 (so the effective range is 0..2^63-1, in practice 65536..2^63-1 because 0..65535 MUST use the shorter encodings). [RFC 6455 §5.2]"
-    default:
-      id: extLenInline
-      name: (no Extended Length)
-      fields: []
+      "_":
+        id: extLenInline
+        doc: "(no Extended Length)"
+        fields: []
   - kind: optional
     when: { kind: ref, field: mask }
-    field:
+    container:
       id: maskingKey
       name: Masking-key
       type: { kind: bytes, n: { kind: lit, value: 4 } }

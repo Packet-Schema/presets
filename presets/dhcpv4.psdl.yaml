@@ -1,30 +1,42 @@
-# yaml-language-server: $schema=../../schemas/psdl.schema.json
+# yaml-language-server: $schema=../node_modules/@packet-schema/core/schemas/psdl-0.5.yaml
+version: "0.5"
 name: DHCPv4 Message (BOOTP-compatible)
 rowBits: 32
-byteOrder: Network byte order (big-endian, MSB-first). The fixed BOOTP-shaped header is 236 octets; chaddr (16 B), sname (64 B), and file (128 B) are fixed-size and zero-padded at the tail. The Magic Cookie 0x63825363 immediately follows file and marks the start of the DHCP Options area; Options are TLV (Code 1 B + Length 1 B + Value Length B) except Pad (0) and End (255) which are 1-byte single-octet options with no length field.
-description: Dynamic Host Configuration Protocol for IPv4 (RFC 2131). DHCPv4 reuses the BOOTP message format (RFC 951) — a 236-byte fixed header followed by the Magic Cookie 0x63825363 (RFC 1497 vendor-extensions marker) and a chain of TLV Options (RFC 2132). The Options chain carries the actual DHCP semantics; the catalogue below covers the most-deployed options (Subnet Mask, Router, DNS Server, Hostname, Lease Time, Message Type, Server Identifier, Parameter Request List) plus the two zero-length sentinels Pad (0) and End (255). Unknown option codes fall through to a generic opaque record. Carried over UDP, ports 67 (server) and 68 (client).
+byteOrder: BE
+description: Dynamic Host Configuration Protocol for IPv4 (RFC 2131). DHCPv4 reuses the BOOTP message format (RFC 951) — a 236-byte fixed header followed by the Magic Cookie 0x63825363 (RFC 1497 vendor-extensions marker) and a chain of TLV Options (RFC 2132). The Options chain carries the actual DHCP semantics; the catalogue below covers the most-deployed options (Subnet Mask, Router, DNS Server, Hostname, Lease Time, Message Type, Server Identifier, Parameter Request List) plus the two zero-length sentinels Pad (0) and End (255). Unknown option codes fall through to a generic opaque record. Carried over UDP, ports 67 (server) and 68 (client). The fixed BOOTP-shaped header is 236 octets; chaddr (16 B), sname (64 B), and file (128 B) are fixed-size and zero-padded at the tail. The Magic Cookie 0x63825363 immediately follows file and marks the start of the DHCP Options area; Options are TLV (Code 1 B + Length 1 B + Value Length B) except Pad (0) and End (255) which are 1-byte single-octet options with no length field.
 
 _dhcpv4_option_variants: &dhcpv4_option_variants
+  "_":
+    id: unknownOption
+    doc: Unknown Option
+    fields:
+      - { id: optionCode, name: Code, type: { kind: int, bits: 8 }, category: type, doc: "Option Code octet (the Type of this TLV) whose value is not catalogued in this preset. Codes are assigned in the IANA DHCP and BOOTP Parameters registry. [RFC 2132 §2]" }
+      - { id: optionLength, name: Length, type: { kind: int, bits: 8 }, category: length, doc: "Length of the Value field in octets (0..255). [RFC 2132 §2]" }
+      - id: optionValue
+        name: Value
+        type: { kind: bytes, n: { kind: ref, field: optionLength } }
+        category: variable
+        doc: Opaque payload of a DHCP option whose code is not catalogued in this preset. Common unmodelled codes include 2 (Time Offset), 15 (Domain Name), 28 (Broadcast Address), 33 (Static Route), 42 (NTP Servers), 50 (Requested IP Address), 52 (Option Overload), 58 (Renewal T1), 59 (Rebinding T2), 60 (Vendor Class Identifier), 61 (Client Identifier), 82 (Relay Agent Information). [RFC 2132 / IANA DHCP and BOOTP Parameters]
   "0":
     id: padOption
-    name: Pad (Code=0)
+    doc: Pad (Code=0)
     fields:
       - { id: optionCode, name: "Code=0", type: { kind: int, bits: 8 }, category: type, defaultValue: 0, doc: "Pad option — a single 0x00 octet with NO length field, used to align a subsequent option on a word boundary. Receivers MUST ignore Pad octets. [RFC 2132 §3.1]" }
   "255":
     id: endOption
-    name: End (Code=255)
+    doc: End (Code=255)
     fields:
       - { id: optionCode, name: "Code=255", type: { kind: int, bits: 8 }, category: payload-marker, defaultValue: 255, doc: "End option — a single 0xFF octet with NO length field marking the end of valid option data. Any octets after End MUST be Pad octets and MUST be ignored. [RFC 2132 §3.2]" }
   "1":
     id: subnetMaskOption
-    name: Subnet Mask (Code=1)
+    doc: Subnet Mask (Code=1)
     fields:
       - { id: optionCode, name: "Code=1", type: { kind: int, bits: 8 }, category: type, defaultValue: 1, doc: "Option Code octet identifying this as the Subnet Mask option (code 1). [RFC 2132 §3.3]" }
       - { id: optionLength, name: "Len=4", type: { kind: int, bits: 8 }, category: length, defaultValue: 4, doc: "Length is always 4 — a single IPv4 mask. [RFC 2132 §3.3]" }
       - { id: subnetMaskValue, name: Subnet Mask, type: { kind: int, bits: 32 }, category: addressing, doc: "Client's subnet mask per RFC 950. If both Router (3) and Subnet Mask are present in a reply, this option MUST appear first. [RFC 2132 §3.3]" }
   "3":
     id: routerOption
-    name: Router (Code=3)
+    doc: Router (Code=3)
     fields:
       - { id: optionCode, name: "Code=3", type: { kind: int, bits: 8 }, category: type, defaultValue: 3, doc: "Option Code octet identifying this as the Router option (code 3). [RFC 2132 §3.5]" }
       - { id: optionLength, name: Length, type: { kind: int, bits: 8 }, category: length, doc: "Length in octets — MUST be a multiple of 4 and ≥ 4 (one IPv4 address per router). [RFC 2132 §3.5]" }
@@ -35,7 +47,7 @@ _dhcpv4_option_variants: &dhcpv4_option_variants
         doc: List of IPv4 router addresses on the client's subnet, in order of preference. The first address SHOULD be the client's default gateway. [RFC 2132 §3.5]
   "6":
     id: dnsServerOption
-    name: Domain Name Server (Code=6)
+    doc: Domain Name Server (Code=6)
     fields:
       - { id: optionCode, name: "Code=6", type: { kind: int, bits: 8 }, category: type, defaultValue: 6, doc: "Option Code octet identifying this as the Domain Name Server option (code 6). [RFC 2132 §3.8]" }
       - { id: optionLength, name: Length, type: { kind: int, bits: 8 }, category: length, doc: "Length in octets — MUST be a multiple of 4 and ≥ 4 (one IPv4 address per DNS server). [RFC 2132 §3.8]" }
@@ -46,7 +58,7 @@ _dhcpv4_option_variants: &dhcpv4_option_variants
         doc: List of IPv4 addresses of DNS name servers (per STD 13 / RFC 1035) available to the client, in order of preference. [RFC 2132 §3.8]
   "12":
     id: hostnameOption
-    name: Host Name (Code=12)
+    doc: Host Name (Code=12)
     fields:
       - { id: optionCode, name: "Code=12", type: { kind: int, bits: 8 }, category: type, defaultValue: 12, doc: "Option Code octet identifying this as the Host Name option (code 12). [RFC 2132 §3.14]" }
       - { id: optionLength, name: Length, type: { kind: int, bits: 8 }, category: length, doc: "Length of the hostname string in octets; MUST be ≥ 1. No trailing NUL. [RFC 2132 §3.14]" }
@@ -57,14 +69,14 @@ _dhcpv4_option_variants: &dhcpv4_option_variants
         doc: Client's name as an NVT-ASCII string. May or may not be qualified with the local domain (see Domain Name option 15). The server may use this when registering the leased address in DNS. [RFC 2132 §3.14]
   "51":
     id: leaseTimeOption
-    name: IP Address Lease Time (Code=51)
+    doc: IP Address Lease Time (Code=51)
     fields:
       - { id: optionCode, name: "Code=51", type: { kind: int, bits: 8 }, category: type, defaultValue: 51, doc: "Option Code octet identifying this as the IP Address Lease Time option (code 51). [RFC 2132 §9.2]" }
       - { id: optionLength, name: "Len=4", type: { kind: int, bits: 8 }, category: length, defaultValue: 4, doc: "Length is always 4 — a single 32-bit interval. [RFC 2132 §9.2]" }
       - { id: leaseTimeValue, name: Lease Time (s), type: { kind: int, bits: 32 }, category: identifier, doc: "Lease duration in seconds, encoded as an unsigned 32-bit integer. The client uses this in a DHCPREQUEST to ask for a specific lease length; the server uses it in DHCPOFFER / DHCPACK to grant one. 0xFFFFFFFF means 'infinite'. [RFC 2132 §9.2]" }
   "53":
     id: messageTypeOption
-    name: DHCP Message Type (Code=53)
+    doc: DHCP Message Type (Code=53)
     fields:
       - { id: optionCode, name: "Code=53", type: { kind: int, bits: 8 }, category: type, defaultValue: 53, doc: "Option Code octet identifying this as the DHCP Message Type option (code 53). [RFC 2132 §9.6]" }
       - { id: optionLength, name: "Len=1", type: { kind: int, bits: 8 }, category: length, defaultValue: 1, doc: "Length is always 1 — a single message-type code octet. [RFC 2132 §9.6]" }
@@ -87,14 +99,14 @@ _dhcpv4_option_variants: &dhcpv4_option_variants
         doc: DHCP message type — distinguishes DHCP from plain BOOTP and drives the protocol state machine in RFC 2131 §3. MUST be present in every DHCP message. [RFC 2132 §9.6 / RFC 2131 §3.1]
   "54":
     id: serverIdentifierOption
-    name: Server Identifier (Code=54)
+    doc: Server Identifier (Code=54)
     fields:
       - { id: optionCode, name: "Code=54", type: { kind: int, bits: 8 }, category: type, defaultValue: 54, doc: "Option Code octet identifying this as the Server Identifier option (code 54). [RFC 2132 §9.7]" }
       - { id: optionLength, name: "Len=4", type: { kind: int, bits: 8 }, category: length, defaultValue: 4, doc: "Length is always 4 — a single IPv4 address. [RFC 2132 §9.7]" }
       - { id: serverIdentifierValue, name: Server Identifier, type: { kind: int, bits: 32 }, category: identifier, doc: "IPv4 address of the DHCP server. Servers include it in DHCPOFFER / DHCPACK so the client can distinguish multiple offers and address subsequent unicast DHCPREQUEST / DHCPRELEASE messages to the correct server. [RFC 2132 §9.7 / RFC 2131 §4.3.1]" }
   "55":
     id: parameterRequestListOption
-    name: Parameter Request List (Code=55)
+    doc: Parameter Request List (Code=55)
     fields:
       - { id: optionCode, name: "Code=55", type: { kind: int, bits: 8 }, category: type, defaultValue: 55, doc: "Option Code octet identifying this as the Parameter Request List option (code 55). [RFC 2132 §9.8]" }
       - { id: optionLength, name: Length, type: { kind: int, bits: 8 }, category: length, doc: "Number of option codes that follow; MUST be ≥ 1. [RFC 2132 §9.8]" }
@@ -216,15 +228,4 @@ body:
           id: byOptionCode
           on: { kind: ref, field: optionCode }
           cases: *dhcpv4_option_variants
-          default:
-            id: unknownOption
-            name: Unknown Option
-            fields:
-              - { id: optionCode, name: Code, type: { kind: int, bits: 8 }, category: type, doc: "Option Code octet (the Type of this TLV) whose value is not catalogued in this preset. Codes are assigned in the IANA DHCP and BOOTP Parameters registry. [RFC 2132 §2]" }
-              - { id: optionLength, name: Length, type: { kind: int, bits: 8 }, category: length, doc: "Length of the Value field in octets (0..255). [RFC 2132 §2]" }
-              - id: optionValue
-                name: Value
-                type: { kind: bytes, n: { kind: ref, field: optionLength } }
-                category: variable
-                doc: Opaque payload of a DHCP option whose code is not catalogued in this preset. Common unmodelled codes include 2 (Time Offset), 15 (Domain Name), 28 (Broadcast Address), 33 (Static Route), 42 (NTP Servers), 50 (Requested IP Address), 52 (Option Overload), 58 (Renewal T1), 59 (Rebinding T2), 60 (Vendor Class Identifier), 61 (Client Identifier), 82 (Relay Agent Information). [RFC 2132 / IANA DHCP and BOOTP Parameters]
     count: { kind: ref, field: options_count }

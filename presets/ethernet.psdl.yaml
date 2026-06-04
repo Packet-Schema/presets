@@ -1,4 +1,5 @@
-# yaml-language-server: $schema=../../schemas/psdl.schema.json
+# yaml-language-server: $schema=../node_modules/@packet-schema/core/schemas/psdl-0.5.yaml
+version: "0.5"
 name: Ethernet II Frame Header
 rowBits: 32
 byteOrder: BE

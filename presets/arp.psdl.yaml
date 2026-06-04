@@ -1,8 +1,9 @@
-# yaml-language-server: $schema=../../schemas/psdl.schema.json
+# yaml-language-server: $schema=../node_modules/@packet-schema/core/schemas/psdl-0.5.yaml
+version: "0.5"
 name: ARP (IPv4 over Ethernet)
 rowBits: 32
-byteOrder: Network byte order (big-endian, MSB-first). HLEN/PLEN are single-byte counts, so endianness only matters for the multi-byte fields.
-description: Address Resolution Protocol packet for IPv4-over-Ethernet (RFC 826). Address fields are technically variable; this preset shows the common HTYPE=1, PTYPE=0x0800, HLEN=6, PLEN=4 form (28 bytes total).
+byteOrder: BE
+description: Address Resolution Protocol packet for IPv4-over-Ethernet (RFC 826). Address fields are technically variable; this preset shows the common HTYPE=1, PTYPE=0x0800, HLEN=6, PLEN=4 form (28 bytes total). HLEN/PLEN are single-byte counts, so endianness only matters for the multi-byte fields.
 body:
   - id: htype
     name: Hardware Type

@@ -1,8 +1,9 @@
-# yaml-language-server: $schema=../../schemas/psdl.schema.json
+# yaml-language-server: $schema=../node_modules/@packet-schema/core/schemas/psdl-0.5.yaml
+version: "0.5"
 name: TLS Record Layer
 rowBits: 8
-byteOrder: Network byte order (big-endian, MSB-first). The 16-bit Length is split here as high byte then low byte.
-description: TLS record layer header (RFC 8446 §5.1). 5-byte fixed header that frames every TLS record on the wire.
+byteOrder: BE
+description: TLS record layer header (RFC 8446 §5.1). 5-byte fixed header that frames every TLS record on the wire. The 16-bit Length is split here as high byte then low byte.
 body:
   - id: type
     name: Content Type

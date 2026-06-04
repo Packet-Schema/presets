@@ -1,8 +1,9 @@
-# yaml-language-server: $schema=../../schemas/psdl.schema.json
+# yaml-language-server: $schema=../node_modules/@packet-schema/core/schemas/psdl-0.5.yaml
+version: "0.5"
 name: IPv6 Header
 rowBits: 32
-byteOrder: Network byte order (big-endian, MSB-first). Addresses are transmitted high-group first; e.g. 2001:db8::1 is sent as 0x2001 0x0db8 ... 0x0001.
-description: Internet Protocol version 6 header (RFC 8200 §3). Fixed 40 bytes; optional features such as fragmentation and routing live in chained extension headers selected by Next Header.
+byteOrder: BE
+description: Internet Protocol version 6 header (RFC 8200 §3). Fixed 40 bytes; optional features such as fragmentation and routing live in chained extension headers selected by Next Header. Addresses are transmitted high-group first; e.g. 2001:db8::1 is sent as 0x2001 0x0db8 ... 0x0001.
 body:
   - id: version
     name: Version
@@ -76,7 +77,7 @@ body:
           cases:
             "0":
               id: nextHeader_proto_0
-              name: Hop-by-Hop Options
+              doc: Hop-by-Hop Options
               fields:
                 - id: nextHeader
                   name: Next Header
@@ -98,7 +99,7 @@ body:
                   doc: One or more TLV-encoded options examined by every node on the path, padded so the header ends on an 8-byte boundary. [RFC 8200 §4.2, §4.3]
             "43":
               id: nextHeader_proto_43
-              name: Routing
+              doc: Routing
               fields:
                 - id: nextHeader
                   name: Next Header
@@ -132,7 +133,7 @@ body:
                   doc: Variable-length data whose format depends on the Routing Type. [RFC 8200 §4.4]
             "44":
               id: nextHeader_proto_44
-              name: Fragment
+              doc: Fragment
               fields:
                 - id: nextHeader
                   name: Next Header
@@ -172,7 +173,7 @@ body:
                   doc: Identifier shared by all fragments of one original packet so the destination can reassemble them. [RFC 8200 §4.5]
             "50":
               id: nextHeader_proto_50
-              name: ESP
+              doc: ESP
               fields:
                 - id: spi
                   name: SPI
@@ -194,7 +195,7 @@ body:
                   doc: Variable-length encrypted payload data, including padding and the trailing Next Header field; shown here as a fixed-size placeholder. [RFC 4303 §2.3]
             "51":
               id: nextHeader_proto_51
-              name: AH
+              doc: AH
               fields:
                 - id: nextHeader
                   name: Next Header
@@ -234,7 +235,7 @@ body:
                   doc: Variable-length integrity check value (a truncated MAC) authenticating the packet; its length depends on the negotiated algorithm. [RFC 4302 §2.6]
             "60":
               id: nextHeader_proto_60
-              name: Destination Options
+              doc: Destination Options
               fields:
                 - id: nextHeader
                   name: Next Header

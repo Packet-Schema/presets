@@ -1,7 +1,8 @@
-# yaml-language-server: $schema=../../schemas/psdl.schema.json
+# yaml-language-server: $schema=../node_modules/@packet-schema/core/schemas/psdl-0.5.yaml
+version: "0.5"
 name: OSPFv2 Hello Packet
 rowBits: 32
-byteOrder: Network byte order (big-endian, MSB-first).
+byteOrder: BE
 description: OSPFv2 Hello packet (RFC 2328 Appendix A.3.1 / A.3.2). 24-byte OSPF common header followed by the Hello-specific body, sent over IP protocol 89 to the AllSPFRouters (224.0.0.5) or AllDRouters (224.0.0.6) multicast group. Hello packets discover neighbors and maintain adjacencies; the Neighbor list at the tail enumerates every router from which a valid Hello has been received during the last RouterDeadInterval.
 body:
   - id: version

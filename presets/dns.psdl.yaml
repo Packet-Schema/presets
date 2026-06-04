@@ -1,8 +1,9 @@
-# yaml-language-server: $schema=../../schemas/psdl.schema.json
+# yaml-language-server: $schema=../node_modules/@packet-schema/core/schemas/psdl-0.5.yaml
+version: "0.5"
 name: DNS Header
 rowBits: 16
-byteOrder: Network byte order (big-endian, MSB-first). All count fields are 16-bit big-endian.
-description: Domain Name System message header (RFC 1035). 12 bytes; the Flags field encodes QR/Opcode/AA/TC/RD/RA/Z/RCODE.
+byteOrder: BE
+description: Domain Name System message header (RFC 1035). 12 bytes; the Flags field encodes QR/Opcode/AA/TC/RD/RA/Z/RCODE. All count fields are 16-bit big-endian.
 body:
   - id: id
     name: Identification

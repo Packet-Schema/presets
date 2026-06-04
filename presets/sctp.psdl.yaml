@@ -1,13 +1,14 @@
-# yaml-language-server: $schema=../../schemas/psdl.schema.json
+# yaml-language-server: $schema=../node_modules/@packet-schema/core/schemas/psdl-0.5.yaml
+version: "0.5"
 name: SCTP Packet (Common Header + Chunks)
 rowBits: 32
-byteOrder: Network byte order (big-endian, MSB-first). Chunk Length covers Type/Flags/Length/Value and is always padded with zeros to a 4-byte multiple, but the Length value itself does not include the padding.
-description: Stream Control Transmission Protocol packet (RFC 9260, obsoletes RFC 4960). A 12-byte Common Header followed by one or more Chunks. Each Chunk is a TLV — Type (1 B) + chunk-specific Flags (1 B) + Length (2 B, including the header) + Value. The chunk catalogue below covers the most-deployed types; unknown chunks fall through to a generic opaque record.
+byteOrder: BE
+description: Stream Control Transmission Protocol packet (RFC 9260, obsoletes RFC 4960). A 12-byte Common Header followed by one or more Chunks. Each Chunk is a TLV — Type (1 B) + chunk-specific Flags (1 B) + Length (2 B, including the header) + Value. The chunk catalogue below covers the most-deployed types; unknown chunks fall through to a generic opaque record. Chunk Length covers Type/Flags/Length/Value and is always padded with zeros to a 4-byte multiple, but the Length value itself does not include the padding.
 
 _sctp_chunk_variants: &sctp_chunk_variants
   "0":
     id: dataChunk
-    name: DATA (Type=0)
+    doc: DATA (Type=0)
     fields:
       - { id: chunkType, name: "Type=0", type: { kind: int, bits: 8 }, category: type, doc: "Chunk Type — 0 = DATA, carrying user data to the upper layer. [RFC 9260 §3.2 / §3.3.1]" }
       - kind: group
@@ -31,7 +32,7 @@ _sctp_chunk_variants: &sctp_chunk_variants
         doc: Application payload. The end of this field is `chunkLength - 16` bytes; zero-length DATA is forbidden. Pad with zeros up to the next 4-byte boundary outside this field. [RFC 9260 §3.3.1]
   "1":
     id: initChunk
-    name: INIT (Type=1)
+    doc: INIT (Type=1)
     fields:
       - { id: chunkType, name: "Type=1", type: { kind: int, bits: 8 }, category: type, doc: "Chunk Type — 1 = INIT, the first chunk of association setup, carrying the sender's parameters. [RFC 9260 §3.2 / §3.3.2]" }
       - { id: chunkFlags, name: Flags, type: { kind: int, bits: 8 }, category: reserved, doc: "Reserved (all bits MUST be zero) in INIT. [RFC 9260 §3.3.2]" }
@@ -48,7 +49,7 @@ _sctp_chunk_variants: &sctp_chunk_variants
         doc: Chain of parameter TLVs — IPv4 Address (5), IPv6 Address (6), State Cookie (7, INIT-ACK only), Cookie Preservative (9), Host Name Address (11, deprecated), Supported Address Types (12), and the ECN-Capable / Forward-TSN / Supported Extensions parameters. Format is identical to a Chunk TLV. [RFC 9260 §3.3.2 / §3.3.3]
   "3":
     id: sackChunk
-    name: SACK (Type=3)
+    doc: SACK (Type=3)
     fields:
       - { id: chunkType, name: "Type=3", type: { kind: int, bits: 8 }, category: type, doc: "Chunk Type — 3 = SACK (Selective Acknowledgment), reporting received TSNs back to the sender. [RFC 9260 §3.2 / §3.3.4]" }
       - { id: chunkFlags, name: Flags, type: { kind: int, bits: 8 }, category: reserved, doc: "Reserved; transmitted as zero. [RFC 9260 §3.3.4]" }
@@ -64,7 +65,7 @@ _sctp_chunk_variants: &sctp_chunk_variants
         doc: Concatenation of the Gap Ack Blocks (4 bytes each) and Duplicate TSNs (4 bytes each). Total length = 4 × (numGapAckBlocks + numDuplicateTsns). [RFC 9260 §3.3.4]
   "4":
     id: heartbeatChunk
-    name: HEARTBEAT (Type=4)
+    doc: HEARTBEAT (Type=4)
     fields:
       - { id: chunkType, name: "Type=4", type: { kind: int, bits: 8 }, category: type, doc: "Chunk Type — 4 = HEARTBEAT, a path-probe sent to verify reachability of a destination address. [RFC 9260 §3.2 / §3.3.5]" }
       - { id: chunkFlags, name: Flags, type: { kind: int, bits: 8 }, category: reserved, doc: "Reserved; transmitted as zero. [RFC 9260 §3.3.5]" }
@@ -76,7 +77,7 @@ _sctp_chunk_variants: &sctp_chunk_variants
         doc: Sender-Specific Heartbeat Info Parameter (Type=1) carrying a timestamp and address index the sender will need to validate the matching HEARTBEAT-ACK and compute path RTT. Mirrored verbatim by the responder. [RFC 9260 §3.3.5 / §3.3.5.1]
   "6":
     id: abortChunk
-    name: ABORT (Type=6)
+    doc: ABORT (Type=6)
     fields:
       - { id: chunkType, name: "Type=6", type: { kind: int, bits: 8 }, category: type, doc: "Chunk Type — 6 = ABORT, tears down the association immediately without the graceful SHUTDOWN handshake. [RFC 9260 §3.2 / §3.3.7]" }
       - kind: group
@@ -93,12 +94,24 @@ _sctp_chunk_variants: &sctp_chunk_variants
         doc: Zero or more Error Cause parameters (TLVs) explaining why the association is being torn down. Cause codes are listed in RFC 9260 §3.3.10 (Invalid Stream Identifier, Stale Cookie, Unrecognized Chunk Type, etc.). [RFC 9260 §3.3.7]
   "7":
     id: shutdownChunk
-    name: SHUTDOWN (Type=7)
+    doc: SHUTDOWN (Type=7)
     fields:
       - { id: chunkType, name: "Type=7", type: { kind: int, bits: 8 }, category: type, doc: "Chunk Type — 7 = SHUTDOWN, initiates the graceful close of an association once all outstanding DATA has been acknowledged. [RFC 9260 §3.2 / §3.3.8]" }
       - { id: chunkFlags, name: Flags, type: { kind: int, bits: 8 }, category: reserved, doc: "Reserved; transmitted as zero. [RFC 9260 §3.3.8]" }
       - { id: chunkLength, name: "Length=8", type: { kind: int, bits: 16 }, category: length, defaultValue: 8, doc: "Chunk Length — fixed at 8 bytes (4-byte header + 4-byte Cumulative TSN Ack). [RFC 9260 §3.3.8]" }
       - { id: shutdown_cumulativeTsnAck, name: Cumulative TSN Ack, type: { kind: int, bits: 32 }, category: identifier, doc: "Largest TSN the sender has received cumulatively; mirrors the SACK field. Lets the peer know which DATA chunks may still be in-flight before the association is fully closed. [RFC 9260 §3.3.8]" }
+  "_":
+    id: unknownChunk
+    doc: Unknown Chunk
+    fields:
+      - { id: chunkType, name: Type, type: { kind: int, bits: 8 }, category: type, doc: "Chunk Type for a chunk not catalogued in this preset. The top two bits also tell a receiver how to react to an unknown type (e.g. skip vs. report-and-skip vs. abort). [RFC 9260 §3.2]" }
+      - { id: chunkFlags, name: Flags, type: { kind: int, bits: 8 }, category: flags, doc: "Chunk-specific flags whose meaning depends on the (uncatalogued) chunk type. [RFC 9260 §3.2]" }
+      - { id: chunkLength, name: Length, type: { kind: int, bits: 16 }, category: length, doc: "Chunk Length — bytes in this chunk including the 4-byte header and the Value, excluding trailing padding to a 4-byte boundary. [RFC 9260 §3.2]" }
+      - id: chunkValue
+        name: Value
+        type: { kind: bytes, n: { kind: ref, field: sctpChunkValueBytes } }
+        category: variable
+        doc: Opaque payload of an SCTP chunk whose type is not catalogued in this preset. Common unmodelled types include 2 (INIT-ACK), 5 (HEARTBEAT-ACK), 8 (SHUTDOWN-ACK), 9 (ERROR), 10 (COOKIE-ECHO), 11 (COOKIE-ACK), 12 (ECNE), 13 (CWR), 14 (SHUTDOWN-COMPLETE).
 
 body:
   - id: srcPort
@@ -133,16 +146,4 @@ body:
           id: byChunkType
           on: { kind: ref, field: chunkType }
           cases: *sctp_chunk_variants
-          default:
-            id: unknownChunk
-            name: Unknown Chunk
-            fields:
-              - { id: chunkType, name: Type, type: { kind: int, bits: 8 }, category: type, doc: "Chunk Type for a chunk not catalogued in this preset. The top two bits also tell a receiver how to react to an unknown type (e.g. skip vs. report-and-skip vs. abort). [RFC 9260 §3.2]" }
-              - { id: chunkFlags, name: Flags, type: { kind: int, bits: 8 }, category: flags, doc: "Chunk-specific flags whose meaning depends on the (uncatalogued) chunk type. [RFC 9260 §3.2]" }
-              - { id: chunkLength, name: Length, type: { kind: int, bits: 16 }, category: length, doc: "Chunk Length — bytes in this chunk including the 4-byte header and the Value, excluding trailing padding to a 4-byte boundary. [RFC 9260 §3.2]" }
-              - id: chunkValue
-                name: Value
-                type: { kind: bytes, n: { kind: ref, field: sctpChunkValueBytes } }
-                category: variable
-                doc: Opaque payload of an SCTP chunk whose type is not catalogued in this preset. Common unmodelled types include 2 (INIT-ACK), 5 (HEARTBEAT-ACK), 8 (SHUTDOWN-ACK), 9 (ERROR), 10 (COOKIE-ECHO), 11 (COOKIE-ACK), 12 (ECNE), 13 (CWR), 14 (SHUTDOWN-COMPLETE).
     count: { kind: ref, field: chunks_count }

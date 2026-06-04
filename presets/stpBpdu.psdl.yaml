@@ -1,8 +1,9 @@
-# yaml-language-server: $schema=../../schemas/psdl.schema.json
+# yaml-language-server: $schema=../node_modules/@packet-schema/core/schemas/psdl-0.5.yaml
+version: "0.5"
 name: STP Configuration BPDU
 rowBits: 32
-byteOrder: Network byte order (big-endian, MSB-first). Bridge / Root Identifier are 8 bytes formed by 2-byte priority || 6-byte MAC. Time fields are encoded in units of 1/256 second.
-description: Spanning Tree Protocol Configuration BPDU (IEEE 802.1D-1998). Total 35 bytes, carried over 802.2 LLC (DSAP/SSAP = 0x42) above an 802.3 frame to the multicast address 01:80:C2:00:00:00. RSTP (Version=2) extends this with Version 1 Length and overloads the Flags byte — modelled separately to keep the legacy STP layout readable.
+byteOrder: BE
+description: Spanning Tree Protocol Configuration BPDU (IEEE 802.1D-1998). Total 35 bytes, carried over 802.2 LLC (DSAP/SSAP = 0x42) above an 802.3 frame to the multicast address 01:80:C2:00:00:00. RSTP (Version=2) extends this with Version 1 Length and overloads the Flags byte — modelled separately to keep the legacy STP layout readable. Bridge / Root Identifier are 8 bytes formed by 2-byte priority || 6-byte MAC. Time fields are encoded in units of 1/256 second.
 body:
   - id: protocolId
     name: Protocol Identifier

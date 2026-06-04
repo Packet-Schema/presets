@@ -1,8 +1,9 @@
-# yaml-language-server: $schema=../../schemas/psdl.schema.json
+# yaml-language-server: $schema=../node_modules/@packet-schema/core/schemas/psdl-0.5.yaml
+version: "0.5"
 name: TLS Extensions Block
 rowBits: 32
 byteOrder: BE
-description: TLS 1.3 extensions block (RFC 8446 §4.2) modeled as a Repeat<Switch> where the Switch discriminator is a peek(16) of the extension_type word. The peek is non-consuming so each case re-reads the same 16-bit field as its first member. Demonstrates the PSDL 0.4 lookahead Switch.
+description: TLS 1.3 extensions block (RFC 8446 §4.2) modeled as a Repeat<Switch> where the Switch discriminator is a peek(16) of the extension_type word. The peek is non-consuming so each case re-reads the same 16-bit field as its first member. Demonstrates the PSDL 0.5 lookahead Switch.
 body:
   - kind: repeat
     id: extensions

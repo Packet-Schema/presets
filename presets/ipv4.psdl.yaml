@@ -1,4 +1,5 @@
-# yaml-language-server: $schema=../../schemas/psdl.schema.json
+# yaml-language-server: $schema=../node_modules/@packet-schema/core/schemas/psdl-0.5.yaml
+version: "0.5"
 name: IPv4 Header
 rowBits: 32
 byteOrder: BE
@@ -8,7 +9,7 @@ description: IPv4 header (RFC 791) — IHL drives the Options length.
 _ipv4_option_variants: &ipv4_option_variants
   "0":
     id: eol
-    name: EOL (End of Option List)
+    doc: EOL (End of Option List)
     fields:
       - id: type
         name: "Type=0"
@@ -17,7 +18,7 @@ _ipv4_option_variants: &ipv4_option_variants
         doc: Option type byte. 0 marks the End of Option List; any padding after it up to the header boundary is ignored. [RFC 791]
   "1":
     id: nop
-    name: NOP (No Operation)
+    doc: NOP (No Operation)
     fields:
       - id: type
         name: "Type=1"
@@ -26,7 +27,7 @@ _ipv4_option_variants: &ipv4_option_variants
         doc: Option type byte. 1 is a No-Operation pad, commonly inserted to align a following option on a 32-bit boundary. [RFC 791]
   "7":
     id: recordRoute
-    name: Record Route
+    doc: Record Route
     fields:
       - id: type
         name: "Type=7"
@@ -60,7 +61,7 @@ _ipv4_option_variants: &ipv4_option_variants
         doc: Recorded IPv4 address slot — filled in by a router as the datagram passes through. [RFC 791]
   "131":
     id: looseSourceRoute
-    name: Loose Source Route
+    doc: Loose Source Route
     fields:
       - id: type
         name: "Type=131"
@@ -89,7 +90,7 @@ _ipv4_option_variants: &ipv4_option_variants
         doc: IPv4 address of a gateway on the source-specified route. [RFC 791]
   "137":
     id: strictSourceRoute
-    name: Strict Source Route
+    doc: Strict Source Route
     fields:
       - id: type
         name: "Type=137"
@@ -118,7 +119,7 @@ _ipv4_option_variants: &ipv4_option_variants
         doc: IPv4 address of a gateway on the source-specified route. [RFC 791]
   "68":
     id: timestamp
-    name: Timestamp
+    doc: Timestamp
     fields:
       - id: type
         name: "Type=68"
@@ -186,6 +187,7 @@ body:
     doc: Identifies fragments that belong to the same original datagram so the receiver can reassemble them. Assigned by the sender and shared by all fragments of one packet. [RFC 791]
   - kind: group
     id: flagsBits
+    name: Flags
     children:
       - id: flags_reserved
         name: R

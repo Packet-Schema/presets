@@ -1,8 +1,9 @@
-# yaml-language-server: $schema=../../schemas/psdl.schema.json
+# yaml-language-server: $schema=../node_modules/@packet-schema/core/schemas/psdl-0.5.yaml
+version: "0.5"
 name: ICMPv6 Echo
 rowBits: 32
-byteOrder: Network byte order (big-endian, MSB-first). The Identifier and Sequence Number are 16-bit big-endian.
-description: ICMP for IPv6 echo request/reply layout (RFC 4443). Carried in IPv6 with Next Header=58.
+byteOrder: BE
+description: ICMP for IPv6 echo request/reply layout (RFC 4443). Carried in IPv6 with Next Header=58. The Identifier and Sequence Number are 16-bit big-endian.
 body:
   - id: type
     name: Type

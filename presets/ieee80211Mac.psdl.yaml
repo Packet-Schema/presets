@@ -1,4 +1,5 @@
-# yaml-language-server: $schema=../../schemas/psdl.schema.json
+# yaml-language-server: $schema=../node_modules/@packet-schema/core/schemas/psdl-0.5.yaml
+version: "0.5"
 name: IEEE 802.11 MAC Header (Data Frame)
 rowBits: 32
 byteOrder: LE
@@ -106,7 +107,7 @@ body:
       op: "*"
       a: { kind: ref, field: toDS }
       b: { kind: ref, field: fromDS }
-    field:
+    container:
       id: address4
       name: Address 4 (SA, WDS)
       type: { kind: bits, n: 48 }
@@ -114,7 +115,7 @@ body:
       doc: "48-bit Source Address, present only in four-address (WDS) frames where both To-DS and From-DS are 1. In WDS the four addresses are RA (Address 1) = next-hop AP, TA (Address 2) = previous-hop AP, DA (Address 3) = final destination, SA (Address 4) = original source. Modelled here as Optional with `when = To-DS * From-DS` because PSDL 0.4 has no boolean AND — the product of two 1-bit fields is 1 iff both are 1. [IEEE 802.11-2020 §9.2.4.6 / Table 9-3]"
   - kind: optional
     when: { kind: ref, field: order }
-    field:
+    container:
       id: htControl
       name: HT Control
       type: { kind: bits, n: 32 }

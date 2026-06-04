@@ -1,4 +1,5 @@
-# yaml-language-server: $schema=../../schemas/psdl.schema.json
+# yaml-language-server: $schema=../node_modules/@packet-schema/core/schemas/psdl-0.5.yaml
+version: "0.5"
 name: TCP Header
 rowBits: 32
 byteOrder: BE
@@ -151,6 +152,7 @@ body:
     doc: "Reserved for future use; must be sent as zero. [RFC 9293]"
   - kind: group
     id: flagsBits
+    name: Flags
     children:
       - id: flags_cwr
         name: CWR

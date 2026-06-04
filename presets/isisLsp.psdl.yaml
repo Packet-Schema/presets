@@ -1,13 +1,14 @@
-# yaml-language-server: $schema=../../schemas/psdl.schema.json
+# yaml-language-server: $schema=../node_modules/@packet-schema/core/schemas/psdl-0.5.yaml
+version: "0.5"
 name: IS-IS Level-1/2 LSP PDU
 rowBits: 32
-byteOrder: Network byte order (big-endian, MSB-first). IS-IS rides directly over the data link (typically Ethernet with LSAP 0xFE-FE), not over IP, so there is no surrounding network header in this preset.
-description: IS-IS Link State PDU (ISO 10589 §9.8, mirrored by RFC 1142). Carries one router's link-state advertisement — a 27-byte fixed header followed by a chain of Type/Length/Value records. PDU Type encodes Level-1 LSP = 18 or Level-2 LSP = 20. The Variable Length Fields catalogue below covers the most common TLVs; unknown types fall through to a generic opaque record.
+byteOrder: BE
+description: IS-IS Link State PDU (ISO 10589 §9.8, mirrored by RFC 1142). Carries one router's link-state advertisement — a 27-byte fixed header followed by a chain of Type/Length/Value records. PDU Type encodes Level-1 LSP = 18 or Level-2 LSP = 20. The Variable Length Fields catalogue below covers the most common TLVs; unknown types fall through to a generic opaque record. IS-IS rides directly over the data link (typically Ethernet with LSAP 0xFE-FE), not over IP, so there is no surrounding network header in this preset.
 
 _isis_tlv_variants: &isis_tlv_variants
   "1":
     id: areaAddresses
-    name: TLV 1 — Area Addresses
+    doc: TLV 1 — Area Addresses
     fields:
       - id: tlvType
         name: "Type=1"
@@ -26,7 +27,7 @@ _isis_tlv_variants: &isis_tlv_variants
         doc: One or more variable-length area addresses, each prefixed by its own 1-octet length. An L1 router advertises every area it belongs to; the L2 sub-domain compares these to detect inter-area links. [ISO 10589 §9.8 / TLV 1]
   "10":
     id: authenticationInformation
-    name: TLV 10 — Authentication Information
+    doc: TLV 10 — Authentication Information
     fields:
       - id: tlvType
         name: "Type=10"
@@ -45,7 +46,7 @@ _isis_tlv_variants: &isis_tlv_variants
         doc: First octet is the Authentication Type (1 = cleartext password, 54 = HMAC-MD5, 3 = generic cryptographic per RFC 5310); the remainder carries the credential. The entire LSP body is covered by the authenticator for HMAC modes. [ISO 10589 §9.8 / RFC 5304 / RFC 5310]
   "22":
     id: extendedIsReachability
-    name: TLV 22 — Extended IS Reachability
+    doc: TLV 22 — Extended IS Reachability
     fields:
       - id: tlvType
         name: "Type=22"
@@ -64,7 +65,7 @@ _isis_tlv_variants: &isis_tlv_variants
         doc: Sequence of 11-byte fixed entries (System ID 7 + 3-byte wide metric + 1-byte sub-TLV length) optionally followed by sub-TLVs (link bandwidth, admin groups, SRLGs, etc.). Supersedes legacy TLV 2 for traffic engineering. [RFC 5305 §3]
   "129":
     id: protocolsSupported
-    name: TLV 129 — Protocols Supported
+    doc: TLV 129 — Protocols Supported
     fields:
       - id: tlvType
         name: "Type=129"
@@ -83,7 +84,7 @@ _isis_tlv_variants: &isis_tlv_variants
         doc: One octet per supported Network Layer Protocol — 0xCC = IPv4, 0x8E = IPv6, 0x81 = CLNP. Used during adjacency formation so neighbors only advertise reachability for protocol families both sides understand. [RFC 1195 §4.2]
   "132":
     id: ipInterfaceAddress
-    name: TLV 132 — IP Interface Address
+    doc: TLV 132 — IP Interface Address
     fields:
       - id: tlvType
         name: "Type=132"
@@ -102,7 +103,7 @@ _isis_tlv_variants: &isis_tlv_variants
         doc: Zero or more 4-byte IPv4 addresses assigned to the originating router's interfaces. Length is always a multiple of 4. [RFC 1195 §4.2]
   "137":
     id: dynamicHostname
-    name: TLV 137 — Dynamic Hostname
+    doc: TLV 137 — Dynamic Hostname
     fields:
       - id: tlvType
         name: "Type=137"
@@ -119,6 +120,25 @@ _isis_tlv_variants: &isis_tlv_variants
         type: { kind: bytes, n: { kind: ref, field: tlvLength } }
         category: identifier
         doc: Symbolic name of the originating router, in 7-bit ASCII (no terminating NUL). Lets operators see hostnames instead of raw System IDs in `show isis database`. [RFC 5301]
+  "_":
+    id: unknownTlv
+    doc: Unknown TLV
+    fields:
+      - id: tlvType
+        name: Type
+        type: { kind: int, bits: 8 }
+        category: type
+        doc: TLV type code (0..255) not catalogued by this preset. The receiver uses it to dispatch parsing; unrecognised types are skipped using the Length field. [ISO 10589 §9.8]
+      - id: tlvLength
+        name: Length
+        type: { kind: int, bits: 8 }
+        category: length
+        doc: Length of the Value field in octets (0..255), excluding the Type and Length octets themselves. Lets a parser skip an unknown TLV and continue with the next record. [ISO 10589 §9.8]
+      - id: tlvValue
+        name: Value
+        type: { kind: bytes, n: { kind: ref, field: tlvLength } }
+        category: variable
+        doc: Opaque payload of an IS-IS TLV whose type is not catalogued in this preset. Common unmodelled types include 128 (IP Internal Reachability), 130 (IP External Reachability), 135 (Extended IP Reachability, RFC 5305), 232 (IPv6 Interface Address, RFC 5308), 236 (IPv6 Reachability), and 242 (IS-IS Capability, RFC 4971).
 
 body:
   - id: protocolDiscriminator
@@ -270,23 +290,4 @@ body:
           id: byType
           on: { kind: ref, field: tlvType }
           cases: *isis_tlv_variants
-          default:
-            id: unknownTlv
-            name: Unknown TLV
-            fields:
-              - id: tlvType
-                name: Type
-                type: { kind: int, bits: 8 }
-                category: type
-                doc: TLV type code (0..255) not catalogued by this preset. The receiver uses it to dispatch parsing; unrecognised types are skipped using the Length field. [ISO 10589 §9.8]
-              - id: tlvLength
-                name: Length
-                type: { kind: int, bits: 8 }
-                category: length
-                doc: Length of the Value field in octets (0..255), excluding the Type and Length octets themselves. Lets a parser skip an unknown TLV and continue with the next record. [ISO 10589 §9.8]
-              - id: tlvValue
-                name: Value
-                type: { kind: bytes, n: { kind: ref, field: tlvLength } }
-                category: variable
-                doc: Opaque payload of an IS-IS TLV whose type is not catalogued in this preset. Common unmodelled types include 128 (IP Internal Reachability), 130 (IP External Reachability), 135 (Extended IP Reachability, RFC 5305), 232 (IPv6 Interface Address, RFC 5308), 236 (IPv6 Reachability), and 242 (IS-IS Capability, RFC 4971).
     count: { kind: ref, field: tlvs_count }

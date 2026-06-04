@@ -1,4 +1,5 @@
-# yaml-language-server: $schema=../../schemas/psdl.schema.json
+# yaml-language-server: $schema=../node_modules/@packet-schema/core/schemas/psdl-0.5.yaml
+version: "0.5"
 name: QUIC Short Header (1-RTT)
 rowBits: 32
 byteOrder: BE
@@ -126,13 +127,13 @@ body:
                     n: 128
                   category: payload-marker
                   doc: STREAM frame payload (RFC 9000 §19.8). 16-byte placeholder.
-          default:
-            id: frameDefault
-            fields:
-              - id: frame_body
-                name: Frame Payload
-                type:
-                  kind: bits
-                  n: 128
-                category: payload-marker
-                doc: Unknown frame type — placeholder body.
+            "_":
+              id: frameDefault
+              fields:
+                - id: frame_body
+                  name: Frame Payload
+                  type:
+                    kind: bits
+                    n: 128
+                  category: payload-marker
+                  doc: Unknown frame type — placeholder body.

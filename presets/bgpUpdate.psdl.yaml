@@ -1,8 +1,9 @@
-# yaml-language-server: $schema=../../schemas/psdl.schema.json
+# yaml-language-server: $schema=../node_modules/@packet-schema/core/schemas/psdl-0.5.yaml
+version: "0.5"
 name: BGP-4 UPDATE Message (simple)
 rowBits: 32
-byteOrder: Network byte order (big-endian, MSB-first). The 19-byte BGP Common Header (Marker + Length + Type) precedes every BGP message; the UPDATE-specific fields follow.
-description: BGP-4 UPDATE message (RFC 4271 §4.3) — simple 版。19-byte BGP Common Header (§4.1) と UPDATE 固有の 4 つの可変長領域 (Withdrawn Routes Length / Withdrawn Routes / Total Path Attribute Length / Path Attributes / NLRI) の枠だけを示し、 Path Attributes と NLRI は opaque bytes として表現する。 Path Attribute の TLV (Attribute Flags 1 B + Type Code 1 B + Length 1/2 B + Value) と、 Withdrawn Routes / NLRI の `<Length, Prefix>` エンコーディングの詳細は各 field の doc で説明。 フル仕様 (Path Attribute TLV を展開し、 NLRI prefix を 1 件ずつパースする版) は別 preset 化を想定。
+byteOrder: BE
+description: The 19-byte BGP Common Header (Marker + Length + Type) precedes every BGP message; the UPDATE-specific fields follow. BGP-4 UPDATE message (RFC 4271 §4.3) — simple 版。19-byte BGP Common Header (§4.1) と UPDATE 固有の 4 つの可変長領域 (Withdrawn Routes Length / Withdrawn Routes / Total Path Attribute Length / Path Attributes / NLRI) の枠だけを示し、 Path Attributes と NLRI は opaque bytes として表現する。 Path Attribute の TLV (Attribute Flags 1 B + Type Code 1 B + Length 1/2 B + Value) と、 Withdrawn Routes / NLRI の `<Length, Prefix>` エンコーディングの詳細は各 field の doc で説明。 フル仕様 (Path Attribute TLV を展開し、 NLRI prefix を 1 件ずつパースする版) は別 preset 化を想定。
 body:
   - kind: group
     id: bgpCommonHeader
