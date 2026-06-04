@@ -3,7 +3,7 @@ version: "0.5"
 name: SMB2 Header
 rowBits: 32
 byteOrder: LE
-description: SMB2/SMB3 fixed 64-byte protocol header (MS-SMB2 §2.2.1). Precedes every SMB2 command request and response. The header is always exactly 512 bits (64 bytes); variable-length command payloads follow it. Unlike most IETF protocols, SMB2 is little-endian: all multi-byte integer fields are transmitted least-significant-byte first.
+description: SMB2/SMB3 fixed 64-byte protocol header (MS-SMB2 §2.2.1). Precedes every SMB2 command request and response. The header is always exactly 512 bits (64 bytes); variable-length command payloads follow it. Unlike most IETF protocols, SMB2 is little-endian — all multi-byte integer fields are transmitted least-significant-byte first.
 body:
   - id: protocolId
     name: Protocol ID
