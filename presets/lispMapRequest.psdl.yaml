@@ -5,6 +5,10 @@ rowBits: 32
 byteOrder: BE
 description: "LISP Map-Request message (RFC 6833). Sent by an ITR or PITR to a Map-Resolver (or directly to a Map-Server / ETR) to request the mapping of an EID prefix to one or more RLOCs. The fixed header carries a 4-bit Type (must be 1), seven 1-bit flags (A, M, P, S, p, s) and a 9-bit Reserved field, a 5-bit ITR-RLOC Count (IRC, zero-based — actual count = IRC+1), an 8-bit Record Count, and a 64-bit Nonce. Following the fixed header: a Source EID Address Record (2-byte AFI + variable-length address), an ITR-RLOC list of IRC+1 entries (each 2-byte AFI + variable-length address), and a list of EID Records (each 1-byte Reserved + 1-byte EID Mask Length + 2-byte EID Prefix AFI + variable-length EID Prefix). The Map-Server / ETR uses the Source EID and ITR-RLOCs to route the Map-Reply back to the requester. [RFC 6833 §5.2]"
 
+meta:
+  family: lisp
+  tags: [internet-layer, udp-based, routing, addressing]
+
 body:
   - kind: group
     id: lispMapReqHeader

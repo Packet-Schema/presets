@@ -4,6 +4,9 @@ name: RTCP Receiver Report
 rowBits: 32
 byteOrder: BE
 description: RTCP Receiver Report packet (RFC 3550, PT=201). Contains zero or more reception report blocks describing reception quality from the reporter to each active sender. Unlike Sender Report (PT=200), it carries no sender information (NTP/RTP timestamps, packet/octet counts).
+meta:
+  family: rtp
+  tags: [application, udp-based, monitoring, measurement]
 body:
   - kind: group
     id: flags

@@ -4,6 +4,9 @@ name: MLDv2 Membership Report
 rowBits: 32
 byteOrder: BE
 description: MLDv2 Version 2 Multicast Listener Report message (RFC 3810 §5.2). Sent by an IPv6 host to report multicast group membership state to multicast routers on the attached link. This is the IPv6 equivalent of the IGMPv3 Membership Report (RFC 3376 §4.2). Carried as ICMPv6 (Next Header = 58) with Type = 143, IPv6 Hop Limit = 1, and the Router Alert Hop-by-Hop option, addressed to ff02::16 (All MLDv2-capable Routers). Contains one or more Multicast Address Records, each describing the listener's filter mode and source list for a specific multicast group.
+meta:
+  family: igmp-mld
+  tags: [internet-layer, multicast, control-plane]
 body:
   - id: type
     name: Type

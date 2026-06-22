@@ -4,6 +4,9 @@ name: ICMP Router Advertisement
 rowBits: 32
 byteOrder: BE
 description: "ICMP Router Advertisement message (Type 9, RFC 1256). Part of the ICMP Router Discovery protocol, this message is sent by routers — either periodically or in response to a Router Solicitation (Type 10) — to announce one or more router addresses and their associated preference levels. Hosts listen on the all-systems multicast group (224.0.0.1) or the subnet broadcast address. The fixed 8-byte header (Type/Code/Checksum/NumAddrs/AddrEntrySize/Lifetime) is followed by a list of NumAddrs address entries, each consisting of a 32-bit Router Address and a signed 32-bit Preference Level. Larger preference values indicate more preferred default routers; 0x80000000 marks an address as unusable. [RFC 1256] All multi-byte fields (Checksum, Lifetime, RouterAddress, PreferenceLevel) are transmitted in big-endian order."
+meta:
+  family: icmp
+  tags: [internet-layer, error-reporting, routing, control-plane]
 body:
   - id: icmpRdiscType
     name: Type

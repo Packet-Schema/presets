@@ -4,6 +4,9 @@ name: HIP
 rowBits: 32
 byteOrder: BE
 description: "Host Identity Protocol version 2 (HIP) base exchange packet (RFC 7401, IP protocol 139). The fixed header — Next Header, Header Length (in 8-byte units, not counting the first 8 bytes), Packet Type, Version, Reserved, Checksum, Controls, Sender HIT (128-bit), Receiver HIT (128-bit) — is always 40 bytes. It is followed by a variable-length chain of TLV Parameters. The base exchange uses four packet types: I1 (initiator hello, no parameters required), R1 (responder puzzle, carries R1_COUNTER/PUZZLE/HOST_ID/HIP_SIGNATURE_2), I2 (initiator response, carries SOLUTION/HOST_ID/ESP_INFO/HIP_SIGNATURE), and R2 (responder finalise, carries ESP_INFO/HIP_MAC_2/HIP_SIGNATURE). Each Parameter TLV carries a 16-bit Type, a 16-bit Length (value bytes, excluding padding), and a variable-length Contents padded to an 8-byte boundary."
+meta:
+  family: hip
+  tags: [internet-layer, security, authentication, key-exchange, mobility]
 
 body:
   - id: hipNextHeader

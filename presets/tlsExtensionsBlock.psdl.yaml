@@ -4,6 +4,9 @@ name: TLS Extensions Block
 rowBits: 32
 byteOrder: BE
 description: TLS 1.3 extensions block (RFC 8446 §4.2) modeled as a Repeat<Switch> where the Switch discriminator is a peek(16) of the extension_type word. The peek is non-consuming so each case re-reads the same 16-bit field as its first member. Every extension is struct { extension_type (u16); opaque extension_data<0..2^16-1> }, so each case reads extension_type then a 2-byte extension_data length before the body. Demonstrates the PSDL 0.5 lookahead Switch.
+meta:
+  family: tls
+  tags: [application, tcp-based, signaling, security, key-exchange]
 body:
   - kind: repeat
     id: extensions

@@ -5,6 +5,9 @@ rowBits: 32
 byteOrder: BE
 description: >-
   Multicast Source Discovery Protocol (MSDP) message (RFC 3618). MSDP runs over TCP port 639 between Rendezvous Points (RPs) to advertise active multicast sources across PIM-SM domain boundaries. Each message starts with a 1-octet Type field, a 2-octet Length field (total including header), and a variable-length body whose structure depends on the Type. Defined types are 1=Source-Active (SA), 2=SA-Request, 3=SA-Response, 4=KeepAlive, 5=Reserved (previously Notification). Only the SA (type 1) and KeepAlive (type 4) formats are normatively specified in RFC 3618; the SA-Request/SA-Response layouts follow the historical draft-ietf-msdp-spec. The SA message is the core of MSDP: it carries one or more (S,G) entries together with the originating RP address and optional encapsulated data packets.
+meta:
+  family: msdp
+  tags: [application, tcp-based, multicast, control-plane, signaling]
 
 body:
   - id: msdpType

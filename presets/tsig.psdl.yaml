@@ -4,7 +4,9 @@ name: TSIG (Transaction Signature)
 rowBits: 32
 byteOrder: BE
 description: "Transaction Signature (TSIG) DNS Resource Record (RFC 8945). TSIG provides cryptographic message authentication for DNS transactions and zone transfers. A TSIG RR is appended to a DNS message as an additional record; its NAME carries the key name, TYPE=250, CLASS=ANY, TTL=0. The RDATA carries: AlgorithmName (wire-format DNS name identifying the MAC algorithm, e.g. hmac-sha256), TimeSigned (48-bit POSIX seconds), Fudge (16-bit clock skew tolerance in seconds), MACSize (16-bit length of MAC), MAC (variable, MACSize bytes), OriginalID (16-bit copy of the DNS message ID as signed), Error (16-bit RCODE extension, e.g. 0=NOERROR, 16=BADSIG, 17=BADKEY, 18=BADTIME, 22=BADTRUNC), OtherLen (16-bit length of OtherData), and OtherData (variable, OtherLen bytes; non-empty only when Error=BADTIME to carry server time). TSIG MACs are computed over the entire DNS message plus a TSIG variables block; the shared secret is identified by the key name in the record NAME. [RFC 8945]"
-
+meta:
+  family: dns
+  tags: [application, udp-based, security, authentication]
 body:
   # ---- RR Header (RFC 1035 §3.2.1, RFC 8945 §4.2) --------------------------------
   - id: tsigName

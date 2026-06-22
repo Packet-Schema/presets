@@ -4,6 +4,9 @@ name: DNS Header
 rowBits: 16
 byteOrder: BE
 description: Domain Name System message header (RFC 1035). 12 bytes; the Flags field encodes QR/Opcode/AA/TC/RD/RA/Z/RCODE. All count fields are 16-bit big-endian.
+meta:
+  family: dns
+  tags: [application, udp-based, naming, data-transfer]
 body:
   - id: id
     name: Identification

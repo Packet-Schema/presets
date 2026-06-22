@@ -4,6 +4,9 @@ name: PSAMP Message
 rowBits: 32
 byteOrder: BE
 description: "Packet Sampling (PSAMP) export message (RFC 5476). PSAMP defines a framework for selecting, reporting, and exporting information about individual sampled packets using the IPFIX protocol (RFC 7011) as its transport. A PSAMP message is structurally identical to an IPFIX message: a 16-byte Message Header (Version always 10, Length, Export Time, Sequence Number, Observation Domain ID) followed by one or more IPFIX Sets. PSAMP-specific information elements — such as the sampled packet content, observation time, interface, and selection method metadata — are carried inside Data Sets whose templates are defined by PSAMP Information Elements (RFC 5477). Options Template Sets (Set ID 3) convey sampling process parameters (e.g., sampling rate, algorithm, selector ID) as IPFIX Options Records per RFC 5477. The Sequence Number counts exported Data Records, not messages, enabling loss detection at the Collecting Process."
+meta:
+  family: ipfix
+  tags: [application, udp-based, telemetry, measurement]
 
 body:
   - kind: group

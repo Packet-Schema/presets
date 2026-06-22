@@ -8,6 +8,8 @@ meta:
   rfc: 1833
   section: "3.2"
   aliases: [portmapper, pmap, rpcbind]
+  family: rpc
+  tags: [application, udp-based, naming, discovery]
 
 body:
   - id: program

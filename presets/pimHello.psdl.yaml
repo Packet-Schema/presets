@@ -4,6 +4,9 @@ name: PIM Hello
 rowBits: 32
 byteOrder: BE
 description: PIM Hello message (RFC 7761). Sent periodically by PIM routers to discover and maintain neighbor relationships; carries a variable number of TLV options.
+meta:
+  family: pim
+  tags: [internet-layer, multicast, control-plane, neighbor-discovery]
 body:
   - { id: pimVersion, name: Version, type: { kind: int, bits: 4 }, category: type, doc: "PIM version number; must be 2." }
   - { id: pimType, name: Type, type: { kind: int, bits: 4 }, category: type, doc: "PIM message type; 0 for Hello." }

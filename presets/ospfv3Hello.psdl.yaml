@@ -4,6 +4,9 @@ name: OSPFv3 Hello Packet
 rowBits: 32
 byteOrder: BE
 description: OSPFv3 Hello packet (RFC 5340 §A.3.2). 16-byte OSPFv3 common header followed by the Hello-specific body, sent over IPv6 protocol 89 to the AllSPFRouters (FF02::5) or AllDRouters (FF02::6) multicast group. OSPFv3 removes the Authentication fields that OSPFv2 carried in the common header — authentication is delegated entirely to IPsec (AH/ESP). Hello packets discover neighbors, elect the Designated Router and Backup Designated Router, and maintain adjacencies; the Neighbor list at the tail enumerates every router from which a valid Hello has been received during the last RouterDeadInterval.
+meta:
+  family: ospf
+  tags: [internet-layer, routing, control-plane, neighbor-discovery]
 body:
   - id: version
     name: Version

@@ -5,6 +5,10 @@ rowBits: 32
 byteOrder: BE
 description: "Enhanced Interior Gateway Routing Protocol (EIGRP) packet (RFC 7868). A 20-byte fixed header — Version, Opcode, Checksum, Flags, Sequence Number, Acknowledgment Number, Virtual Router ID, and Autonomous System Number — followed by a sequence of Type-Length-Value (TLV) records that carry routing information. Common TLV types: 0x0001 General Parameters, 0x0102 IP Internal Routes, 0x0103 IP External Routes. EIGRP operates directly over IP (protocol number 88) and uses multicast address 224.0.0.10 for neighbour communication. [RFC 7868]"
 
+meta:
+  family: eigrp
+  tags: [internet-layer, routing, control-plane]
+
 body:
   - kind: group
     id: eigrpHeader

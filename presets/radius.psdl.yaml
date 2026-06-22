@@ -4,6 +4,9 @@ name: RADIUS
 rowBits: 32
 byteOrder: BE
 description: RADIUS (Remote Authentication Dial-In User Service) packet format as defined in RFC 2865. Used for authentication, authorization, and accounting in network access scenarios.
+meta:
+  family: radius
+  tags: [application, udp-based, authentication, management]
 body:
   - id: code
     name: Code

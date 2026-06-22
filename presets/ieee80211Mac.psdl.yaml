@@ -4,6 +4,9 @@ name: IEEE 802.11 MAC Header (Data Frame)
 rowBits: 32
 byteOrder: LE
 description: IEEE 802.11 Data Frame MAC header (IEEE 802.11-2020 §9.2.4). 24-byte basic form (Frame Control 2 + Duration/ID 2 + Address 1/2/3 18 + Sequence Control 2). Address 4 (6 bytes) appears when To-DS=1 AND From-DS=1 (WDS / 4-address mode). HT Control (4 bytes) appears when the +HTC/Order bit is set. QoS Control (2 bytes) for QoS Data subtypes (Type=Data, Subtype 0x8..0xF) is documented but not modelled — it would sit between Sequence Control / Address 4 and the frame body. FCS (4-byte CRC32) at the very end of the MAC frame is also omitted; this preset is the header only. The 802.11 MAC is transmitted little-endian on the air, so packet-level byteOrder is LE. Frame Control and Sequence Control are 16-bit little-endian words and are modelled as int+subfields (mask bit 0 = LSB) rather than a naive MSB-first bits decomposition, which would land on the wrong bits after the byte swap (IEEE 802.11-2020 §9.2.4.1.1 / §12 of PSDL spec). The 48-bit addresses are transmitted byte-by-byte in order (not little-endian-swapped), so they are bytes(6) with display addr, which is byte-order-agnostic.
+meta:
+  family: ieee80211Mac
+  tags: [link-layer, framing, addressing, data-transfer]
 body:
   - id: frameControl
     name: Frame Control

@@ -4,6 +4,9 @@ name: DTLS ClientHello
 rowBits: 32
 byteOrder: BE
 description: "DTLS 1.2 ClientHello handshake message (RFC 6347 §4.2.1). Carried inside a DTLS Handshake header which extends the TLS 1.2 Handshake header (RFC 5246 §7.4) with three additional fields: message_seq for deduplication across retransmissions, fragment_offset and fragment_length to support fragmentation of large messages. The ClientHello body begins with client_version=0xFEFD (DTLS 1.2), a 32-byte client random, a legacy session ID, a cookie field added by DTLS as a stateless DoS countermeasure (RFC 6347 §4.2.1 / §4.2.2), and then the cipher suites and compression methods vectors identical to TLS."
+meta:
+  family: dtls
+  tags: [transport, udp-based, security, authentication]
 
 body:
   # ---- Handshake Header ----

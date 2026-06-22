@@ -4,6 +4,9 @@ name: iSCSI Basic Header Segment
 rowBits: 32
 byteOrder: BE
 description: "iSCSI Basic Header Segment (BHS) — the mandatory fixed 48-byte header present in every iSCSI PDU (RFC 7143 §10.2). The BHS encodes the PDU function via the Opcode field (e.g. 0x01 SCSI Command, 0x21 SCSI Response, 0x06 Login Request), carries the Initiator Task Tag to correlate commands with responses, and provides the TotalAHSLength and DataSegmentLength values that govern the variable-length Additional Header Segments and Data Segment appended after the BHS. All multi-byte integers are big-endian. Maximum PDU size is negotiated during Login via the MaxRecvDataSegmentLength key."
+meta:
+  family: iscsi
+  tags: [transport, tcp-based, data-transfer]
 
 body:
   - kind: group

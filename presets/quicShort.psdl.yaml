@@ -4,6 +4,9 @@ name: QUIC Short Header (1-RTT)
 rowBits: 32
 byteOrder: BE
 description: QUIC v1 short-header (1-RTT) packet (RFC 9000 §17.3). Connection ID length is negotiated out-of-band; this preset assumes an 8-byte Destination CID for illustration and wraps the header-protected and AEAD-protected regions in Encrypted containers.
+meta:
+  family: quic
+  tags: [transport, udp-based, data-transfer, security]
 body:
   - id: headerForm
     name: Header Form (0=Short)

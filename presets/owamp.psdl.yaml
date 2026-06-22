@@ -4,6 +4,9 @@ name: OWAMP-Test (Unauthenticated)
 rowBits: 32
 byteOrder: BE
 description: One-Way Active Measurement Protocol (OWAMP) Test packet, unauthenticated mode (RFC 4656). Sent by the Session-Sender to the Session-Receiver over UDP. The fixed portion consists of a 32-bit Sequence Number, a 64-bit NTP Timestamp, and a 16-bit Error Estimate (S/Z flags + scale + multiplier). A variable-length Padding field follows and fills the remainder of the UDP datagram; the padding length is negotiated during OWAMP-Control session setup (OWAMP-Control Request-Session message) and is typically 27 bytes for IPv4 to pad the packet to 41 bytes total, ensuring minimal interference from header compression.
+meta:
+  family: owamp-twamp
+  tags: [application, udp-based, measurement, monitoring, time]
 
 body:
   - id: sequenceNumber

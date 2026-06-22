@@ -4,6 +4,9 @@ name: Ethernet II Frame Header
 rowBits: 32
 byteOrder: BE
 description: Ethernet II frame header — 14 bytes.
+meta:
+  family: ethernet
+  tags: [link-layer, framing, addressing]
 body:
   - id: dstMac
     name: Destination MAC

@@ -4,6 +4,9 @@ name: TLS Handshake
 rowBits: 32
 byteOrder: BE
 description: TLS Handshake Protocol common header and body (RFC 8446 §4). Every handshake message begins with a 1-byte HandshakeType followed by a 3-byte body length; the body that follows is dispatched by type. This preset covers the wire-transmitted message types defined in TLS 1.3 — ClientHello(1), ServerHello(2), NewSessionTicket(4), EndOfEarlyData(5), EncryptedExtensions(8), Certificate(11), CertificateRequest(13), CertificateVerify(15), Finished(20), and KeyUpdate(24) — and provides an opaque-bytes frame for each so the body can be layered on top. message_hash(254) is a synthetic transcript-hash value and is never sent on the wire, so it is not dispatched here.
+meta:
+  family: tls
+  tags: [application, tcp-based, signaling, security, key-exchange, authentication]
 body:
   - id: handshakeType
     name: Handshake Type

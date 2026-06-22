@@ -8,6 +8,8 @@ meta:
   rfc: 9113
   section: "4.1"
   aliases: [http2, h2]
+  family: http
+  tags: [application, tcp-based, data-transfer, framing]
 body:
   - id: length
     name: Length

@@ -4,6 +4,9 @@ name: SNMPv3 Message
 rowBits: 32
 byteOrder: BE
 description: "SNMPv3 message (RFC 3412 / RFC 3411) — ASN.1 BER/DER encoded over UDP (port 161/162) or TCP. Introduces a three-part security architecture: the User-based Security Model (USM, RFC 3414) for authentication (HMAC-MD5/SHA) and privacy (DES/AES), and the View-based Access Control Model (VACM, RFC 3415) for fine-grained OID access control. The outer wrapper is a SEQUENCE TLV containing: msgVersion INTEGER (=3), msgGlobalData HeaderData SEQUENCE (msgID, msgMaxSize, msgFlags, msgSecurityModel=3 for USM), msgSecurityParameters OCTET STRING (USM security parameters BER-encoded: authEngineID, authEngineBoots, authEngineTime, userName, authParameters, privParameters), and msgData which is either a plaintext ScopedPDU SEQUENCE or an encrypted ScopedPDU OCTET STRING when privacy is enabled. All lengths use BER short/long form (kind: berLength). [RFC 3412 §6 / RFC 3414 §2 / RFC 3415 §3]"
+meta:
+  family: snmp
+  tags: [application, udp-based, management, monitoring, security, authentication]
 
 body:
   - kind: group

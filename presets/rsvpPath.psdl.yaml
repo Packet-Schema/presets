@@ -5,6 +5,9 @@ rowBits: 32
 byteOrder: BE
 description: >-
   Resource ReSerVation Protocol (RSVP) common header followed by a sequence of typed objects (RFC 2205). The 8-byte common header carries the RSVP version (4 bits), flags (4 bits), message type (1=Path, 2=Resv, 3=PathErr, 4=ResvErr, 5=PathTear, 6=ResvTear, 7=ResvConf), checksum, Send TTL, reserved byte, and total message length. Each object has a 4-byte object header (ObjLength, Class-Num, C-Type) followed by variable-length contents. Key class numbers: 1=SESSION, 3=RSVP_HOP, 5=TIME_VALUES, 9=FLOWSPEC, 11=SENDER_TEMPLATE, 12=SENDER_TSPEC.
+meta:
+  family: rsvp
+  tags: [internet-layer, signaling, control-plane, qos]
 body:
   - kind: group
     id: rsvpCommonHeader

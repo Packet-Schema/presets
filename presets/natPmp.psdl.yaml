@@ -4,6 +4,9 @@ name: NAT-PMP
 rowBits: 32
 byteOrder: BE
 description: "NAT Port Mapping Protocol (NAT-PMP) message format (RFC 6886). NAT-PMP is a lightweight UDP-based protocol that allows hosts behind a NAT device to request external port mappings and learn the router's external IP address without manual configuration. It is the precursor to the Port Control Protocol (PCP, RFC 6887). All messages begin with a 1-byte Version (always 0) and a 1-byte Opcode: requests use 0=public address query, 1=map UDP, 2=map TCP; responses set bit 7 (Opcode+128) and include a 2-byte Result Code and a 4-byte Epoch. A switch on natpmpOpcode dispatches the body per message type."
+meta:
+  family: natpmp
+  tags: [application, udp-based, configuration, signaling, addressing]
 
 body:
   - id: natpmpVersion

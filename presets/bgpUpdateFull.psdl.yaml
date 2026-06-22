@@ -7,6 +7,8 @@ meta:
   rfc: { defined: 4271, updates: [{ rfc: 4760, section: "3" }, { rfc: 6793, section: "3" }, { rfc: 1997 }] }
   section: "4.3"
   aliases: [bgpUpdateFull]
+  family: bgp
+  tags: [application, tcp-based, routing, control-plane]
 description: "BGP-4 UPDATE message (RFC 4271 §4.3) — full 版。simple 版 (bgpUpdate.psdl.yaml) が Path Attributes / Withdrawn Routes / NLRI を opaque bytes として持つのに対し、 この版は Path Attribute の TLV (Attribute Flags 1 B + Type Code 1 B + Length 1/2 B + Value) を Attribute Type Code 別に展開し、 Withdrawn Routes / NLRI の `<Length, Prefix>` 2-tuple も 1 件ずつパースする。 Attribute Length の 1/2 B 可変 (Extended-Length bit) と Attribute Value の型分岐は Switch で表現する。 各可変長セクションは wire 上に明示的な要素数を持たないため、 長さフィールドで区切られる Withdrawn Routes・Path Attributes・各 Attribute Value は `bounded` scope (bytes = 該当長さ) で囲んだ `count: eos` repeat として、 メッセージ末尾まで伸びる NLRI は top-level body の `count: eos` としてモデル化する。 [RFC 4271 / RFC 4760] The 19-byte BGP Common Header (Marker + Length + Type) precedes every BGP message; the UPDATE-specific fields follow — Withdrawn Routes Length, the Withdrawn Routes list, Total Path Attribute Length, the Path Attributes list, and finally the NLRI list."
 
 # Attribute Length は Attribute Flags の Extended-Length bit で 1 B / 2 B に変わる。

@@ -4,7 +4,9 @@ name: PIM Register
 rowBits: 32
 byteOrder: BE
 description: "PIM Register message (RFC 7761, type 1). Sent by a Designated Router (DR) to the Rendezvous Point (RP) to tunnel multicast data from a source into the shared tree. Carries a fixed 8-byte header — Version/Type, Reserved, Checksum, and a flags word with Border and Null-Register bits — followed by the original multicast IP data packet."
-
+meta:
+  family: pim
+  tags: [internet-layer, multicast, tunnel, control-plane]
 body:
   - kind: group
     id: pimHeader

@@ -4,6 +4,9 @@ name: RTMP Chunk
 rowBits: 32
 byteOrder: BE
 description: "Real-Time Messaging Protocol (RTMP) chunk format (Adobe RTMP Specification 1.0, December 2012). RTMP multiplexes audio, video, and data messages over a persistent TCP connection (default port 1935) by splitting them into chunks. Each chunk begins with a Basic Header that encodes the chunk format (fmt) and Chunk Stream ID (csid), followed by a format-dependent Message Header carrying timestamp, length, and type information, and finally the chunk payload data. The fmt field selects one of four Message Header layouts: Type 0 (11 bytes), Type 1 (7 bytes), Type 2 (3 bytes), and Type 3 (no header)."
+meta:
+  family: rtmp
+  tags: [application, tcp-based, data-transfer, signaling]
 
 body:
   - kind: group

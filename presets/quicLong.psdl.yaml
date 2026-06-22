@@ -4,6 +4,9 @@ name: QUIC Long Header
 rowBits: 32
 byteOrder: BE
 description: QUIC v1 long-header packet (RFC 9000 §17.2). Header Form=1; the Long Packet Type 2-bit field selects Initial / 0-RTT / Handshake / Retry tail layout via a Switch. Followed by an Encrypted Payload.
+meta:
+  family: quic
+  tags: [transport, udp-based, data-transfer, security]
 body:
   - id: headerForm
     name: Header Form (1=Long)

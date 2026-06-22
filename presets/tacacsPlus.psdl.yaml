@@ -8,6 +8,8 @@ meta:
   rfc: 8907
   section: "4.1"
   aliases: [tacacsPlus, tacacs]
+  family: tacacs
+  tags: [application, tcp-based, authentication, management]
 
 body:
   - kind: group

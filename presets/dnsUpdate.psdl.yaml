@@ -4,6 +4,9 @@ name: DNS UPDATE
 rowBits: 32
 byteOrder: BE
 description: "DNS UPDATE message (RFC 2136) — the dynamic DNS update mechanism that allows authorised clients to add, delete, or modify resource records in a zone without a full zone transfer. The 12-byte header is identical in wire layout to the standard DNS header (RFC 1035 §4.1.1) but the four section-count fields are renamed: ZOCOUNT (Zone), PRCOUNT (Prerequisite), UPCOUNT (Update), and ADCOUNT (Additional). The Opcode field in the Flags word must be 5 (UPDATE). Sections follow the header: the Zone section (exactly one SOA-class question), Prerequisite section (RRs that must pre-exist or must not exist), Update section (RRs to add or delete), and Additional section (e.g. TSIG/SIG(0) for authenticated updates)."
+meta:
+  family: dns
+  tags: [application, udp-based, naming, management]
 body:
   # ---- Header (12 bytes, RFC 2136 §2) ------------------------------------------
   - id: updateId

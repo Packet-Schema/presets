@@ -4,6 +4,9 @@ name: GENEVE
 rowBits: 32
 byteOrder: BE
 description: GENEVE (Generic Network Virtualization Encapsulation) header as defined in RFC 8926. Provides a flexible encapsulation format for network virtualization with variable-length options.
+meta:
+  family: geneve
+  tags: [internet-layer, udp-based, tunnel, encapsulation]
 body:
   - kind: group
     id: word1

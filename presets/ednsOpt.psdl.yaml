@@ -4,6 +4,11 @@ name: EDNS0 OPT Pseudo-RR
 rowBits: 32
 byteOrder: BE
 description: EDNS(0) OPT pseudo-resource-record (RFC 6891). Placed in the Additional section of a DNS message to advertise extended capabilities — larger UDP payload sizes, DNSSEC OK signalling, and a wider Response Code space. The record re-purposes the CLASS and TTL wire fields to carry per-requestor options; it has no owner name beyond the root label (0x00). The RDATA section carries zero or more options as code-length-value triples.
+
+meta:
+  family: dns
+  tags: [application, udp-based, naming, control-plane]
+
 body:
   - id: ednsName
     name: Name (root label)

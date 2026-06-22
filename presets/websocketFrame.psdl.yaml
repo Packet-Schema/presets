@@ -8,6 +8,8 @@ meta:
   rfc: { defined: 6455, updates: [{ rfc: 7692, section: "7" }] }
   section: "5.2"
   aliases: [websocket, ws]
+  family: http
+  tags: [application, tcp-based, data-transfer]
 
 body:
   - kind: group

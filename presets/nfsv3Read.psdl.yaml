@@ -4,6 +4,9 @@ name: NFSv3 READ Arguments (RFC 1813)
 rowBits: 32
 byteOrder: BE
 description: Network File System version 3 READ procedure arguments (READ3args) as defined in RFC 1813 §3.3.6. Carried over ONC RPC (RFC 5531) as procedure 6 of NFS program 100003 version 3. All fields are XDR-encoded (RFC 4506) in big-endian byte order. READ3args contains a file handle (nfs_fh3), a byte offset into the file (offset3, uint64), and the number of bytes requested (count3, uint32).
+meta:
+  family: rpc
+  tags: [application, tcp-based, data-transfer]
 body:
   - id: nfsFhLen
     name: File Handle Length

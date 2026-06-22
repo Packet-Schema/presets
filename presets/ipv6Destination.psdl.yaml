@@ -7,6 +7,8 @@ description: IPv6 Destination Options Extension Header (RFC 8200 §4.6). Process
 meta:
   rfc: { defined: 8200, updates: [2473, 6275, 6744] }
   section: "4.6"
+  family: ip
+  tags: [internet-layer, encapsulation, control-plane]
 body:
   - id: nextHeader
     name: Next Header

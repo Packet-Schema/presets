@@ -4,6 +4,9 @@ name: RTP Header
 rowBits: 32
 byteOrder: BE
 description: RTP (Real-time Transport Protocol) header as defined in RFC 3550. Fixed header is 12 bytes (96 bits) when CC=0 and no extension.
+meta:
+  family: rtp
+  tags: [application, udp-based, data-transfer]
 body:
   - kind: group
     id: row1

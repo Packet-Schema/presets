@@ -7,6 +7,8 @@ meta:
   rfc: { defined: 8955, updates: [8956] }
   section: "4"
   aliases: [flowspec, bgpFlowSpec]
+  family: bgp
+  tags: [internet-layer, tcp-based, routing, control-plane]
 description: "BGP Flow Specification NLRI (RFC 8955). Carried inside a BGP UPDATE message as MP_REACH_NLRI / MP_UNREACH_NLRI (AFI=1 IPv4, SAFI=133) to distribute traffic filter rules to routers — primary use cases are DDoS mitigation and traffic-engineering policy enforcement without manual per-device ACL configuration. Each NLRI begins with a variable-length Length field: if the value is less than 240 (0xf0) the length is encoded in a single octet; if 240 (0xf0) or greater a two-octet extended-length encoding is used, in which the most significant nibble of the first octet has hex value 0xf (0xF0 mask). Following the Length field is a sequence of Flow Specification Components, each consisting of a one-octet Component Type followed by a type-specific value, that together fill exactly the Length-delimited region. Component Types: 1=Destination Prefix, 2=Source Prefix, 3=IP Protocol, 4=Port, 5=Destination Port, 6=Source Port, 7=ICMP Type, 8=ICMP Code, 9=TCP Flags, 10=Packet Length, 11=DSCP, 12=Fragment. Components MUST be ordered by ascending Type value. The PSDL model exposes the single-octet Length field, then a bounded scope (sized from that Length) holding a count:eos repeat of Components; each component selects, by Type, either the prefix form (length octet + prefix bytes) for Types 1–2 or the operator+value pair list (terminated by the operator end-of-list bit) for Types 3–12. [RFC 8955]"
 
 body:

@@ -5,6 +5,10 @@ rowBits: 32
 byteOrder: BE
 description: Extensible Authentication Protocol (EAP) packet (RFC 3748). A 4-byte fixed header carries Code (1=Request, 2=Response, 3=Success, 4=Failure), Identifier, and Length (total packet length in octets including the header). For Request and Response packets a 1-byte Type field follows, identifying the authentication method (1=Identity, 4=MD5-Challenge, 13=EAP-TLS, 25=PEAP), and then a variable-length Type-Data field running to the end of the packet. Success and Failure packets carry no body beyond the 4-byte header.
 
+meta:
+  family: eap
+  tags: [application, authentication, security]
+
 body:
   - id: eapCode
     name: Code

@@ -4,6 +4,9 @@ name: RIPv2
 rowBits: 32
 byteOrder: BE
 description: RIPv2 message format (RFC 2453). Carries routing information with a fixed 4-byte header followed by up to 25 route entries of 20 bytes each.
+meta:
+  family: rip
+  tags: [internet-layer, udp-based, routing]
 body:
   - { id: command, name: Command, type: { kind: int, bits: 8 }, category: type, doc: "Command type: 1=Request, 2=Response." }
   - { id: version, name: Version, type: { kind: int, bits: 8 }, category: identifier, doc: "RIP version number; always 2 for RIPv2." }

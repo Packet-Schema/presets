@@ -4,6 +4,9 @@ name: ISAKMP
 rowBits: 32
 byteOrder: BE
 description: "Internet Security Association and Key Management Protocol (ISAKMP) header and generic payload chain (RFC 2408). The fixed 28-byte ISAKMP Header carries two 8-byte cookies (Initiator Cookie and Responder Cookie) that together form the ISAKMP Security Association Identifier (ISAK_SAI) and uniquely identify the Security Association (SA); these were called 'cookies' to provide weak replay protection before ISAKMP proper. Following fields are: Next Payload (first payload type in the chain), Major/Minor Version (1.0 for IKEv1), Exchange Type identifying the ISAKMP exchange (e.g. 2=Identity Protection / Main Mode, 4=Aggressive, 5=Informational), Flags byte (Encryption, Commit, Authentication-Only), Message ID (random 32-bit value distinguishing simultaneous exchanges), and total Length. After the header zero or more Generic Payloads follow, each with a common 4-byte Generic Payload Header (Next Payload, Reserved, Payload Length) and opaque payload data. Note: IKEv2 (RFC 7296) replaces ISAKMP entirely — it redefines the header (drops Responder Cookie for SPIr, replaces Exchange Type coding, adds Response/Version/Initiator flags), changes payload type numbering, and mandates encrypted payloads; IKEv1 and IKEv2 are not interoperable at the wire level."
+meta:
+  family: ipsec
+  tags: [internet-layer, udp-based, security, key-exchange]
 
 body:
   - id: isakmpInitiatorCookie

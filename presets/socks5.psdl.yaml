@@ -10,7 +10,9 @@ description: >
   destination address (IPv4 = 4 bytes, IPv6 = 16 bytes, or domain name = 1-byte length + N bytes)
   and a 2-byte destination port. The server replies with a BND.ADDR / BND.PORT confirming the
   relay endpoint. This preset covers the client-to-server request frame only.
-
+meta:
+  family: socks
+  tags: [application, tcp-based, tunnel]
 body:
   - id: socksVer
     name: VER

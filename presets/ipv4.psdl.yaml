@@ -4,6 +4,9 @@ name: IPv4 Header
 rowBits: 32
 byteOrder: BE
 description: IPv4 header (RFC 791) — IHL drives the Options length.
+meta:
+  family: ip
+  tags: [internet-layer, addressing, data-transfer]
 
 # Catalog of IPv4 Option variants reused by the Options repeat below.
 _ipv4_option_variants: &ipv4_option_variants

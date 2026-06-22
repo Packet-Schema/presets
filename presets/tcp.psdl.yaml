@@ -4,6 +4,9 @@ name: TCP Header
 rowBits: 32
 byteOrder: BE
 description: TCP header (RFC 9293).
+meta:
+  family: tcp
+  tags: [transport, reliability, data-transfer, control-plane]
 
 _tcp_option_variants: &tcp_option_variants
   "0":

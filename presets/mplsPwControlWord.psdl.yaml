@@ -4,6 +4,9 @@ name: MPLS PW Control Word
 rowBits: 32
 byteOrder: BE
 description: "MPLS Pseudowire Emulation Edge-to-Edge (PWE3) Control Word (RFC 4385). A mandatory 4-byte header prepended to pseudowire payloads to provide fragmentation/reassembly and sequencing across the MPLS network. The layout is: 4 reserved zero bits, 4 flag bits, 2 fragmentation bits, 6 length bits, and a 16-bit sequence number. When the Length field is non-zero it gives the actual payload byte count, allowing padding to be stripped at the far end; a zero Length means the payload fills the remainder of the MPLS packet. The Sequence Number enables ordered delivery; a value of zero disables sequencing for that pseudowire. [RFC 4385]"
+meta:
+  family: mpls
+  tags: [link-layer, encapsulation, framing, reliability]
 
 body:
   - kind: group

@@ -4,6 +4,9 @@ name: IP-in-IP Encapsulation
 rowBits: 32
 byteOrder: BE
 description: IP-in-IP Encapsulation (RFC 2003). An IPv4 datagram is transmitted inside another IPv4 datagram by prepending an outer IPv4 header. The outer header's Protocol field is set to 4 (IP-in-IP), allowing routers along the delivery path to treat the tunnel packet as a normal IPv4 datagram. The encapsulating node (tunnel entry-point) constructs the outer header; the decapsulating node (tunnel exit-point) strips it and delivers the inner datagram to the normal IP receive process. The outer header is a standard 20-byte IPv4 header (IHL=5, no options in this preset); the inner datagram follows immediately.
+meta:
+  family: ip
+  tags: [internet-layer, tunnel, encapsulation]
 body:
   - kind: group
     id: outerIpv4Header

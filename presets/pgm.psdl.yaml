@@ -4,6 +4,9 @@ name: PGM (Pragmatic General Multicast)
 rowBits: 32
 byteOrder: BE
 description: "Pragmatic General Multicast (PGM) reliable multicast transport protocol (RFC 3208). PGM provides a reliable, receiver-driven multicast service: sources transmit Original Data (ODATA) packets; receivers detect losses and issue Negative Acknowledgements (NAK); the network or source replies with Repair Data (RDATA); Source Path Messages (SPM) carry path state. Every PGM packet shares a 16-byte common header: Source Port (16 bits), Destination Port (16 bits), Type (8 bits, 0=SPM, 4=ODATA, 5=RDATA, 8=NAK, 9=NNAK, 10=NCF), Options flags (8 bits), Checksum (16 bits), Global Source ID / TSDU-Origin (48 bits, 6 bytes), and TSDU Length (16 bits). The type-specific extension header and data payload follow the common header; for ODATA/RDATA the payload length is carried by the TSDU Length field, variable-width NLAs are sized by their preceding NLA AFI, and an undecoded body consumes the remainder of the packet. PGM is designed to scale to very large multicast groups with bounded state at routers and guarantees that all receivers either obtain all data or are explicitly notified of irrecoverable loss."
+meta:
+  family: pgm
+  tags: [transport, multicast, reliability, data-transfer]
 
 body:
   - kind: group

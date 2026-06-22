@@ -3,6 +3,9 @@ version: "0.5"
 name: BGP-4 KEEPALIVE Message
 rowBits: 32
 byteOrder: BE
+meta:
+  family: bgp
+  tags: [internet-layer, tcp-based, routing, control-plane]
 description: BGP-4 KEEPALIVE message (RFC 4271 §4.4) — the smallest possible BGP message, consisting solely of the 19-byte BGP Common Header (§4.1) with no message-specific body. Sent periodically to prevent the Hold Timer from expiring; a peer that does not receive a KEEPALIVE or UPDATE within the negotiated Hold Time (established during OPEN exchange) will close the session with a NOTIFICATION Error Code 4 (Hold Timer Expired). Fixed total length is always 19 octets (Marker 16 B + Length 2 B + Type 1 B).
 body:
   - kind: group

@@ -4,6 +4,9 @@ name: NVGRE
 rowBits: 32
 byteOrder: BE
 description: Network Virtualization using Generic Routing Encapsulation (RFC 7637). Fixed 8-byte header built on RFC 1701 GRE. The GRE Key field (32 bits) is repurposed to carry a 24-bit Virtual Subnet ID (VSID) and an 8-bit FlowID, enabling tenant isolation and per-flow entropy across an IP underlay. Protocol Type is always 0x6558 (Transparent Ethernet Bridging / TEB), wrapping inner Ethernet frames. C=0, R=0, K=1, S=0, Version=0 are fixed by the specification; the K=1 bit is what makes the GRE Key field present.
+meta:
+  family: nvgre
+  tags: [internet-layer, tunnel, encapsulation]
 body:
   - kind: group
     id: flagsAndVer

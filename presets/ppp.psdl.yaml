@@ -4,6 +4,9 @@ name: PPP Frame
 rowBits: 32
 byteOrder: BE
 description: PPP frame with HDLC-like framing (RFC 1661 + RFC 1662). HDLC flag bytes (0x7E) and escaping are handled at the HDLC layer and are not included here.
+meta:
+  family: ppp
+  tags: [link-layer, framing, data-transfer]
 body:
   - { id: address, name: Address, type: { kind: int, bits: 8 }, category: addressing, const: 0xFF, doc: "All-Stations broadcast address, always 0xFF per RFC 1662 §3.1. May be elided by Address-and-Control-Field Compression (ACFC); the uncompressed frame modeled here always carries it." }
   - { id: control, name: Control, type: { kind: int, bits: 8 }, category: type, const: 0x03, doc: "Unnumbered Information (UI) command with the Poll/Final bit clear, always 0x03 per RFC 1662 §3.1. May be elided by ACFC." }

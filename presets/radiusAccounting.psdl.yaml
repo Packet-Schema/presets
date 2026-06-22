@@ -4,6 +4,9 @@ name: RADIUS Accounting
 rowBits: 32
 byteOrder: BE
 description: "RADIUS Accounting packet (RFC 2866). Extends RADIUS (RFC 2865) with two new Code values — 4 (Accounting-Request) and 5 (Accounting-Response) — to carry per-session billing data from a Network Access Server (NAS) to an Accounting Server. The fixed 20-byte header (Code, Identifier, Length, Request Authenticator) is followed by a variable-length list of Attributes encoding session metrics such as Acct-Status-Type (40), Acct-Input-Octets (42), and Acct-Session-Time (46). The Request Authenticator in Accounting-Request is an MD5 hash over the entire packet; in Accounting-Response it echoes the value from the request."
+meta:
+  family: radius
+  tags: [application, udp-based, management, telemetry]
 
 body:
   - id: acctCode

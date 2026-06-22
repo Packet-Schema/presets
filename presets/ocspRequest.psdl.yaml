@@ -4,6 +4,9 @@ name: OCSP Request
 rowBits: 32
 byteOrder: BE
 description: "Online Certificate Status Protocol (OCSP) Request (RFC 6960) — ASN.1 DER encoded. OCSPRequest ::= SEQUENCE { tbsRequest TBSRequest, optionalSignature [0] EXPLICIT Signature OPTIONAL }. TBSRequest ::= SEQUENCE { version [0] EXPLICIT INTEGER DEFAULT v1 OPTIONAL, requestorName [1] EXPLICIT GeneralName OPTIONAL, requestList SEQUENCE OF Request, requestExtensions [2] EXPLICIT Extensions OPTIONAL }. Request ::= SEQUENCE { reqCert CertID, singleRequestExtensions [0] EXPLICIT Extensions OPTIONAL }. CertID ::= SEQUENCE { hashAlgorithm AlgorithmIdentifier, issuerNameHash OCTET STRING, issuerKeyHash OCTET STRING, serialNumber CertificateSerialNumber }. All lengths use BER/DER short or long form (kind: berLength). This PSDL models the mandatory fields (outer OCSPRequest SEQUENCE, tbsRequest SEQUENCE, requestList SEQUENCE OF Request with one CertID per Request) and leaves optional extensions as opaque bytes. [RFC 6960 §4.1 / ITU-T X.690 §8.1.3]"
+meta:
+  family: ocsp
+  tags: [application, security, authentication]
 
 body:
   - kind: group

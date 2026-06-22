@@ -4,6 +4,9 @@ name: RTCP SDES
 rowBits: 32
 byteOrder: BE
 description: "RTCP Source Description (SDES) packet, PT=202 (RFC 3550 §6.5). Carries descriptive information about RTP session participants. The fixed 4-byte common header is followed by one or more Source Chunks, each consisting of a 32-bit SSRC/CSRC identifier and a variable-length list of SDES items terminated by an END item (type=0). At least one CNAME item (type=1) MUST be included in every SDES packet to permanently identify a source across session boundaries."
+meta:
+  family: rtp
+  tags: [application, udp-based, data-transfer, monitoring]
 body:
   - kind: group
     id: rtcpSdesHeader

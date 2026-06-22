@@ -3,6 +3,9 @@ version: "0.5"
 name: BFD Control
 rowBits: 32
 byteOrder: BE
+meta:
+  family: bfd
+  tags: [transport, udp-based, control-plane, monitoring]
 description: "Bidirectional Forwarding Detection (BFD) Control packet (RFC 5880). A fixed 24-byte mandatory section — Version/Diagnostic, State/Flags, Detect Multiplier, Length, My Discriminator, Your Discriminator, Desired Min TX Interval, Required Min RX Interval, Required Min Echo RX Interval — followed by an optional Authentication Section present only when the Auth Present (A) flag is set. BFD operates over UDP port 3784 (single-hop, RFC 5881) or 4784 (multi-hop, RFC 5883) and provides sub-second liveness detection for any forwarding path."
 
 body:

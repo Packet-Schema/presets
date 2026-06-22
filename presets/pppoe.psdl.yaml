@@ -4,6 +4,9 @@ name: PPPoE (RFC 2516)
 rowBits: 32
 byteOrder: BE
 description: Point-to-Point Protocol over Ethernet (RFC 2516). PPPoE encapsulates PPP frames within Ethernet frames and provides a standard method for tunneling PPP over Ethernet. The header is 6 bytes — a nibble each for Version and Type (both always 1), an 8-bit Code identifying the packet role in the discovery or session phase, a 16-bit Session ID (non-zero only during the session phase), and a 16-bit payload length. Discovery phase uses Code values 0x09 (PADI), 0x07 (PADO), 0x19 (PADR), 0x65 (PADS), and 0xa7 (PADT); each carries a chain of TLV Tags. The session-data packet (Code 0x00) is followed by a PPP payload rather than Tags.
+meta:
+  family: pppoe
+  tags: [link-layer, encapsulation, data-transfer]
 body:
   - kind: group
     id: pppoeHeader

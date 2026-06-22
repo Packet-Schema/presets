@@ -4,6 +4,9 @@ name: RIPng
 rowBits: 32
 byteOrder: BE
 description: "RIPng (RIP next generation) message format (RFC 2080). An IPv6 adaptation of RIPv2 (RFC 2453) carried over UDP port 521. The fixed 4-byte header contains Command, Version, and a reserved MustBeZero field, followed by zero or more 20-byte Route Table Entries (RTEs). Each RTE encodes an IPv6 destination prefix (128-bit address, route tag, prefix length, and metric). A metric of 16 means infinity (unreachable). There is no explicit RTE count in the header; the count is inferred from the UDP payload length."
+meta:
+  family: rip
+  tags: [internet-layer, udp-based, routing]
 body:
   - id: ripngCommand
     name: Command

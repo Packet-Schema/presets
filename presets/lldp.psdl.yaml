@@ -6,6 +6,10 @@ byteOrder: BE
 description: >-
   Link Layer Discovery Protocol frame body (IEEE 802.1AB-2016). Carried directly in an Ethernet frame with EtherType 0x88CC. The payload is a sequence of Type-Length-Value (TLV) records. Three mandatory TLVs must appear in order — Chassis ID (type 1), Port ID (type 2), Time To Live (type 3) — followed by any number of optional TLVs, and terminated by the mandatory End of LLDPDU TLV (type 0, length 0). Each TLV header is a 16-bit word: the upper 7 bits are the TLV Type and the lower 9 bits are the TLV Length in bytes. Well-known optional TLV types: 4=Port Description, 5=System Name, 6=System Description, 7=System Capabilities, 8=Management Address, 127=Organizationally Specific (OUI + subtype in the first 4 bytes of Value). [IEEE 802.1AB-2016]
 
+meta:
+  family: lldp
+  tags: [link-layer, neighbor-discovery, management]
+
 body:
   - kind: repeat
     id: lldpTlvs

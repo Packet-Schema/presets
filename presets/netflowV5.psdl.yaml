@@ -4,6 +4,9 @@ name: NetFlow v5
 rowBits: 32
 byteOrder: BE
 description: Cisco NetFlow v5 export packet format. Consists of a 24-byte header followed by 1–30 flow records of 48 bytes each. Widely used for IP traffic accounting and capacity planning. [Cisco NetFlow v5 documentation]
+meta:
+  family: ipfix
+  tags: [application, udp-based, telemetry, measurement, monitoring]
 body:
   - id: version
     name: Version

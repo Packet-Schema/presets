@@ -4,6 +4,9 @@ name: QUIC Version Negotiation
 rowBits: 32
 byteOrder: BE
 description: QUIC Version Negotiation Packet (RFC 9000 §17.2.1). Sent by a server when it does not support the version chosen by the client. Header Form=1, Version=0x00000000 (signals VN), followed by variable-length Destination and Source Connection IDs, and a list of Supported Versions the server does accept.
+meta:
+  family: quic
+  tags: [transport, udp-based, signaling]
 body:
   - id: vnHeaderForm
     name: Header Form (1=Long)

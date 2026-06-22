@@ -4,6 +4,9 @@ name: GRE Header
 rowBits: 32
 byteOrder: BE
 description: Generic Routing Encapsulation header (RFC 2784). GRE encapsulates arbitrary network-layer packets inside an IPv4 or IPv6 tunnel (IP Protocol 47). The minimal 4-byte header contains a Checksum Present bit, a 12-bit Reserved field (MUST be 0), a 3-bit Version (MUST be 0), and a 16-bit EtherType-style Protocol Type identifying the encapsulated payload (e.g. 0x0800 IPv4, 0x86DD IPv6, 0x0806 ARP). When C=1 a 4-byte extension carrying an optional checksum and a reserved word follows. RFC 2784 deliberately removed the Key and Sequence Number fields of the original RFC 1701 — those are now carried by the GRE Key extension (RFC 2890) using a separate bit field.
+meta:
+  family: gre
+  tags: [internet-layer, tunnel, encapsulation]
 body:
   - kind: group
     id: flagsAndVer

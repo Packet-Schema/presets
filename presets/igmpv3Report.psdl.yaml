@@ -4,6 +4,9 @@ name: IGMPv3 Membership Report
 rowBits: 32
 byteOrder: BE
 description: IGMPv3 Membership Report message (RFC 3376 §4.2). Sent by a host to report its multicast group memberships to routers on the attached link. Carried directly inside IPv4 (Protocol = 2) with IP TTL = 1 and the Router Alert option, addressed to 224.0.0.22 (All IGMPv3-capable multicast routers). Consists of a fixed 8-byte header followed by a variable number of Group Records, each of which contains a fixed per-group header, an optional source list, and optional auxiliary data. Record types range from 1 (MODE_IS_INCLUDE) to 6 (BLOCK_OLD_SOURCES); types 1–2 are Current-State Records, 3–4 are Filter-Mode-Change Records, and 5–6 are Source-List-Change Records.
+meta:
+  family: igmp-mld
+  tags: [internet-layer, multicast, control-plane]
 body:
   - id: igmpv3Type
     name: Type

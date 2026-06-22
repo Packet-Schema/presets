@@ -5,6 +5,10 @@ rowBits: 32
 byteOrder: BE
 description: "sFlow version 5 datagram (sFlow.org specification). sFlow is an industry-standard traffic monitoring technology that provides visibility into network activity by embedding agents in network devices. Each UDP datagram carries a fixed 28-byte header — Version (must be 5), Agent Address Type, Agent Address, Sub-Agent ID, Sequence Number, System Uptime, Number of Samples — followed by a variable-length array of sample records. Two sample types are defined: Flow Sample (type 1), which carries truncated packet headers and metadata for statistical traffic analysis, and Counter Sample (type 2), which carries interface statistics. Each sample record is encoded as a Type-Length-Value structure. sFlow agents export datagrams to a central sFlow collector (typically UDP port 6343). The protocol is designed for line-rate sampling on high-speed links; the sampling rate is communicated out-of-band via SNMP or a management interface."
 
+meta:
+  family: sflow
+  tags: [application, udp-based, telemetry, monitoring]
+
 body:
   - id: sflowVersion
     name: Version

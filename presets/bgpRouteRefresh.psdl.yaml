@@ -5,6 +5,9 @@ rowBits: 32
 byteOrder: BE
 description: >-
   BGP-4 ROUTE-REFRESH message (RFC 2918) — sent by a BGP speaker to request its peer to re-advertise routes for the specified Address Family Identifier (AFI) and Subsequent Address Family Identifier (SAFI). Consists of the 19-byte BGP Common Header (§4.1 of RFC 4271) followed by a 4-byte body: AFI (2 B) + Reserved (1 B) + SAFI (1 B). Total fixed length is always 23 octets. RFC 7313 extends this mechanism with Enhanced Route Refresh (Capability Code 70) to add begin/end-of-RIB ORR markers using the Reserved byte as a subtype field.
+meta:
+  family: bgp
+  tags: [internet-layer, tcp-based, routing, control-plane]
 body:
   - kind: group
     id: bgpCommonHeader

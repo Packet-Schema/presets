@@ -7,6 +7,8 @@ description: Address Resolution Protocol packet for IPv4-over-Ethernet (RFC 826)
 meta:
   rfc: 826
   aliases: [arp]
+  family: arp
+  tags: [link-layer, addressing, discovery]
 body:
   - id: htype
     name: Hardware Type

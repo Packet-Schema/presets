@@ -4,6 +4,9 @@ name: L2TP v2 Data Message Header
 rowBits: 32
 byteOrder: BE
 description: L2TP version 2 data message header (RFC 2661 §3.1). Minimum fixed fields are 48 bits (6 bytes) when L=0, S=0, O=0.
+meta:
+  family: l2tp
+  tags: [link-layer, udp-based, tunnel, encapsulation]
 body:
   - kind: group
     id: flagsVersion

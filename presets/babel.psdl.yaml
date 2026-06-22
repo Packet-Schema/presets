@@ -6,6 +6,8 @@ byteOrder: BE
 meta:
   rfc: 8966
   aliases: [babel]
+  family: babel
+  tags: [internet-layer, udp-based, routing]
 description: "Babel distance-vector routing protocol packet (RFC 8966). Every Babel packet starts with a 4-byte fixed header — Magic (0x42), Version (2), Body Length — followed by a sequence of Type-Length-Value (TLV) records that carry all routing information. Common TLV types: 0=Pad1, 1=PadN, 2=Acknowledgement Request, 3=Acknowledgement, 4=Hello, 5=IHU (I Heard You), 6=Router-Id, 7=Next-Hop, 8=Update, 9=Route Request, 10=Seqno Request. Babel operates over UDP (port 6696) and supports both IPv4 and IPv6. The PSDL model shows the fixed header plus a bounded body of TLV records that runs for exactly Body Length octets. Pad1 (Type=0) is a single octet with no Length or Value; every other TLV is Type + Length + Value, where the Value field is an opaque byte string whose length is given by the TLV Length field."
 
 body:

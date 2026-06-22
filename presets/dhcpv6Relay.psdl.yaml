@@ -4,6 +4,9 @@ name: DHCPv6 Relay (Relay-forw / Relay-repl)
 rowBits: 32
 byteOrder: BE
 description: DHCPv6 Relay-forward (msg-type 12) and Relay-reply (msg-type 13) message format (RFC 8415 §9). Relay agents insert themselves between clients and servers to forward DHCPv6 messages across IPv6 subnet boundaries. The fixed header carries the message type, a hop-count guard, and the link-address and peer-address IPv6 fields, followed by a variable-length Options section. The Relay-Message option (option-code 9) is mandatory and encapsulates the relayed client or server message in its entirety, enabling nested relay chains. Carried over UDP port 547 (server/relay) and 546 (client).
+meta:
+  family: dhcp
+  tags: [application, udp-based, configuration, addressing]
 body:
   - id: msgType
     name: Message Type

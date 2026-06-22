@@ -4,6 +4,9 @@ name: OSPFv2 Hello Packet
 rowBits: 32
 byteOrder: BE
 description: OSPFv2 Hello packet (RFC 2328 Appendix A.3.1 / A.3.2). 24-byte OSPF common header followed by the Hello-specific body, sent over IP protocol 89 to the AllSPFRouters (224.0.0.5) or AllDRouters (224.0.0.6) multicast group. Hello packets discover neighbors and maintain adjacencies; the Neighbor list at the tail enumerates every router from which a valid Hello has been received during the last RouterDeadInterval.
+meta:
+  family: ospf
+  tags: [internet-layer, routing, control-plane, neighbor-discovery]
 body:
   - id: version
     name: Version

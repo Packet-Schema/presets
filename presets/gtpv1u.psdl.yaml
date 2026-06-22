@@ -4,7 +4,9 @@ name: GTP-U v1
 rowBits: 32
 byteOrder: BE
 description: "GPRS Tunnelling Protocol User Plane (GTP-U) version 1 header (3GPP TS 29.281). Used in mobile core networks to carry user-plane IP packets between eNodeB/gNodeB and the S-GW/UPF over UDP port 2152. The mandatory 8-byte header — flags byte (Version=1, PT, Reserved, E, S, PN), Message Type, Length, and TEID — is optionally followed by a 4-byte extension block (Sequence Number, N-PDU Number, Next Extension Header Type) when any of the E, S, or PN flag bits is set. A TEID (Tunnel Endpoint ID) of 32 bits uniquely identifies the GTP tunnel at the receiving entity. G-PDU (Message Type 0xFF) carries an encapsulated T-PDU (typically IPv4/IPv6) as the tunnel payload."
-
+meta:
+  family: gtp
+  tags: [application, udp-based, tunnel, data-transfer]
 body:
   - kind: group
     id: gtpFlags

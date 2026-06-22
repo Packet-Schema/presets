@@ -13,6 +13,9 @@ description: >-
   a list of candidate RPs, their priority, and hold times, enabling routers
   to compute a consistent hash-based RP assignment for any given group address.
   Transmitted over IP protocol 103 to the ALL-PIM-ROUTERS group 224.0.0.13.
+meta:
+  family: pim
+  tags: [internet-layer, multicast, routing, control-plane]
 body:
   - id: pimVersion
     name: Version

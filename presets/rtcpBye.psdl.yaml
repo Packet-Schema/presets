@@ -4,6 +4,9 @@ name: RTCP Goodbye
 rowBits: 32
 byteOrder: BE
 description: RTCP Goodbye (BYE) packet (RFC 3550, PT=203). Sent by a participant to indicate it is leaving a session. Contains a list of contributing SSRCs to be removed and an optional human-readable reason string. The receiver removes the listed sources from active speaker tracking upon receipt.
+meta:
+  family: rtp
+  tags: [application, udp-based, signaling, control-plane]
 body:
   - kind: group
     id: flags

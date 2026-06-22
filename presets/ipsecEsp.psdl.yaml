@@ -4,6 +4,9 @@ name: IPsec ESP Header / Trailer
 rowBits: 32
 byteOrder: BE
 description: IP Encapsulating Security Payload (RFC 4303). ESP provides confidentiality (encryption), connectionless integrity, data-origin authentication, anti-replay protection, and optional traffic-flow confidentiality. The visible header contains only SPI and Sequence Number; the Payload Data, Padding, Pad Length, Next Header, and ICV are all protected by the negotiated cipher-suite (e.g. AES-GCM, AES-CBC+HMAC-SHA-1). In Transport mode the original IP payload is encrypted; in Tunnel mode the entire inner IP datagram is encrypted. Carried inside IP as Protocol number 50.
+meta:
+  family: ipsec
+  tags: [internet-layer, security, encapsulation, tunnel]
 body:
   - id: spi
     name: Security Parameters Index (SPI)

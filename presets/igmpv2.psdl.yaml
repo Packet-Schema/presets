@@ -4,6 +4,9 @@ name: IGMPv2
 rowBits: 32
 byteOrder: BE
 description: Internet Group Management Protocol version 2 message (RFC 2236). Fixed 8-byte header — Type (1 byte), Max Resp Time (1 byte), Checksum (2 bytes), Group Address (4 bytes). Type 0x11 = Membership Query (used for both General Query when Group Address is 0.0.0.0, and Group-Specific Query when Group Address names the group), 0x16 = Version 2 Membership Report (join), 0x17 = Leave Group, 0x12 = Version 1 Membership Report (backward compatibility, RFC 1112). Max Resp Time is meaningful only in Query messages; in Report and Leave messages it is set to 0 and MUST be ignored by receivers. Checksum covers the entire 8-byte IGMP message.
+meta:
+  family: igmp-mld
+  tags: [internet-layer, multicast, control-plane]
 body:
   - id: type
     name: Type

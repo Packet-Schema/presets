@@ -4,6 +4,9 @@ name: ICMPv6 Neighbor Discovery
 rowBits: 32
 byteOrder: BE
 description: "ICMPv6 Neighbor Discovery Protocol messages (RFC 4861) — the IPv6 equivalent of ARP plus router discovery. All NDP messages share the 4-byte ICMPv6 header (Type, Code, Checksum) defined in RFC 4443; the per-type body is selected by Type (133 Router Solicitation, 134 Router Advertisement, 135 Neighbor Solicitation, 136 Neighbor Advertisement, 137 Redirect) and is followed by a variable chain of NDP Options (Source/Target Link-Layer Address, Prefix Information, Redirected Header, MTU). Because PSDL 0.4 has no comparison operator, message types and option types are dispatched with Switches; the default case renders an opaque body for any unmodelled ICMPv6 type. [RFC 4861] The fixed 4-byte ICMPv6 header (Type/Code/Checksum) is followed by a message-type-specific body and then a chain of Neighbor Discovery options, each a Type/Length/Value record whose Length counts in units of 8 octets (so the on-the-wire size of one option is Length*8 bytes, including the 2-byte Type+Length header). 128-bit IPv6 addresses are carried big-endian."
+meta:
+  family: icmp
+  tags: [internet-layer, neighbor-discovery, addressing, control-plane]
 
 # NDP option catalogue, shared between every message's option chain via a YAML anchor.
 _ndp_option_variants: &ndp_option_variants

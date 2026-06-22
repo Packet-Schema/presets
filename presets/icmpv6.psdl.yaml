@@ -4,6 +4,9 @@ name: ICMPv6 Echo
 rowBits: 32
 byteOrder: BE
 description: ICMP for IPv6 echo request/reply layout (RFC 4443). Carried in IPv6 with Next Header=58. The Identifier and Sequence Number are 16-bit big-endian.
+meta:
+  family: icmp
+  tags: [internet-layer, error-reporting]
 body:
   - id: type
     name: Type

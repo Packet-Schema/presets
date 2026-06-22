@@ -15,6 +15,9 @@ description: >-
   19=DR Priority (32-bit), 20=Generation ID (32-bit), 24=Address List
   (Encoded-Unicast addresses).  Unknown types fall through to a raw byte
   payload.  Transmitted over IP protocol 103 to 224.0.0.13 (ALL-PIM-ROUTERS).
+meta:
+  family: pim
+  tags: [internet-layer, multicast, control-plane, neighbor-discovery]
 body:
   - id: pimVersion
     name: Version

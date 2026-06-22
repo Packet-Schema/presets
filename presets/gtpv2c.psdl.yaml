@@ -4,7 +4,9 @@ name: GTPv2-C
 rowBits: 32
 byteOrder: BE
 description: "GTP version 2 Control Plane (GTPv2-C) header (3GPP TS 29.274), used in the Evolved Packet Core (EPC) for LTE signalling between MME, S-GW, P-GW, and SGSN over UDP port 2123. The mandatory 8-byte header consists of a flags byte (Version=2, Piggyback P-flag, TEID-Present T-flag, three spare bits), an 8-bit Message Type, a 16-bit Message Length (excluding the first 4 mandatory bytes), and a 24-bit Sequence Number plus 8 spare bits. When the T-flag is set, a 32-bit TEID is inserted between the Message Length and the Sequence Number, making the header 12 bytes. Common messages include Create Session Request/Response (32/33), Modify Bearer Request/Response (34/35), Delete Session Request/Response (36/37), Create Bearer Request/Response (95/96), and Echo Request/Response (1/2). The message body consists of Information Elements (IEs) each with a 1-byte IE Type, 2-byte IE Length, 1-byte Spare+Instance nibble, and variable-length IE Value."
-
+meta:
+  family: gtp
+  tags: [application, udp-based, signaling, control-plane]
 body:
   - kind: group
     id: gtpv2Flags

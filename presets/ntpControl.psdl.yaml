@@ -4,6 +4,9 @@ name: NTP Control Message
 rowBits: 32
 byteOrder: BE
 description: "NTP Control Message (RFC 1305 Appendix B, mode 6). Used by NTP management and monitoring tools (e.g., ntpq) to query or configure NTP daemons over UDP port 123. The fixed header is 12 bytes, followed by a variable-length Data field (up to 468 bytes), optional padding to a 32-bit boundary, and an optional 96-bit Authenticator (Key ID + Message Digest) when authentication is requested. The Response (R), Error (E), and More (M) bits distinguish queries from responses and signal error or fragmentation conditions. OpCode selects the operation: read status, read variables, write variables, etc."
+meta:
+  family: ntp
+  tags: [application, udp-based, management, time]
 
 body:
   - kind: group

@@ -8,6 +8,8 @@ meta:
   rfc: 8446
   section: "6"
   aliases: [tlsAlert, alert]
+  family: tls
+  tags: [application, tcp-based, security]
 
 body:
   - id: alertLevel

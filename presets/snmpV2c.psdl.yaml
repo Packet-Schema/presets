@@ -4,6 +4,9 @@ name: SNMPv2c Message
 rowBits: 32
 byteOrder: BE
 description: "SNMPv2c message (RFC 3416 / RFC 1901) — ASN.1 BER/DER encoded over UDP (port 161/162). Outer wrapper is a SEQUENCE TLV; contains version INTEGER (value=1 for SNMPv2c), community OCTET STRING, and a PDU selected by a context-specific constructed tag 0xA0|tagnum (0xA0=GetRequest [0], 0xA1=GetNextRequest [1], 0xA2=Response/GetResponse [2], 0xA3=SetRequest [3], 0xA5=GetBulkRequest [5], 0xA6=InformRequest [6], 0xA7=SNMPv2-Trap [7], 0xA8=Report [8]; tag [4] is obsolete). Each PDU holds request-id, error-status (or non-repeaters for GetBulk), error-index (or max-repetitions for GetBulk), and a VarBindList SEQUENCE. All lengths use BER short/long form (kind: berLength). [RFC 3416 §3 / RFC 1901 §3]"
+meta:
+  family: snmp
+  tags: [application, udp-based, management, monitoring]
 body:
   - kind: group
     id: snmpSequenceWrapper

@@ -8,6 +8,8 @@ meta:
   rfc: { defined: 6275 }
   section: "6.1.1"
   aliases: [mh, mobilityHeader, mip6]
+  family: ip
+  tags: [internet-layer, mobility, control-plane]
 
 body:
   - id: mh6PayloadProto

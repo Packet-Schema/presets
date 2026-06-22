@@ -3,6 +3,9 @@ version: "0.5"
 name: CoAP Signaling (RFC 8323)
 rowBits: 32
 byteOrder: BE
+meta:
+  family: coap
+  tags: [application, tcp-based, signaling, control-plane]
 description: "CoAP Signaling messages over reliable transports — TCP and WebSocket (RFC 8323). Unlike UDP CoAP (RFC 7252), signaling messages carry no Message ID field; framing and deduplication are handled by the underlying reliable transport. The 1-byte header packs Len (4 bits) and TKL (4 bits); Extended Length fields (0, 1, 2, or 4 bytes) allow message bodies up to ~4 GiB; the Code byte encodes Signaling codes — 7.01 CSM (Capabilities and Settings Message), 7.02 Ping, 7.03 Pong, 7.04 Release, 7.05 Abort; a Token of TKL bytes follows; the remainder of the message body is Options and optional Payload as in RFC 7252. The PSDL model uses a switch on the Len nibble to decode the four Extended Length variants, then represents Token and Options+Payload as variable-length byte sequences."
 
 body:

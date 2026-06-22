@@ -4,6 +4,9 @@ name: PCP Request (MAP)
 rowBits: 32
 byteOrder: BE
 description: "Port Control Protocol (PCP) request packet (RFC 6887). PCP allows IPv4/IPv6 hosts behind NAT or firewall devices to control inbound mappings — enabling a client to open a port, retrieve the external IP:port, and set a mapping lifetime. The common header (24 bytes) contains version, opcode, requested lifetime, and the client's IP address, followed by opcode-specific data. This preset shows the MAP opcode body (36 bytes) that establishes an inbound port mapping for NAT traversal."
+meta:
+  family: pcp
+  tags: [application, udp-based, control-plane, configuration]
 
 body:
   - kind: group

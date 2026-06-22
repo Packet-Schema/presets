@@ -4,6 +4,9 @@ name: MACsec SecTAG (IEEE 802.1AE)
 rowBits: 32
 byteOrder: BE
 description: "MACsec Security TAG (SecTAG) as defined by IEEE 802.1AE-2018. Inserted after the source MAC address in an Ethernet frame when MACsec protection is active. Fixed 8 bytes (no SCI) or 16 bytes (with SCI). The EtherType field 0x88E5 identifies the presence of the SecTAG; the TCI byte carries per-frame control bits including SC (SCI present), E (encrypted), and C (changed). PN is a monotonically increasing counter used for anti-replay protection and IV construction. The optional 64-bit SCI identifies the Secure Channel and is present only when the SC bit is set."
+meta:
+  family: macsec
+  tags: [link-layer, security, authentication, framing]
 body:
   - id: etherType
     name: EtherType

@@ -3,6 +3,9 @@ version: "0.5"
 name: AMT (Automatic Multicast Tunneling)
 rowBits: 32
 byteOrder: BE
+meta:
+  family: amt
+  tags: [internet-layer, udp-based, tunnel, multicast, control-plane]
 description: "Automatic Multicast Tunneling (AMT) control and data messages (RFC 7450). AMT enables a host without native IP multicast connectivity to receive multicast traffic through a unicast tunnel to an AMT Relay. All messages begin with a 4-bit Version (always 0) and a 4-bit Type field selecting one of seven message types: 1=Relay Discovery, 2=Relay Advertisement, 3=Request, 4=Membership Query, 5=Membership Update, 6=Multicast Data, 7=Teardown. The per-type body that follows is represented by a Switch on amtType; for types not explicitly expanded the body is captured as raw bytes consuming the remainder of the message."
 
 body:

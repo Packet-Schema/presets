@@ -4,6 +4,9 @@ name: MLDv2 Membership Query
 rowBits: 32
 byteOrder: BE
 description: MLDv2 Membership Query message (RFC 3810 §5.1). Sent by a multicast router to discover which multicast groups have listeners on the attached IPv6 link. A General Query (Multicast Address = ::) asks about all groups; a Multicast-Address-Specific Query targets one group; a Multicast-Address-and-Source-Specific Query additionally specifies a source list. Carried as ICMPv6 (Next Header = 58) with Type = 130, IPv6 Hop Limit = 1, and the Router Alert Hop-by-Hop option, addressed to ff02::1 (All Nodes) for General Queries or to the queried multicast address otherwise.
+meta:
+  family: igmp-mld
+  tags: [internet-layer, multicast, control-plane]
 body:
   - id: type
     name: Type

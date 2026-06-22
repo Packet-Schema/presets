@@ -4,6 +4,9 @@ name: PCEP
 rowBits: 32
 byteOrder: BE
 description: "Path Computation Element Communication Protocol (PCEP) message (RFC 5440). PCEP enables a Path Computation Client (PCC) to request and a Path Computation Element (PCE) to supply Traffic-Engineering label-switched paths across an MPLS or GMPLS network. Every PCEP message begins with a 4-byte Common Header — Version (3 bits, MUST be 1), Flags (5 bits), Message-Type (8 bits), and Message-Length (16 bits) — followed by zero or more PCEP Objects. Each Object carries a fixed 4-byte Object Header (Class, Type, Reserved, P-flag, I-flag, Length) and a variable-length Object Body. Message types: 1=Open, 2=Keepalive, 3=PCReq, 4=PCRep, 5=PCNtf, 6=PCErr, 7=Close. PCEP runs over TCP port 4189."
+meta:
+  family: pcep
+  tags: [internet-layer, tcp-based, signaling, control-plane]
 
 body:
   - kind: group

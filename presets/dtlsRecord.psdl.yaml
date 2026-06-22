@@ -7,6 +7,8 @@ description: DTLS 1.2 record layer header (RFC 6347 §4.1) — 13-byte fixed hea
 meta:
   rfc: { defined: 6347, updates: [{ rfc: 5246, section: "6.2.1" }] }
   section: "4.1"
+  family: dtls
+  tags: [transport, udp-based, security, encapsulation]
 body:
   - id: contentType
     name: Content Type

@@ -7,6 +7,8 @@ meta:
   rfc: { defined: 1510, updates: [{ rfc: 4120, section: "5.4.1" }, 6113] }
   section: "5.4.1"
   aliases: [krb-as-req, kdc-req]
+  family: kerberos
+  tags: [application, udp-based, authentication, security]
 description: "Kerberos Authentication Service Request (AS-REQ, RFC 4120) — ASN.1 DER encoded, used to obtain an initial Ticket-Granting Ticket (TGT) from the KDC. AS-REQ ::= [APPLICATION 10] KDC-REQ. KDC-REQ ::= SEQUENCE { pvno [1] INTEGER (=5), msg-type [2] INTEGER (=10), padata [3] SEQUENCE OF PA-DATA OPTIONAL, req-body [4] KDC-REQ-BODY }. The outermost frame is an APPLICATION-tagged (tag 0x6A = class Application + constructed + tag 10) TLV whose content is a SEQUENCE wrapping the four context-tagged fields. Each field carries a context-specific tag (0xA1–0xA4), a BER length, and a nested TLV for the actual value. All lengths use BER short/long form (kind: berLength). The pre-authentication data (padata) is optional and absent by default; it carries PA-ENC-TIMESTAMP (padata-type 2) or FAST armour (padata-type 136) in deployments that require it. req-body contains the cipher-suite selection (etype list), client/server principal names, realm, and ticket validity window. [RFC 4120 §5.4.1 / ITU-T X.690 §8.1.3]"
 
 body:

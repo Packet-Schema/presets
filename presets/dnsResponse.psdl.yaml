@@ -4,6 +4,9 @@ name: DNS Message
 rowBits: 16
 byteOrder: BE
 description: "Full Domain Name System message (RFC 1035) — the 12-byte header followed by Question and Answer (Resource Record) sections expanded label-by-label. Header counts (QDCOUNT/ANCOUNT/...) drive the section Repeat containers, and the RR RDATA is unpacked per record TYPE with a Switch (A/AAAA/CNAME/NS/PTR/MX/SOA/TXT/SRV). DNS name compression is not modeled, so each domain name is rendered as an explicit chain of length-prefixed labels terminated by a zero-length label (uncompressed), expressed as a Repeat whose count.until fires on a Label Length of 0; compressed names (0xC0 pointers) are represented as opaque RDATA where they would otherwise appear. All multi-byte integers (ID, counts, TYPE/CLASS/TTL/RDLENGTH and the type-specific fixed fields) are big-endian. Domain names are encoded as a sequence of length-prefixed labels terminated by a zero-length label; this preset assumes uncompressed names and does not model the 0xC0 compression pointer except where noted."
+meta:
+  family: dns
+  tags: [application, udp-based, naming, data-transfer]
 
 # Shared QTYPE / TYPE catalog. QTYPE (Question) is a superset of TYPE (RR), so the
 # same enum variant set is reused for both via this YAML anchor. [RFC 1035 §3.2.2/§3.2.3]

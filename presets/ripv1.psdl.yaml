@@ -4,6 +4,9 @@ name: RIPv1
 rowBits: 32
 byteOrder: BE
 description: "RIPv1 message format (RFC 1058). A distance-vector routing protocol carried over UDP port 520. The fixed 4-byte header contains a Command, Version (always 1), and a reserved MustBeZero field, followed by zero or more 20-byte Route Entries. Each entry encodes an IPv4 destination address (no subnet mask or next-hop — classful routing only) and a hop-count metric capped at 15; 16 signifies infinity (unreachable). There is no explicit route-entry count in the header; the count is inferred from the UDP payload length."
+meta:
+  family: rip
+  tags: [internet-layer, udp-based, routing]
 body:
   - id: ripv1Command
     name: Command

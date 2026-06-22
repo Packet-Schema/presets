@@ -7,6 +7,8 @@ meta:
   rfc: { defined: 7854 }
   section: "4.1"
   aliases: [bmp]
+  family: bgp
+  tags: [application, tcp-based, monitoring, telemetry]
 description: "BGP Monitoring Protocol (BMP) message (RFC 7854). BMP enables a router (monitoring station client) to stream BGP session state to a passive collector without affecting the BGP peering itself. Every BMP message begins with a 6-byte Common Header (1-byte Version=3, 4-byte Length, 1-byte MsgType). Types 0–4 (Route Monitoring, Statistics Report, Peer Down, Peer Up, Initiation) and type 6 (Route Mirroring) are defined; type 5 (Termination) carries no Per-Peer Header. Types that carry per-peer context include a 48-byte Per-Peer Header (PeerType, PeerFlags, Peer Distinguisher, Peer Address, Peer AS, Peer BGP ID, Timestamp seconds + microseconds) immediately after the Common Header. The remaining payload is captured as raw bytes that run to the end of the BMP message — i.e. `remaining`, the packet bytes left after the headers (the message's total length being given by the Common Header Length field)."
 
 body:

@@ -4,6 +4,9 @@ name: IKEv2 Key Exchange Payload
 rowBits: 32
 byteOrder: BE
 description: "IKEv2 Key Exchange (KE) Payload (RFC 7296 §3.4). Carries a Diffie-Hellman public value used to establish a shared secret during IKE_SA_INIT and CREATE_CHILD_SA exchanges. The payload begins with the standard 4-byte Generic Payload Header (Next Payload, Critical flag, Reserved bits, Payload Length), followed by a 2-byte Diffie-Hellman Group Number identifying the DH group (MODP, ECP, etc.), a 2-byte Reserved field, and then the variable-length Key Exchange Data containing the sender's raw DH public value. The Key Exchange Data length is Payload Length minus 8 bytes (4-byte header + 4-byte DH group/reserved). Both peers send a KE payload; each uses the other's public value with its own private key to derive the same shared secret. [RFC 7296 §3.4]"
+meta:
+  family: ipsec
+  tags: [internet-layer, udp-based, key-exchange, security]
 
 body:
   - kind: group

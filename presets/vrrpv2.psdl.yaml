@@ -4,6 +4,9 @@ name: VRRPv2
 rowBits: 32
 byteOrder: BE
 description: "Virtual Router Redundancy Protocol version 2 (VRRPv2) packet (RFC 3768). IPv4-only predecessor to VRRPv3 (RFC 5798). A single 8-byte fixed header — Version (4 bits, always 2) and Type (4 bits, always 1=Advertisement) packed in one byte, followed by Virtual Router ID, Priority, Count IP Addresses, Auth Type, Adver Int, and Checksum — then a variable-length list of IPv4 addresses (Count IP Addrs × 4 bytes) and a fixed 8-byte Authentication Data trailer. VRRPv2 is carried directly in IPv4 packets with protocol number 112 and TTL 255; the destination address is 224.0.0.18 (all VRRP routers). Authentication defined in RFC 3768 §5.3 is considered deprecated because it provides no real security (RFC 5798 dropped it entirely)."
+meta:
+  family: vrrp
+  tags: [internet-layer, control-plane, reliability]
 
 body:
   - kind: group

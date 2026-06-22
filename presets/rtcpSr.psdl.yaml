@@ -4,6 +4,9 @@ name: RTCP Sender Report
 rowBits: 32
 byteOrder: BE
 description: RTCP Sender Report packet (RFC 3550). Contains sender information and zero or more reception report blocks.
+meta:
+  family: rtp
+  tags: [application, udp-based, data-transfer, monitoring]
 body:
   - kind: group
     id: flags

@@ -4,6 +4,9 @@ name: IPv6 Fragment Extension Header
 rowBits: 32
 byteOrder: BE
 description: IPv6 Fragment Extension Header (RFC 8200 §4.5). Fixed 8 bytes; used to carry fragmentation information when an IPv6 source node needs to send a packet larger than the path MTU.
+meta:
+  family: ip
+  tags: [internet-layer, encapsulation, data-transfer]
 body:
   - id: nextHeader
     name: Next Header

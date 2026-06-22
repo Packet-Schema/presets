@@ -4,6 +4,9 @@ name: PIM Join/Prune
 rowBits: 32
 byteOrder: BE
 description: PIM Join/Prune message (RFC 7761 §4.9.5, message type 3). Sent by a PIM router to its upstream neighbor to join or prune multicast distribution trees. Carries one or more group records, each listing source addresses to be joined (included in the distribution tree) and pruned (removed from the tree). Transmitted over IP protocol 103 to the ALL-PIM-ROUTERS group (224.0.0.13) or unicast to the upstream neighbor. The Upstream Neighbor field identifies the router to which the Join/Prune applies; only that router acts on the message, while other routers on the LAN use it for assert-state maintenance.
+meta:
+  family: pim
+  tags: [internet-layer, multicast, routing, control-plane]
 body:
   - id: pimVersion
     name: Version

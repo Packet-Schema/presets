@@ -4,6 +4,9 @@ name: L2TPv3 Data Message (over IP)
 rowBits: 32
 byteOrder: BE
 description: "L2TP version 3 data message encapsulated directly over IP (Protocol 115, RFC 3931). L2TPv3 replaces the 16-bit Tunnel ID + Session ID pair of L2TPv2 (RFC 2661) with a single 32-bit Session ID in the data-plane header, eliminating the framing overhead of the control word and enabling pseudowire (PW) services — Ethernet, Frame Relay, ATM, HDLC — over an IP or UDP/IP network. The minimal data-plane header is 32 bits: a 32-bit Session ID. An optional 64-bit Cookie (two 32-bit halves, CookieHigh and CookieLow) follows when negotiated via the control channel; the Cookie provides a lightweight spoofing-resistance check independent of any IP-layer security. An optional L2-Specific Sublayer of 32 bits MAY follow the Cookie (or Session ID when no Cookie is present) to carry the Default L2-Specific Sublayer (sequence number + reserved bits) per RFC 4719. The encapsulated L2 payload follows and runs to the end of the IP datagram. Critically, RFC 3931 §4.1 states that the Session ID alone provides the context for all further processing, including the presence and size of the Cookie and the presence of the L2-Specific Sublayer: none of these is signalled by any bit or field in the data packet itself. They are therefore modelled here as zero-width virtual fields (cookieLength and sublayerPresent) carrying the session-negotiated values, with CookieHigh/CookieLow and the L2-Specific Sublayer made conditional on them. [RFC 3931 §4.1 / §4.1.2]"
+meta:
+  family: l2tp
+  tags: [link-layer, tunnel, encapsulation]
 
 body:
   - id: sessionId

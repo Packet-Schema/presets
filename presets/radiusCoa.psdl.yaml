@@ -4,6 +4,9 @@ name: RADIUS CoA / Disconnect
 rowBits: 32
 byteOrder: BE
 description: "RADIUS Dynamic Authorization extension (RFC 5176). Adds Disconnect-Request/ACK/NAK (Codes 40–42) and Change-of-Authorization (CoA) Request/ACK/NAK (Codes 43–45) to allow a Dynamic Authorization Server (DAS) to modify or terminate an active user session on a NAS without waiting for re-authentication. The packet structure mirrors RFC 2865 RADIUS: a fixed 20-byte header (Code, Identifier, Length, Authenticator) followed by zero or more Type-Length-Value attributes."
+meta:
+  family: radius
+  tags: [application, udp-based, control-plane, management]
 body:
   - id: coaCode
     name: Code

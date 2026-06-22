@@ -4,6 +4,9 @@ name: IPv6 Routing Extension Header
 rowBits: 32
 byteOrder: BE
 description: "IPv6 Routing Extension Header (RFC 8200 §4.4). Directs a packet through one or more intermediate nodes before delivery to the final destination. The Routing Type field selects the specific routing sub-type: Type 0 (deprecated, RFC 5095), Type 2 (Mobile IPv6 Home Address routing, RFC 6275), Type 3 (RPL Source Route Header, RFC 6554), Type 4 (Segment Routing Header / SRH, RFC 8754). The header length is always a multiple of 8 bytes: total octets = (Hdr Ext Len + 1) × 8."
+meta:
+  family: ip
+  tags: [internet-layer, routing, encapsulation]
 body:
   - id: nextHeader
     name: Next Header

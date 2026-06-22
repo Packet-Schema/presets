@@ -4,6 +4,9 @@ name: LDP PDU
 rowBits: 32
 byteOrder: BE
 description: "Label Distribution Protocol (LDP) Protocol Data Unit (RFC 5036). LDP is used by MPLS routers (Label Switching Routers, LSRs) to exchange label bindings — the mappings from IP Forwarding Equivalence Classes (FECs) to MPLS labels — so that a consistent Label Switched Path (LSP) can be established through the network. Every LDP PDU begins with a 10-byte header carrying the LDP Version, PDU Length, LSR Identifier, and Label Space ID, followed by a sequence of LDP Messages. Each message has a 2-byte type field (with a U-bit), a 2-byte length, a 4-byte Message ID, and a variable-length TLV Parameters section. LDP sessions are carried over TCP port 646; LDP Hello discovery uses UDP port 646. Common message types: 0x0100=Hello, 0x0200=Initialization, 0x0201=KeepAlive, 0x0300=Address, 0x0400=Label Mapping."
+meta:
+  family: ldp
+  tags: [internet-layer, tcp-based, routing, control-plane, signaling]
 
 body:
   - kind: group

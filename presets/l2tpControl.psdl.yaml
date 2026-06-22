@@ -4,6 +4,9 @@ name: L2TP Control (RFC 2661)
 rowBits: 32
 byteOrder: BE
 description: "Layer Two Tunneling Protocol version 2 (L2TPv2) Control Message (RFC 2661). L2TPv2 establishes, maintains, and tears down PPP tunnels between a LAC (L2TP Access Concentrator) and an LNS (L2TP Network Server) over UDP port 1701. Every control message begins with a 16-bit Flags+Version word (T=1 mandatory, L=1 mandatory, S=1 mandatory, O=0 mandatory, Ver=2), followed by a 16-bit Length, the 16-bit Tunnel ID, the 16-bit Session ID, the 16-bit Ns (send sequence number), and the 16-bit Nr (receive sequence number). The fixed 12-byte header is followed by zero or more Attribute Value Pairs (AVPs), each consisting of a 16-bit Flags+Length word (Mandatory M-bit, Hidden H-bit, 4 reserved bits, 10-bit length), a 16-bit Vendor ID (0 = IETF), a 16-bit Attribute Type, and a variable-length Attribute Value. AVP Attribute Type 0 (Message Type) identifies the control message: 1=SCCRQ, 2=SCCRP, 3=SCCCN, 4=StopCCN, 6=HELLO, 7=OCRQ, 8=OCRP, 9=OCCN, 10=ICRQ, 11=ICRP, 12=ICCN, 14=CDN, 15=WEN, 16=SLI."
+meta:
+  family: l2tp
+  tags: [link-layer, udp-based, signaling, control-plane]
 
 body:
   - kind: group

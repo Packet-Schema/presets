@@ -4,6 +4,9 @@ name: RSVP-TE Path Message
 rowBits: 32
 byteOrder: BE
 description: "RSVP-TE Path message (RFC 3209) — an extension of RSVP (RFC 2205) for establishing Traffic-Engineered Label Switched Paths (LSPs) in MPLS networks. The packet begins with the RSVP Common Header (8 bytes): Version (4 bits), Flags (4 bits), Message Type (8 bits, value 1 for Path), Checksum (16 bits), Send TTL (8 bits), Reserved (8 bits), and RSVP Message Length (16 bits). The header is followed by a sequence of RSVP objects, each consisting of a 16-bit Object Length, an 8-bit Class-Num, an 8-bit C-Type, and variable-length object contents. Key RSVP-TE object classes include: 1=SESSION, 3=HOP (RSVP_HOP), 5=TIME_VALUES, 8=STYLE, 9=FLOWSPEC, 10=FILTER_SPEC, 11=SENDER_TEMPLATE, 12=SENDER_TSPEC, 13=ADSPEC, 14=POLICY_DATA, 16=LABEL (RSVP_LABEL), 19=LABEL_REQUEST, 20=EXPLICIT_ROUTE (ERO), 21=RECORD_ROUTE (RRO), 207=SESSION_ATTRIBUTE. RSVP-TE enables constraint-based routing, fast-reroute (RFC 4090), and GMPLS extensions (RFC 3473) for carrier MPLS-TE deployments."
+meta:
+  family: rsvp
+  tags: [internet-layer, signaling, control-plane, qos]
 
 body:
   - kind: group

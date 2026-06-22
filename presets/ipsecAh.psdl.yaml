@@ -4,6 +4,9 @@ name: IPsec AH Header
 rowBits: 32
 byteOrder: BE
 description: IP Authentication Header (RFC 4302). AH provides connectionless integrity and data-origin authentication for IP datagrams; it does NOT provide confidentiality (use ESP for that). AH can be applied in Transport mode (protecting the IP payload only) or Tunnel mode (protecting the entire inner IP datagram). The Integrity Check Value (ICV) is computed over the immutable fields of the outer IP header plus the entire AH header and payload; the ICV length is determined by the negotiated transform — HMAC-SHA-1-96 and AES-128-XCBC-MAC-96 produce 12-byte ICVs. Carried inside IP as Protocol number 51.
+meta:
+  family: ipsec
+  tags: [internet-layer, security, authentication]
 body:
   - id: nextHeader
     name: Next Header

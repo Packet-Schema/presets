@@ -5,6 +5,10 @@ rowBits: 32
 byteOrder: BE
 description: "SEND Secure Neighbor Discovery option (RFC 3971). SEND extends the NDP option chain (RFC 4861) to cryptographically protect NDP messages against spoofing and replay attacks. Each SEND option shares the standard NDP two-byte Type/Length header (Type 8 bits, Length 8 bits in units of 8 octets including the header itself) followed by a type-specific body selected by a Switch on the Type field. The four main option types are: 11 CGA option (a PadLength byte, a reserved byte, and the variable-length CGA Parameters data structure from RFC 3972 used to verify address ownership), 12 RSA Signature (a 16-bit reserved field, a 128-bit Key Hash, and a variable-length RSA-SHA1 digital signature covering the NDP message), 13 Timestamp (48 reserved bits plus a 64-bit fixed-point Timestamp — seconds since 1 Jan 1970 00:00 UTC in the high 48 bits and 1/65536-second fractions in the low 16 bits — protecting against replay), and 14 Nonce (a variable-length random nonce preventing replay in bidirectional flows). An unrecognised option Type is captured by the default case with an opaque Value of sendOptLength*8 - 2 octets. [RFC 3971 / RFC 3972 / RFC 4861]"
 
+meta:
+  family: send
+  tags: [internet-layer, security, authentication, neighbor-discovery]
+
 body:
   - id: sendOptType
     name: Type

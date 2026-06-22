@@ -3,6 +3,9 @@ version: "0.5"
 name: BOOTP
 rowBits: 32
 byteOrder: BE
+meta:
+  family: dhcp
+  tags: [application, udp-based, configuration, addressing]
 description: "Bootstrap Protocol (BOOTP) packet (RFC 951). The predecessor to DHCP, BOOTP allows a diskless client to obtain an IP address and boot file information from a server using UDP ports 67 (server) and 68 (client). The packet is a fixed 300 bytes: a 236-byte header followed by a 64-byte vendor-specific area. DHCP (RFC 2131) later extended this format by redefining the Vend field as DHCP options."
 
 body:

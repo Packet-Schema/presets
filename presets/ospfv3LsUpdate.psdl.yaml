@@ -4,6 +4,9 @@ name: OSPFv3 Link State Update
 rowBits: 32
 byteOrder: BE
 description: "OSPFv3 Link State Update packet (RFC 5340 §A.3.5, packet type 4). 16-byte OSPFv3 common header (Version=3, Type=4, Packet Length, Router ID, Area ID, Checksum, Instance ID, Reserved) followed by a 4-byte LSA count and a variable-length list of LSA headers. OSPFv3 is the IPv6 revision of OSPF; the common header shrinks from OSPFv2's 24 bytes to 16 bytes by removing the Authentication Type and Authentication fields, delegating authentication to IPsec (AH/ESP). Link State Update packets carry one or more LSAs as the primary flooding mechanism: a router sends them in reply to Link State Request packets during Database Exchange and re-floods newer LSA instances as they arrive. OSPFv3 extends the LS Type field to 16 bits; the high-order bits encode flooding scope (link-local, area, AS) and the U-bit controls handling of unknown types. Common LS Type values: 0x2001=Router-LSA, 0x2002=Network-LSA, 0x2003=Inter-Area-Prefix-LSA, 0x2009=Intra-Area-Prefix-LSA."
+meta:
+  family: ospf
+  tags: [internet-layer, routing, control-plane, data-transfer]
 body:
   - id: version
     name: Version

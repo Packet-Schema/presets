@@ -7,6 +7,8 @@ description: "UDP Encapsulation of IPsec ESP packets for NAT Traversal (RFC 3948
 meta:
   rfc: 3948
   section: "2"
+  family: ipsec
+  tags: [internet-layer, udp-based, tunnel, security, encapsulation]
 body:
   - id: srcPort
     name: Source Port

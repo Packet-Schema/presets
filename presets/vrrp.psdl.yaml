@@ -4,7 +4,9 @@ name: VRRPv3 Advertisement
 rowBits: 32
 byteOrder: BE
 description: Virtual Router Redundancy Protocol version 3 (RFC 5798). A single Advertisement message type — the only packet type defined in VRRPv3 — sent by the Master router at MaxAdverInt intervals to assert ownership of the virtual IP addresses. The fixed 8-byte header carries Version/Type, Virtual Router ID, Priority, address count, a 4-bit reserved field plus a 12-bit Maximum Advertisement Interval, and a 16-bit checksum (RFC 1071 / RFC 5798 §5.2.9). Following the header is a list of IP addresses (IPv4 32-bit each, or IPv6 128-bit each) whose count is given by Count IPvX. This preset models IPv4; for IPv6 each address element would be 128 bits but the structure is identical. Carried directly over IP (protocol 112), destination 224.0.0.18 (link-local multicast).
-
+meta:
+  family: vrrp
+  tags: [internet-layer, signaling, control-plane]
 body:
   - kind: group
     id: vrrpHeaderWord1

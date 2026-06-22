@@ -5,6 +5,9 @@ rowBits: 32
 byteOrder: BE
 description: >-
   PIM Assert message (RFC 7761 §4.9.6, message type 5). Sent by a PIM router on a multi-access LAN when it detects that another router is also forwarding multicast traffic for the same (S,G) or (*,G) entry. The Assert process elects a single Designated Forwarder (DF) among competing downstream routers by comparing RPF metric information; the router with the best unicast route metric wins and all others suppress their forwarding state. Assert messages are sent to the ALL-PIM-ROUTERS group (224.0.0.13) over IP protocol 103.
+meta:
+  family: pim
+  tags: [internet-layer, multicast, routing, control-plane]
 body:
   - kind: group
     id: pimHeader

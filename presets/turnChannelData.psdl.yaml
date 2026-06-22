@@ -4,7 +4,9 @@ name: TURN ChannelData
 rowBits: 32
 byteOrder: BE
 description: "TURN ChannelData message format as defined in RFC 5766 §11.4. A lightweight 4-byte header — ChannelNumber and Length — followed by the application data payload and zero-to-three padding bytes to align the message to a 4-byte boundary. ChannelData provides lower overhead than Send/Data Indications (which carry STUN framing and TLV attributes) and is used after a channel binding has been established with a ChannelBind request. Valid channel numbers occupy 0x4000–0x7FFF; all other values are reserved or used by STUN. TURN operates over UDP, TCP, or TLS/TCP, relaying data between a WebRTC/ICE client and a peer via the TURN server."
-
+meta:
+  family: stun-turn
+  tags: [application, udp-based, data-transfer, tunnel]
 body:
   - id: turnChannelNumber
     name: Channel Number

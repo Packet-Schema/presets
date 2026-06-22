@@ -4,6 +4,9 @@ name: UDP Header
 rowBits: 32
 byteOrder: BE
 description: UDP header (RFC 768) — fixed 8 bytes.
+meta:
+  family: udp
+  tags: [transport, addressing, data-transfer]
 body:
   - id: srcPort
     name: Source Port

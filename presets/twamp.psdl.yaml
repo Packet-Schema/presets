@@ -8,6 +8,8 @@ meta:
   rfc: { defined: 5357 }
   section: "4.1.2"
   aliases: [twamp, twamp-test]
+  family: owamp-twamp
+  tags: [application, udp-based, measurement, telemetry]
 
 body:
   - id: twampSeqNumber

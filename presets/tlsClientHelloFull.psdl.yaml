@@ -4,6 +4,9 @@ name: TLS ClientHello (full)
 rowBits: 32
 byteOrder: BE
 description: TLS 1.3 ClientHello (RFC 8446 §4.1.2) with a populated Extensions catalog (SNI / supported_versions / supported_groups / key_share / ALPN) and the server-side encrypted handshake records modeled as an Encrypted container.
+meta:
+  family: tls
+  tags: [application, tcp-based, security, authentication, key-exchange]
 body:
   - id: msgType
     name: Handshake Type

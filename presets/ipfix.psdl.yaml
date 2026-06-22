@@ -4,6 +4,9 @@ name: IPFIX Message
 rowBits: 32
 byteOrder: BE
 description: "IP Flow Information Export (IPFIX) message (RFC 7011). Successor to NetFlow v9 (RFC 3954), IPFIX standardises the export of flow measurement data from a Metering Process to a Collector. Each message begins with a 16-byte Message Header — Version (always 10), Length, Export Time, Sequence Number, and Observation Domain ID — followed by one or more Sets. Each Set starts with a 2-byte Set ID that identifies its content (2=Template Set, 3=Options Template Set, 256–65535=Data Set using a previously received Template ID) and a 2-byte Set Length, then carries its records as an opaque byte string of (Set Length − 4) bytes. Template Sets define the structure of Data Sets; Options Template Sets carry metadata (e.g., sampling parameters) using a scope/option field layout defined in RFC 7011 §3.4.2."
+meta:
+  family: ipfix
+  tags: [application, udp-based, telemetry, measurement]
 
 body:
   - kind: group

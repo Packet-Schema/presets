@@ -3,6 +3,9 @@ version: "0.5"
 name: CAPWAP (Control And Provisioning of Wireless Access Points)
 rowBits: 32
 byteOrder: BE
+meta:
+  family: capwap
+  tags: [application, udp-based, tunnel, management, control-plane]
 description: "Control And Provisioning of Wireless Access Points (CAPWAP) transport header (RFC 5415). CAPWAP provides a UDP-based tunnel between a Wireless LAN Controller (WLC) and one or more Access Points (APs), carrying both control-plane messages (port 5246) and data-plane traffic (port 5247). Every CAPWAP packet begins with an 8-bit Preamble (upper 4 bits = Version, lower 4 bits = Type: 0=CAPWAP, 1=CAPWAP-DTLS). The Transport Header then carries: a 5-bit Header Length (HLEN, units of 4 bytes), a 5-bit Radio ID (RID) identifying the AP radio, a 5-bit Wireless Binding ID (WBID, e.g. 1=IEEE 802.11), and several 1-bit control flags (T=native frame type, F=fragment, L=last fragment, W=wireless specific info present, M=Radio MAC address present, K=keep-alive). A 16-bit Fragment ID and a 13-bit Fragment Offset (units of 8 bytes) support fragmentation of large CAPWAP messages across the UDP transport. An optional Radio MAC Address field (an 8-bit Length followed by a 6-byte EUI-48 or 8-byte EUI-64 address, zero-padded to a 4-byte boundary) and an optional Wireless Specific Information field follow when M and W flags are set respectively. The payload bytes complete the packet."
 
 body:

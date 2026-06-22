@@ -4,6 +4,9 @@ name: MQTT v3.1.1 CONNECT Packet
 rowBits: 32
 byteOrder: BE
 description: MQTT v3.1.1 CONNECT control packet (OASIS standard §3.1) — opens a client-server session. Fixed Header (Type=1, Flags=0) + Variable Header (Protocol Name + Level + Connect Flags + Keep Alive) + Payload (Client Identifier + flag-gated Will Topic / Will Message / User Name / Password). Each length-prefixed string is a 2-byte BE length followed by that many bytes of UTF-8 (or, for Will Message, opaque binary). MQTT strings are length-prefixed UTF-8 (2-byte BE length).
+meta:
+  family: mqtt
+  tags: [application, tcp-based, signaling, data-transfer]
 body:
   - kind: group
     id: fixedHeaderByte1

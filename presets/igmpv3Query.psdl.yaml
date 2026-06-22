@@ -4,6 +4,9 @@ name: IGMPv3 Membership Query
 rowBits: 32
 byteOrder: BE
 description: IGMPv3 Membership Query message (RFC 3376 §4.1). Sent by a multicast router to discover which multicast groups have listeners on the attached link. A General Query (Group Address = 0.0.0.0) asks about all groups; a Group-Specific Query targets one group; a Group-and-Source-Specific Query additionally specifies a source list. Carried directly inside IPv4 (Protocol = 2) with IP TTL = 1 and the Router Alert option, addressed to 224.0.0.1 (All Hosts) for General Queries or to the queried group address otherwise.
+meta:
+  family: igmp-mld
+  tags: [internet-layer, multicast, control-plane]
 body:
   - id: type
     name: Type

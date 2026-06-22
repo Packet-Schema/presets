@@ -4,6 +4,9 @@ name: ROHC Uncompressed
 rowBits: 32
 byteOrder: BE
 description: "Robust Header Compression (ROHC) Uncompressed profile packet (RFC 5795). ROHC is a framework for compressing headers of IP and upper-layer protocols over links with limited bandwidth. Profile 0x0000 (Uncompressed) passes packets through without compression, making it a baseline and fallback profile. Per RFC 5795 §5.2.1 the on-wire field order is Padding -> Feedback -> Header -> Payload: zero or more Padding octets (each 0xE0), zero or more Feedback elements (each prefixed by the 5-bit pattern 11110), an optional Add-CID octet for small CIDs (prefix nibble 0xE (1110b), octets 0xE1–0xEF), then the header. The Uncompressed profile defines two header formats (§5.4): an IR packet (type 0xFC/0xFD + Profile + CRC + uncompressed IP datagram) and a Normal packet (the verbatim IP datagram with no type/profile/CRC octets, identified by the IP version nibble 0100/0110). The leading regions are detected by peeking the next octet without consuming it: 0xE0 indicates a Padding octet, the 5-bit prefix 11110 indicates a Feedback element, the 7-bit prefix 1111110 indicates an IR packet, and the nibble 0xE (with a non-zero low nibble) indicates an Add-CID octet."
+meta:
+  family: rohc
+  tags: [link-layer, encapsulation]
 
 body:
   - kind: optional

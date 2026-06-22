@@ -4,6 +4,9 @@ name: SLP v2 Header
 rowBits: 32
 byteOrder: BE
 description: "Service Location Protocol version 2 (SLP v2) common header (RFC 2608). SLP provides a scalable framework for the discovery and selection of network services; user agents (UAs) query service agents (SAs) or directory agents (DAs) without requiring prior knowledge of service locations. The 14-byte fixed header is followed by a variable-length Language Tag and a variable-length function-specific body. Function IDs include: SrvRqst(1), SrvRply(2), SrvReg(3), SrvDereg(4), SrvAck(5), AttrRqst(6), AttrRply(7), DAAdvert(8), SrvTypeRqst(9), SrvTypeRply(10), SAAdvert(11). SLP operates over UDP/TCP port 427."
+meta:
+  family: slp
+  tags: [application, udp-based, discovery]
 
 body:
   - kind: group

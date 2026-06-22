@@ -5,6 +5,10 @@ rowBits: 32
 byteOrder: BE
 description: "OMA LwM2M Registration payload (OMA-TS-LightweightM2M-V1_1). An LwM2M client registers itself with an LwM2M Server by sending a CoAP POST to the /rd resource (RFC 6690 Resource Directory). The registration payload is a sequence of TLV (Type-Length-Value) records that enumerate the Object Instances available on the device. Each TLV record carries an 8-bit compound Type byte (bit 7..6 = Type of Identifier, bit 5 = ID Length, bit 4..3 = Type of Length, bits 2..0 = Value Length if short), an 8- or 16-bit Identifier, a 0-, 8-, 16-, or 24-bit Length field, and a variable-length Value. Records repeat until end of payload. CoAP Content-Format 11542 (application/vnd.oma.lwm2m+tlv) signals this encoding. The registration request also carries CoAP Uri-Query options for endpoint name (ep=), lifetime (lt=), binding mode (b=), and LwM2M version (lwm2m=). [OMA-TS-LightweightM2M-V1_1 §6.4.3 / §5.3]"
 
+meta:
+  family: coap
+  tags: [application, udp-based, management, configuration]
+
 body:
   - kind: repeat
     id: tlvRecords

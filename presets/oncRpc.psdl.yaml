@@ -4,6 +4,9 @@ name: ONC RPC Message (RFC 5531)
 rowBits: 32
 byteOrder: BE
 description: Open Network Computing Remote Procedure Call message (RFC 5531, formerly Sun RPC / RFC 1831). ONC RPC is the transport-layer RPC substrate used by NFS (RFC 7530), NIS, and many other Sun/IETF protocols. Every message begins with a 32-bit Transaction ID (XID) and a 32-bit Message Type (0=CALL, 1=REPLY). A CALL carries the RPC version, program number, program version, procedure number, and two auth flavour/body pairs (Credentials and Verifier). A REPLY carries a Reply Status and, for an accepted call, the Verifier and Accept Status fields; rejected calls carry a Reject Status and sub-reason fields.
+meta:
+  family: rpc
+  tags: [application, tcp-based, data-transfer, control-plane]
 body:
   - id: xid
     name: XID

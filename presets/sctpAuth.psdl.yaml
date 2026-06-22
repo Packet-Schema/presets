@@ -5,6 +5,10 @@ rowBits: 32
 byteOrder: BE
 description: "SCTP Authenticated Chunks (AUTH) chunk (RFC 4895, chunk type 0x0F = 15). Provides per-chunk integrity protection for SCTP associations that negotiate the AUTH extension during INIT/INIT-ACK via the RANDOM, CHUNKS, and HMAC-ALGO parameters. The AUTH chunk MUST be inserted immediately before the first protected DATA, SACK, or other negotiated chunk type in the SCTP packet. The structure is a standard 4-byte SCTP chunk header (Type=15, Flags, Length) followed by a Shared Key Identifier, an HMAC Identifier, and a variable-length HMAC value whose size is determined by the negotiated algorithm (e.g. 20 bytes for SHA-1/HMAC-SHA-1 per RFC 2104, 32 bytes for HMAC-SHA-256)."
 
+meta:
+  family: sctp
+  tags: [transport, security, authentication]
+
 body:
   - id: chunkType
     name: "Type=15"

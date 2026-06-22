@@ -4,6 +4,11 @@ name: EAPOL (IEEE 802.1X)
 rowBits: 32
 byteOrder: BE
 description: EAP over LAN frame (IEEE 802.1X-2020, RFC 3748). EAPOL is the layer-2 encapsulation that carries Extensible Authentication Protocol (EAP) messages between a supplicant and an authenticator on the same LAN segment. The fixed 4-byte header consists of a Protocol Version, a Packet Type code, and a 16-bit body length; it is followed by an opaque body whose content and length depend on the Packet Type.
+
+meta:
+  family: eapol
+  tags: [link-layer, authentication, security, framing]
+
 body:
   - id: eapolVersion
     name: Protocol Version

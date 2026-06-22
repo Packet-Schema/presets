@@ -3,6 +3,9 @@ version: "0.5"
 name: COPS (Common Open Policy Service)
 rowBits: 32
 byteOrder: BE
+meta:
+  family: cops
+  tags: [application, tcp-based, control-plane, management]
 description: "Common Open Policy Service (COPS) protocol (RFC 2748). A simple query-and-response protocol used for policy-based admission control between a Policy Enforcement Point (PEP) and a remote Policy Decision Point (PDP). All COPS messages share a fixed 8-byte header: a 4-bit Version (always 1), a 4-bit Flags field, an 8-bit Op-Code identifying the message type (1=Request, 2=Decision, 3=Report State, 4=Delete Request State, 5=Synchronize State Request, 6=Client-Open (OPN), 7=Client-Accept (CAT), 8=Client-Close (CC), 9=Keep-Alive (KA), 10=Synchronize Complete (SSC)), a 16-bit Client-Type identifying the policy client, and a 32-bit Message Length giving the total byte count of the message including the header. Following the header, zero or more typed objects are carried; each object begins with a 2-byte Length, a 1-byte C-Num (object class), and a 1-byte C-Type (class sub-type), followed by the object's data payload. Objects are framed by a bounded scope spanning (Message Length - 8) bytes; the byte length of each object's contents is derived from the object's own Length field minus the 4-byte object header."
 
 body:

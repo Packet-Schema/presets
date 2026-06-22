@@ -3,6 +3,9 @@ version: "0.5"
 name: DHCPv4 Message (BOOTP-compatible)
 rowBits: 32
 byteOrder: BE
+meta:
+  family: dhcp
+  tags: [application, udp-based, configuration, addressing]
 description: Dynamic Host Configuration Protocol for IPv4 (RFC 2131). DHCPv4 reuses the BOOTP message format (RFC 951) — a 236-byte fixed header followed by the Magic Cookie 0x63825363 (RFC 1497 vendor-extensions marker) and a chain of TLV Options (RFC 2132). The Options chain carries the actual DHCP semantics; the catalogue below covers the most-deployed options (Subnet Mask, Router, DNS Server, Hostname, Lease Time, Message Type, Server Identifier, Parameter Request List) plus the two zero-length sentinels Pad (0) and End (255). Unknown option codes fall through to a generic opaque record. Carried over UDP, ports 67 (server) and 68 (client). The fixed BOOTP-shaped header is 236 octets; chaddr (16 B), sname (64 B), and file (128 B) are fixed-size and zero-padded at the tail. The Magic Cookie 0x63825363 immediately follows file and marks the start of the DHCP Options area; Options are TLV (Code 1 B + Length 1 B + Value Length B) except Pad (0) and End (255) which are 1-byte single-octet options with no length field.
 
 _dhcpv4_option_variants: &dhcpv4_option_variants

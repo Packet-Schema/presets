@@ -4,6 +4,9 @@ name: Diameter Base Protocol
 rowBits: 32
 byteOrder: BE
 description: Diameter Base Protocol (RFC 6733), successor to RADIUS (RFC 2865). A fixed 20-byte header — Version (always 1), 24-bit Message Length, 8-bit Command Flags (R/P/E/T bits), 24-bit Command Code, 32-bit Application-ID, 32-bit Hop-by-Hop Identifier, and 32-bit End-to-End Identifier — followed by a sequence of Attribute-Value Pairs (AVPs). Each AVP carries a 32-bit AVP Code, 8-bit AVP Flags (V/M/P bits), 24-bit AVP Length, an optional 32-bit Vendor-ID (present when the V flag is set), and a variable-length Data field. Diameter runs over TCP (port 3868) or SCTP (port 3868) and optionally TLS/DTLS. Common applications include NASREQ (RFC 7155), EAP (RFC 4072), Credit-Control (RFC 4006), and S6a/S6d (3GPP TS 29.272).
+meta:
+  family: diameter
+  tags: [application, tcp-based, authentication, management]
 
 body:
   - kind: group

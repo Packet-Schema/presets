@@ -5,6 +5,9 @@ rowBits: 32
 byteOrder: BE
 description: >-
   Link Aggregation Control Protocol PDU (IEEE 802.3ad / IEEE 802.1AX-2014). Carried directly inside a Slow Protocol frame (EtherType 0x8809, Subtype 0x01) as the payload of an Ethernet frame addressed to the Slow Protocols multicast MAC 01:80:C2:00:00:02. The PDU begins with a 1-byte Subtype (always 0x01) and 1-byte Version (0x01), followed by four fixed TLVs in order: Actor Information (Type=0x01, 20 bytes), Partner Information (Type=0x02, 20 bytes), Collector Information (Type=0x03, 16 bytes), and Terminator (Type=0x00, length 0, followed by a 50-byte Reserved field). Total wire length is 110 bytes (880 bits): Subtype(1) + Version(1) + Actor TLV(20) + Partner TLV(20) + Collector TLV(16) + Terminator TLV(2) + Terminator Reserved(50). [IEEE 802.3ad-2000 §43, IEEE 802.1AX-2014 §6.4.2]
+meta:
+  family: lacp
+  tags: [link-layer, control-plane, framing]
 body:
   - id: subtype
     name: Subtype

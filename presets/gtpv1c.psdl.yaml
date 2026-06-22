@@ -4,7 +4,9 @@ name: GTPv1-C
 rowBits: 32
 byteOrder: BE
 description: "GTP version 1 Control Plane (GTPv1-C) header (3GPP TS 29.060), used in 2G/3G GPRS and early 4G networks for signalling between SGSN and GGSN over UDP port 2123. The mandatory 8-byte header consists of a flags byte (Version=1, PT=1, Reserved, E, S, PN), an 8-bit Message Type, a 16-bit total Length, and a 32-bit Tunnel Endpoint Identifier (TEID). When any of the E, S, or PN flags is set, a 4-byte optional block follows: Sequence Number (16 bits), N-PDU Number (8 bits), and Next Extension Header Type (8 bits). Common messages include Echo Request/Response (1/2), Create PDP Context Request/Response (16/17), Update PDP Context Request/Response (18/19), and Delete PDP Context Request/Response (20/21). The message body carries Information Elements (IEs) in type-length-value (TLV) or type-value (TV) encoding as defined in 3GPP TS 29.060 §7."
-
+meta:
+  family: gtp
+  tags: [application, udp-based, signaling, control-plane]
 body:
   - kind: group
     id: gtpcFlags

@@ -8,6 +8,8 @@ rendererHints:
 meta:
   rfc: 7348
   section: "5"
+  family: vxlan
+  tags: [internet-layer, udp-based, tunnel, encapsulation]
 body:
   - kind: group
     id: flags

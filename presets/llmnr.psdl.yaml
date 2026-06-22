@@ -5,6 +5,10 @@ rowBits: 32
 byteOrder: BE
 description: "Link-Local Multicast Name Resolution (LLMNR) message header (RFC 4795). 12 bytes; shares the DNS wire format (RFC 1035) but is carried over IPv4 multicast 224.0.0.252 / IPv6 multicast FF02::1:3 on UDP port 5355. The Flags field adds two LLMNR-specific bits — C (Conflict) and T (Tentative) — in place of the DNS AA and RD fields. Recursion is not supported; RA and RD are always 0."
 
+meta:
+  family: dns
+  tags: [application, udp-based, naming, discovery]
+
 body:
   - id: llmnrId
     name: ID

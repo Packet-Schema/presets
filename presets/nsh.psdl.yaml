@@ -4,6 +4,9 @@ name: NSH (Network Service Header)
 rowBits: 32
 byteOrder: BE
 description: "Network Service Header (NSH, RFC 8300) — a header used in Service Function Chaining (SFC) to steer packets along an ordered sequence of Service Functions (SFs) within a Service Function Path (SFP). NSH is inserted between the outer transport header and the original packet payload. It consists of a fixed 8-byte base (Base Header + Service Path Header) followed by variable-length Context Headers whose size is derived from the Length field. MDType=1 carries four fixed 32-bit context words (16 bytes context); MDType=2 carries variable-length TLV metadata (0 or more bytes); other MDType values are reserved. The Next Protocol field indicates the encapsulated payload: 1=IPv4, 2=IPv6, 3=Ethernet, 4=NSH (nested), 5=MPLS. [RFC 8300]"
+meta:
+  family: nsh
+  tags: [internet-layer, encapsulation, tunnel]
 
 body:
   - kind: group

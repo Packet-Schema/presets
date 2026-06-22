@@ -6,6 +6,8 @@ byteOrder: BE
 meta:
   rfc: 6320
   aliases: [ancp]
+  family: ancp
+  tags: [application, tcp-based, control-plane, management, configuration]
 description: "Access Node Control Protocol (ANCP) packet (RFC 6320). ANCP provides a TCP/IP control channel between a Network Access Server (NAS) and an Access Node (AN) such as a DSLAM or OLT. Every general ANCP message begins with a three-word (12-byte) common header (RFC 6320 §3.6): Word 1 = Version (8 bits, value 50) + Message Type (8 bits) + Result (4 bits) + Result Code (12 bits); Word 2 = Partition ID (8 bits) + Transaction Identifier (24 bits); Word 3 = I flag (1 bit) + SubMessage Number (15 bits) + Length (16 bits). The Adjacency message (RFC 6320 §3.5.1) uses a distinct format that, after the shared Version + Message Type octets, carries Timer (8 bits) + M flag (1 bit) + Code (7 bits) instead of Result/Result Code. The body content varies by Message Type: 10=Adjacency (capability negotiation and keepalive), 80=Port Up (line event notification), 81=Port Down (line event notification), 32=Port Management (line configuration). The PSDL model exposes the shared Version + Message Type octets, then a switch on ancpMessageType supplies the remainder of the header and the per-type body with the relevant TLV extensions and line attributes. ANCP enables DSLAM and OLT management by the NAS for DSL, PON, and Ethernet aggregation deployments."
 
 body:

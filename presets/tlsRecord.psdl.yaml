@@ -7,6 +7,8 @@ description: TLS record layer header (RFC 8446 §5.1). 5-byte fixed header that 
 meta:
   rfc: { defined: 8446, updates: [{ rfc: 5246, section: "6.2.1" }] }
   section: "5.1"
+  family: tls
+  tags: [application, tcp-based, framing, security, data-transfer]
 body:
   - id: type
     name: Content Type

@@ -4,6 +4,9 @@ name: LISP Map-Reply
 rowBits: 32
 byteOrder: BE
 description: "Locator/ID Separation Protocol (LISP) Map-Reply message (RFC 9301, formerly RFC 6830/6833). Sent by a Map-Server or ETR to an ITR or Map-Resolver in response to a Map-Request (Type=1). A Map-Reply carries one or more EID-to-RLOC mapping records. The fixed header contains Type=2 (4 bits), Probe (P) flag, Echo-Nonce (E) flag, Security (S) flag, 17 reserved bits, and an 8-bit Record Count, followed by a 64-bit Nonce echoed from the Map-Request. Each record contains a 32-bit TTL, 8-bit Locator Count, 8-bit EID Mask-Length, a 3-bit ACT action code, an Authoritative (A) flag, 12 reserved bits, a 12-bit Map-Version number, a 16-bit EID-AFI, a variable-length EID-Prefix, and zero or more Locator entries. Each Locator entry contains Priority, Weight, M-Priority, M-Weight, flags, and a variable-length RLOC address. UDP destination port 4342. [RFC 9301 §5.4]"
+meta:
+  family: lisp
+  tags: [internet-layer, udp-based, control-plane, signaling, naming]
 
 body:
   - kind: group

@@ -4,6 +4,9 @@ name: IS-IS Level-1/2 LSP PDU
 rowBits: 32
 byteOrder: BE
 description: IS-IS Link State PDU (ISO 10589 §9.8, mirrored by RFC 1142). Carries one router's link-state advertisement — a 27-byte fixed header followed by a chain of Type/Length/Value records. PDU Type encodes Level-1 LSP = 18 or Level-2 LSP = 20. The Variable Length Fields catalogue below covers the most common TLVs; unknown types fall through to a generic opaque record. IS-IS rides directly over the data link (typically Ethernet with LSAP 0xFE-FE), not over IP, so there is no surrounding network header in this preset.
+meta:
+  family: isis
+  tags: [link-layer, routing, control-plane]
 
 _isis_tlv_variants: &isis_tlv_variants
   "1":

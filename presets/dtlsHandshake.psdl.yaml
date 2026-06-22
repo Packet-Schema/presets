@@ -7,6 +7,8 @@ description: "DTLS 1.2 Handshake Protocol header and body (RFC 6347 §4.2.2). Ex
 meta:
   rfc: { defined: 6347, updates: [{ rfc: 5246, section: "7.4" }] }
   section: "4.2.2"
+  family: dtls
+  tags: [transport, udp-based, security, authentication]
 
 body:
   - id: dtlsHsType

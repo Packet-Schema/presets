@@ -4,6 +4,9 @@ name: BGP-4 OPEN Message
 rowBits: 32
 byteOrder: BE
 description: BGP-4 OPEN message (RFC 4271 §4.1 + §4.2) — the first message sent by each side after a TCP connection is established. Consists of the 19-byte BGP Common Header followed by 10 OPEN-specific bytes and a variable-length Optional Parameters section.
+meta:
+  family: bgp
+  tags: [internet-layer, tcp-based, routing, control-plane]
 body:
   - kind: group
     id: bgpCommonHeader

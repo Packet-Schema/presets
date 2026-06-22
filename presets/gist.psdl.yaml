@@ -4,6 +4,9 @@ name: GIST (General Internet Signalling Transport)
 rowBits: 32
 byteOrder: BE
 description: "General Internet Signalling Transport (GIST, also known as NSIS Transport Layer Protocol – NTLP) message format (RFC 5971). GIST provides a generic transport layer for the Next Steps In Signaling (NSIS) framework, carrying signalling messages for NSIS Signalling Layer Protocols (NSLPs) along the path between network nodes. Every GIST message begins with an 8-byte common header: Version (8 bits), GIST Hops (8 bits), Message Length (16 bits), NSLP Identifier (16 bits), C-flag (1 bit), Message Type (7 bits), S/R/E flags (1 bit each), and Reserved (5 bits). The header is followed by a sequence of Type-Length-Value (TLV) Objects conveying signalling state, routing, and control information."
+meta:
+  family: gist
+  tags: [internet-layer, signaling, control-plane]
 
 body:
   - kind: group

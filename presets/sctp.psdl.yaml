@@ -5,6 +5,10 @@ rowBits: 32
 byteOrder: BE
 description: Stream Control Transmission Protocol packet (RFC 9260, obsoletes RFC 4960). A 12-byte Common Header followed by one or more Chunks. Each Chunk is a TLV — Type (1 B) + chunk-specific Flags (1 B) + Length (2 B, including the header) + Value. The chunk catalogue below covers the most-deployed types; unknown chunks fall through to a generic opaque record. Chunk Length covers Type/Flags/Length/Value and is always padded with zeros to a 4-byte multiple, but the Length value itself does not include the padding.
 
+meta:
+  family: sctp
+  tags: [transport, reliability, data-transfer]
+
 _sctp_chunk_variants: &sctp_chunk_variants
   "0":
     id: dataChunk

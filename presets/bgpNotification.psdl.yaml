@@ -4,6 +4,9 @@ name: BGP-4 NOTIFICATION Message
 rowBits: 32
 byteOrder: BE
 description: BGP-4 NOTIFICATION message (RFC 4271 §4.5) — sent to report an error condition before closing the BGP session. Consists of the 19-byte BGP Common Header (§4.1) followed by a 1-octet Error Code, a 1-octet Error Subcode, and a variable-length Data field carrying additional diagnostic information.
+meta:
+  family: bgp
+  tags: [internet-layer, tcp-based, routing, control-plane]
 body:
   - kind: group
     id: bgpCommonHeader

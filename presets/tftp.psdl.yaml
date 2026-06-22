@@ -8,6 +8,8 @@ meta:
   rfc: { defined: 1350, updates: [{ rfc: 2347, section: "1" }] }
   section: "5"
   aliases: [tftp]
+  family: tftp
+  tags: [application, udp-based, data-transfer]
 
 body:
   - id: opcode

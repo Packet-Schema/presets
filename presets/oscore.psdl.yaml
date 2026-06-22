@@ -4,6 +4,9 @@ name: OSCORE Option Value
 rowBits: 32
 byteOrder: BE
 description: "Object Security for Constrained RESTful Environments (OSCORE) Option Value (RFC 8613). OSCORE provides end-to-end application-layer security for CoAP messages using COSE (RFC 8152). The OSCORE CoAP Option (option number 9) carries a compact binary encoding: a 1-byte Flags octet whose upper 5 bits are reserved (MUST be zero), bit 4 (h) indicates a KID Context is present, bit 3 (k) indicates a KID field is present, and bits 2-0 (n, 3 bits) encode the length of the Partial IV in bytes (0 = no Partial IV). The Partial IV follows directly (n bytes), then optionally a 1-byte KID Context Length followed by that many KID Context bytes, and finally the KID field running to the end of the option value. An empty option value (all zero flags, n=0, k=0, h=0) is a valid OSCORE option for responses that mirror the request context."
+meta:
+  family: coap
+  tags: [application, security, authentication]
 
 body:
   - kind: group

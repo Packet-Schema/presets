@@ -4,6 +4,9 @@ name: Teredo Tunnel
 rowBits: 32
 byteOrder: BE
 description: "Teredo IPv6-over-UDP encapsulation indicators (RFC 4380). Teredo tunnels IPv6 datagrams through UDP/IPv4 for hosts behind NAT. A UDP payload begins with zero or more optional Indicators in type-length-value form: an Authentication Indicator (Type=0x0001, variable length) carries client identity, HMAC-SHA1 authentication data, a nonce, and a confirmation byte for relay-server authentication; an Origin Indicator (Type=0x0000, 8 bytes) carries the obfuscated UDP source port and obfuscated IPv4 source address used for NAT traversal. When both are present the Authentication encapsulation MUST come first (RFC 4380 §5.1.1). The presence of each indicator is determined in-stream by inspecting the leading 16-bit Type field — 0x0001 for Authentication, 0x0000 for Origin — and any other leading value (an IPv6 packet always begins with version nibble 0x6) marks the start of the encapsulated datagram. After all Indicators the remainder of the UDP payload is the encapsulated IPv6 packet."
+meta:
+  family: teredo
+  tags: [internet-layer, udp-based, tunnel, encapsulation]
 
 body:
   # ── Authentication Indicator (RFC 4380 §5.1.1, optional; first when present) ──

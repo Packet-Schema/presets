@@ -4,6 +4,9 @@ name: mDNS Header
 rowBits: 32
 byteOrder: BE
 description: "Multicast DNS (mDNS) message header (RFC 6762). Wire format is identical to the 12-byte DNS header (RFC 1035 §4.1.1), but mDNS operates over multicast — IPv4 224.0.0.251 or IPv6 ff02::fb — on UDP port 5353. It enables zero-configuration link-local name resolution (the .local pseudo-TLD) without a central DNS server. Key differences from unicast DNS: the ID field SHOULD be zero in queries, the AA (Authoritative Answer) flag is set in responses to indicate cache-flush eligibility of included records, RD and RA are normally zero, and the top bit (cache-flush bit) of the CLASS field in resource records signals that cached entries for that name/type should be flushed before caching the new record."
+meta:
+  family: dns
+  tags: [application, udp-based, naming, discovery]
 
 body:
   - id: mdnsId

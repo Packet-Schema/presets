@@ -4,6 +4,9 @@ name: VXLAN-GPE Header
 rowBits: 32
 byteOrder: BE
 description: "VXLAN Generic Protocol Extension (VXLAN-GPE, draft-ietf-nvo3-vxlan-gpe) — fixed 8 bytes. Extends RFC 7348 VXLAN by adding a Next Protocol field so payloads other than Ethernet (IPv4, IPv6, NSH, etc.) can be carried directly without inner Ethernet headers. Transported over UDP; the same VNI concept and 24-bit identifier space as standard VXLAN are retained."
+meta:
+  family: vxlan
+  tags: [internet-layer, udp-based, tunnel, encapsulation]
 
 body:
   - kind: group

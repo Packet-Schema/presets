@@ -4,6 +4,9 @@ name: STUN Message
 rowBits: 32
 byteOrder: BE
 description: STUN (Session Traversal Utilities for NAT) message format as defined in RFC 8489. Fixed 20-byte header followed by variable-length TLV attributes.
+meta:
+  family: stun-turn
+  tags: [application, udp-based, signaling, discovery]
 body:
   - kind: group
     id: stunMessageType

@@ -4,6 +4,9 @@ name: IPv6 Segment Routing Header (SRH)
 rowBits: 32
 byteOrder: BE
 description: "IPv6 Segment Routing Header (SRH, RFC 8754). Routing Type 4 extension header that encodes an ordered list of 128-bit IPv6 segment addresses (the SR policy) to steer a packet through a sequence of SRv6-capable nodes. The fixed 8-byte base (Next Header through Tag) is followed by a Segment List of (Last Entry + 1) × 16 bytes and an optional TLV block occupying the remaining bytes up to the total header length. Total header length in bytes = (Hdr Ext Len + 1) × 8."
+meta:
+  family: ip
+  tags: [internet-layer, routing, tunnel]
 body:
   - id: srhNextHeader
     name: Next Header

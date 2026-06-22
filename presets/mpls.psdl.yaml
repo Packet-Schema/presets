@@ -4,6 +4,9 @@ name: MPLS Label Stack Entry
 rowBits: 32
 byteOrder: BE
 description: MPLS label stack entry (RFC 3032). Each 4-byte entry carries a 20-bit label, a 3-bit Traffic Class field (originally called Exp/Experimental), a Bottom-of-Stack indicator, and a TTL. Multiple entries can be stacked between the Layer 2 and Layer 3 headers; the forwarding decision is driven by the topmost label. When S=1 the encapsulated IP (or other) header follows directly.
+meta:
+  family: mpls
+  tags: [link-layer, encapsulation, routing, framing]
 body:
   - id: label
     name: Label

@@ -7,6 +7,8 @@ meta:
   rfc: { defined: 7752, updates: [{ rfc: 9552 }, { rfc: 9252 }] }
   section: "3.2"
   aliases: [bgpLs, bgp-ls]
+  family: bgp
+  tags: [internet-layer, tcp-based, routing, control-plane]
 description: "BGP Link-State (BGP-LS) NLRI (RFC 9552, originally RFC 7752). Distributes IGP link-state topology information — nodes, links, and prefixes — via BGP so that external consumers such as SDN controllers, Traffic Engineering (TE) path computation elements, and segment-routing orchestrators can obtain a network-wide view without running a native IGP. Carried inside a BGP UPDATE message as an MP_REACH_NLRI / MP_UNREACH_NLRI Path Attribute using AFI 16388 (BGP-LS) and SAFI 71. Each BGP-LS NLRI starts with a 2-octet NLRI Type (1=Node, 2=Link, 3=IPv4 Topology Prefix, 4=IPv6 Topology Prefix, 6=SRv6 SID per RFC 9252) and a 2-octet Total NLRI Length giving the byte count of the remaining fields. After the type/length header, every NLRI contains a 1-octet Protocol-ID identifying the originating IGP (1=IS-IS L1, 2=IS-IS L2, 3=OSPFv2, 4=Direct, 5=Static, 6=OSPFv3, 7=BGP per RFC 9552 §5.2) and a 8-octet opaque Identifier that scopes the topology instance. Descriptor TLVs follow — Node NLRI carries Local Node Descriptors; Link NLRI carries Local Node, Remote Node, and Link Descriptors; Prefix NLRI carries Node and Prefix Descriptors. Each TLV has a 2-octet Type, a 2-octet Length, and a variable-length Value. This preset models the common header portion (Type + Total NLRI Length + Protocol-ID + Identifier) and exposes the Descriptor bytes as an opaque region whose size is given by bgpLsDescBytes. [RFC 9552] [RFC 7752]"
 
 body:

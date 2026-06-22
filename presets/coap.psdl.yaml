@@ -3,6 +3,9 @@ version: "0.5"
 name: CoAP Message
 rowBits: 32
 byteOrder: BE
+meta:
+  family: coap
+  tags: [application, udp-based, data-transfer, signaling]
 description: Constrained Application Protocol message (RFC 7252). A 4-byte fixed header — Version (always 1), Type (CON/NON/ACK/RST), Token Length (0..8; 9..15 are reserved and MUST be treated as a message format error), Code (3-bit Class + 5-bit Detail, e.g. 0.01 GET, 2.05 Content, 4.04 Not Found), and Message ID — followed by a Token of TKL bytes, a chain of TLV Options ordered by absolute Option Number via delta encoding (Uri-Path=11, Content-Format=12, Uri-Query=15, ETag=4, Observe=6 etc.), and (optionally) a 0xFF Payload Marker plus the message Payload. Each option is prefixed by a 1-byte (Delta<<4 | Length) header; when either nibble is 13 or 14 a 1- or 2-byte extension field carries the high part of that value (13/14 sentinels are unpacked with a switch on the 4-bit nibble per the §3 CoAP note), and the literal value is base+13 or base+269 respectively. The option chain ends either at the end of the datagram or at a 0xFF Payload Marker (Delta=15, Length=15) which is itself not an option; the options repeat therefore terminates on a peek of 0xFF (or end-of-stream), and the marker plus the Payload (running to end-of-datagram) follow as an optional region.
 
 body:

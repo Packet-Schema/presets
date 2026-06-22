@@ -4,6 +4,9 @@ name: IKEv2 Security Association Payload
 rowBits: 32
 byteOrder: BE
 description: "IKEv2 Security Association (SA) payload (RFC 7296 §3.3). Carried inside an IKEv2 message to negotiate cryptographic algorithms and keying material for IKE SAs and Child SAs. The SA payload begins with a 4-byte Generic Payload Header, followed by one or more Proposal substructures. Each Proposal specifies a protocol (IKE=1, AH=2, ESP=3), an optional SPI, and a list of Transform substructures that each describe a single cryptographic algorithm (encryption, integrity, PRF, DH group). The initiator offers a set of proposals; the responder selects exactly one. Proposals and Transforms use a last/more sub-structure identifier (2=more substructs follow, 0=last) inherited from ISAKMP (RFC 2408)."
+meta:
+  family: ipsec
+  tags: [internet-layer, udp-based, security, key-exchange]
 
 body:
   # ── Generic Payload Header (RFC 7296 §3.2) ──────────────────────────────

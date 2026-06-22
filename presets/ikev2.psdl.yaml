@@ -4,6 +4,9 @@ name: IKEv2 Message
 rowBits: 32
 byteOrder: BE
 description: "Internet Key Exchange version 2 (IKEv2) message (RFC 7296, obsoletes RFC 4306). Evolved from ISAKMP (RFC 2408) and IKEv1 (RFC 2409). A fixed 28-byte IKE header — Initiator SPI (8 bytes), Responder SPI (8 bytes), Next Payload type, Major/Minor Version (each 4 bits), Exchange Type (IKE_SA_INIT=34, IKE_AUTH=35, CREATE_CHILD_SA=36, INFORMATIONAL=37), Flags byte (R=Response, I=Initiator), Message ID, and total Length — followed by a chain of Generic Payload Headers each carrying a type-length-value payload. IKEv2 runs over UDP port 500 (or 4500 when NAT-traversal is active) and replaces the complex and ambiguous IKEv1 negotiation with a simpler, mandatory EAP-compatible exchange. All multi-byte integers are big-endian (network byte order) per RFC 7296 §1."
+meta:
+  family: ipsec
+  tags: [internet-layer, udp-based, security, key-exchange, authentication]
 
 body:
   - id: ikev2InitiatorSPI

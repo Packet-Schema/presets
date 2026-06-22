@@ -15,6 +15,8 @@ meta:
   rfc: 9114
   section: "7"
   aliases: [http3, h3]
+  family: http
+  tags: [application, udp-based, data-transfer, framing]
 body:
   - id: http3FrameType
     name: Type

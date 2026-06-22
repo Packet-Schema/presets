@@ -4,6 +4,9 @@ name: ICMP Echo (IPv4)
 rowBits: 32
 byteOrder: BE
 description: Internet Control Message Protocol echo request/reply layout (RFC 792). Carried directly inside IPv4 with Protocol=1. The Identifier and Sequence Number are 16-bit big-endian.
+meta:
+  family: icmp
+  tags: [internet-layer, error-reporting, control-plane]
 body:
   - id: type
     name: Type
