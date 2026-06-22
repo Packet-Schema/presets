@@ -49,27 +49,33 @@ body:
         type: { kind: int, bits: 16 }
         category: length
         doc: Length in octets of the PPPoE payload, not including the 6-byte PPPoE header. For discovery packets this is the total byte count of all Tags. For Session Data (Code=0x00) it is the length of the encapsulated PPP frame. [RFC 2516 §6]
-  - kind: repeat
-    id: pppoeTagList
-    name: PPPoE Tags
-    category: variable
-    doc: Chain of TLV Tag records carried in PPPoE discovery packets (PADI, PADO, PADR, PADS, PADT). Each record contains a 16-bit Tag-Type, a 16-bit Tag-Length, and a variable-length Tag-Value. Well-known Tag types include 0x0101 (Service-Name), 0x0102 (AC-Name), 0x0103 (Host-Uniq), 0x0104 (AC-Cookie), 0x0105 (Vendor-Specific), 0x0110 (Relay-Session-Id), 0x0201 (Service-Name-Error), 0x0202 (AC-System-Error), 0x0203 (Generic-Error), and 0x0000 (End-Of-List). For Session Data packets (Code=0x00) no Tags are present and the PPP payload follows the header instead. [RFC 2516 §5]
-    element:
-      id: pppoeTag
-      fields:
-        - id: tagType
-          name: Tag Type
-          type: { kind: int, bits: 16 }
-          category: type
-          doc: Identifies the Tag. 0x0000=End-Of-List (Tag-Length MUST be 0, no more Tags follow); 0x0101=Service-Name (UTF-8 service description, empty means any service); 0x0102=AC-Name (Access Concentrator name); 0x0103=Host-Uniq (arbitrary binary cookie for request/reply correlation); 0x0104=AC-Cookie (set by AC to prevent DoS); 0x0105=Vendor-Specific; 0x0110=Relay-Session-Id; 0x0201=Service-Name-Error; 0x0202=AC-System-Error; 0x0203=Generic-Error. Unknown Tags with the high bit of the high byte clear (0x0xxx) MUST be ignored; unknown Tags with the high bit set MUST cause an error. [RFC 2516 §5]
-        - id: tagLength
-          name: Tag Length
-          type: { kind: int, bits: 16 }
-          category: length
-          doc: Length in octets of the Tag-Value field that follows. 0x0000 for the End-Of-List Tag (which has no Value field) and for Service-Name when the Host will accept any offered service. [RFC 2516 §5]
-        - id: tagValue
-          name: Tag Value
-          type: { kind: bytes, n: { kind: ref, field: tagLength } }
-          category: variable
-          doc: Tag Value bytes, exactly Tag-Length octets. Interpretation is Tag-Type dependent — UTF-8 string for Service-Name and AC-Name, opaque binary for Host-Uniq and AC-Cookie. Absent (zero bytes) when Tag-Length is 0. [RFC 2516 §5]
-    count: { kind: ref, field: pppoeTagCount }
+  - kind: bounded
+    id: pppoePayload
+    name: PPPoE Payload
+    bytes: { kind: ref, field: payloadLength }
+    doc: The PPPoE payload region, exactly Length octets (the value of the header Length field). For discovery packets (PADI, PADO, PADR, PADS, PADT) this region holds a chain of TLV Tags; for Session Data packets (Code=0x00) it holds the encapsulated PPP frame instead. [RFC 2516 §6]
+    fields:
+      - kind: repeat
+        id: pppoeTagList
+        name: PPPoE Tags
+        category: variable
+        doc: Chain of TLV Tag records carried in PPPoE discovery packets (PADI, PADO, PADR, PADS, PADT). The list fills the Length-bounded payload region; each record contains a 16-bit Tag-Type, a 16-bit Tag-Length, and a variable-length Tag-Value. Well-known Tag types include 0x0101 (Service-Name), 0x0102 (AC-Name), 0x0103 (Host-Uniq), 0x0104 (AC-Cookie), 0x0105 (Vendor-Specific), 0x0110 (Relay-Session-Id), 0x0201 (Service-Name-Error), 0x0202 (AC-System-Error), 0x0203 (Generic-Error), and 0x0000 (End-Of-List). For Session Data packets (Code=0x00) no Tags are present and the PPP payload occupies this region instead. [RFC 2516 §5]
+        count: eos
+        element:
+          id: pppoeTag
+          fields:
+            - id: tagType
+              name: Tag Type
+              type: { kind: int, bits: 16 }
+              category: type
+              doc: Identifies the Tag. 0x0000=End-Of-List (Tag-Length MUST be 0, no more Tags follow); 0x0101=Service-Name (UTF-8 service description, empty means any service); 0x0102=AC-Name (Access Concentrator name); 0x0103=Host-Uniq (arbitrary binary cookie for request/reply correlation); 0x0104=AC-Cookie (set by AC to prevent DoS); 0x0105=Vendor-Specific; 0x0110=Relay-Session-Id; 0x0201=Service-Name-Error; 0x0202=AC-System-Error; 0x0203=Generic-Error. Unknown Tags with the high bit of the high byte clear (0x0xxx) MUST be ignored; unknown Tags with the high bit set MUST cause an error. [RFC 2516 §5]
+            - id: tagLength
+              name: Tag Length
+              type: { kind: int, bits: 16 }
+              category: length
+              doc: Length in octets of the Tag-Value field that follows. 0x0000 for the End-Of-List Tag (which has no Value field) and for Service-Name when the Host will accept any offered service. [RFC 2516 §5]
+            - id: tagValue
+              name: Tag Value
+              type: { kind: bytes, n: { kind: ref, field: tagLength } }
+              category: variable
+              doc: Tag Value bytes, exactly Tag-Length octets. Interpretation is Tag-Type dependent — UTF-8 string for Service-Name and AC-Name, opaque binary for Host-Uniq and AC-Cookie. Absent (zero bytes) when Tag-Length is 0. [RFC 2516 §5]

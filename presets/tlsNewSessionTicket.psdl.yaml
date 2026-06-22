@@ -27,7 +27,20 @@ body:
       kind: int
       bits: 32
     category: variable
-    doc: Lifetime hint for the ticket in seconds, as a 32-bit unsigned integer. The server SHOULD NOT use a value greater than 604800 (7 days). A value of zero indicates the ticket should be discarded immediately. [RFC 8446 §4.6.1]
+    doc: Lifetime hint for the ticket in seconds, as a 32-bit unsigned integer. Servers MUST NOT use any value greater than 604800 seconds (7 days). A value of zero indicates that the ticket should be discarded immediately. [RFC 8446 §4.6.1]
+    values:
+      - value: 0
+        name: discard_immediately
+        label: "Discard immediately"
+        doc: A ticket_lifetime of zero indicates the ticket should be discarded immediately and not used for resumption.
+        level: must
+        meta: { rfc: 8446, section: "4.6.1" }
+      - range: [604801, 4294967295]
+        name: over_max_lifetime
+        label: "Exceeds maximum (>7 days)"
+        doc: Servers MUST NOT use any ticket_lifetime greater than 604800 seconds (7 days).
+        level: must
+        meta: { rfc: 8446, section: "4.6.1" }
   - id: tlsTicketAgeAdd
     name: ticket_age_add
     type:

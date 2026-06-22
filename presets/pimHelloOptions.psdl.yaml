@@ -21,6 +21,8 @@ body:
     type: { kind: int, bits: 4 }
     category: type
     defaultValue: 2
+    values:
+      - { value: 2, name: PIMv2, label: "PIM version 2", level: must, meta: { rfc: 7761, section: "4.9" } }
     doc: >-
       PIM protocol version number; MUST be 2 for PIM-SM.  A router receiving
       any other value MUST silently discard the message. [RFC 7761 §4.9]
@@ -29,6 +31,8 @@ body:
     type: { kind: int, bits: 4 }
     category: type
     defaultValue: 0
+    values:
+      - { value: 0, name: Hello, label: "Hello", level: must, meta: { rfc: 7761, section: "4.9.2" } }
     doc: >-
       PIM message type.  0 = Hello (this preset).  Other values: 1=Register,
       2=Register-Stop, 3=Join/Prune, 4=Bootstrap, 5=Assert,
@@ -95,6 +99,9 @@ body:
                   type: { kind: int, bits: 16 }
                   category: identifier
                   defaultValue: 105
+                  values:
+                    - { value: 0, name: TimeoutNow, label: "Neighbour times out immediately" }
+                    - { value: 65535, name: Infinity, label: "Neighbour never times out" }
                   doc: >-
                     Time in seconds that neighbours MUST keep this router in
                     the neighbour table after the last Hello is received.

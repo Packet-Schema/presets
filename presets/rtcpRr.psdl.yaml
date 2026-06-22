@@ -9,10 +9,10 @@ body:
     id: flags
     name: Flags
     children:
-      - { id: v, name: Version, type: { kind: int, bits: 2 }, category: type, doc: "RTCP version, always 2 [RFC 3550 §6.4.2]." }
+      - { id: v, name: Version, type: { kind: int, bits: 2 }, const: 2, category: type, doc: "RTCP version, always 2 [RFC 3550 §6.4.2]." }
       - { id: p, name: Padding, type: { kind: int, bits: 1 }, category: flags, doc: "If set, the packet contains additional padding octets at the end that are not part of the control information [RFC 3550 §6.4.2]." }
       - { id: rtcpRrBlockCount, name: Reception Report Count, type: { kind: int, bits: 5 }, category: length, doc: "Number of reception report blocks contained in this packet (RC field) [RFC 3550 §6.4.2]." }
-  - { id: pt, name: Packet Type, type: { kind: int, bits: 8 }, category: type, doc: "RTCP packet type; 201 identifies a Receiver Report. Distinguishes RR from SR (200) which additionally contains sender information [RFC 3550 §6.4.2]." }
+  - { id: pt, name: Packet Type, type: { kind: int, bits: 8 }, const: 201, category: type, doc: "RTCP packet type; 201 identifies a Receiver Report. Distinguishes RR from SR (200) which additionally contains sender information [RFC 3550 §6.4.2]." }
   - { id: length, name: Length, type: { kind: int, bits: 16 }, category: length, doc: "Length of this RTCP packet in 32-bit words minus one, including the header and any padding [RFC 3550 §6.4.2]." }
   - { id: ssrc, name: SSRC (Reporter), type: { kind: int, bits: 32 }, category: identifier, doc: "Synchronization source identifier of the originator of this RR packet [RFC 3550 §6.4.2]." }
   - kind: repeat

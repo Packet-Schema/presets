@@ -96,6 +96,6 @@ body:
 
   - id: ikev2KeData
     name: Key Exchange Data
-    type: { kind: bytes, n: { kind: ref, field: ikev2KeDataLen } }
+    type: { kind: bytes, n: { kind: op, op: "-", a: { kind: ref, field: ikev2KePayloadLength }, b: { kind: lit, value: 8 } } }
     category: variable
     doc: "The sender's Diffie-Hellman public value for the group specified in Diffie-Hellman Group Num. For MODP groups the value is an unsigned integer in big-endian network byte order, zero-padded to the group's prime size. For ECP groups the value is an uncompressed point (0x04 || X || Y) per RFC 5903. Both peers exchange KE payloads and each combines its own private key with the peer's public value to derive the same shared secret used to key the IKE SA. [RFC 7296 §3.4 / RFC 5903]"

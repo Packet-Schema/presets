@@ -9,7 +9,17 @@ body:
     name: Label
     type: { kind: int, bits: 20 }
     category: addressing
-    doc: 20-bit label value. Locally significant between two adjacent Label Switched Routers (LSRs). Special labels — 0 IPv4 Explicit NULL (signals PHP to replace label 0 with IP forwarding), 2 IPv6 Explicit NULL, 3 Implicit NULL / Penultimate Hop Popping trigger (PHP — the previous-hop LSR removes the label before delivery), 1 Router Alert, 13 Generic Associated Channel Label (GAL), 14 OAM Alert — are defined by RFC 3032 and updated by RFC 7274. All other values 0..15 are Reserved. [RFC 3032 §2.1 / RFC 7274]
+    meta: { rfc: { defined: 3032, updates: [{ rfc: 7274, section: "2" }] }, section: "2.1" }
+    doc: 20-bit label value. Locally significant between two adjacent Label Switched Routers (LSRs). Values 0–15 are Special-Purpose Labels assigned by IANA — 0 IPv4 Explicit NULL (the LSR pops the stack and forwards on the IPv4 header), 1 Router Alert (legal anywhere except the bottom of stack), 2 IPv6 Explicit NULL, 3 Implicit NULL (never appears on the wire; signals Penultimate Hop Popping so the previous-hop LSR removes the label before delivery), 7 Entropy Label Indicator (RFC 6790), 13 Generic Associated Channel Label / GAL (RFC 5586), 14 OAM Alert (RFC 3429), 15 Extension Label (RFC 7274, opens the 16+ Extended Special-Purpose range). Value 4 is MPLS Network Actions (MNA); values 5–6 and 8–12 are unassigned. Values 16 and above are ordinary labels. [RFC 3032 §2.1 / RFC 7274]
+    values:
+      - { value: 0,  name: IPv4_EXPLICIT_NULL, label: "IPv4 Explicit NULL", meta: { rfc: 3032 } }
+      - { value: 1,  name: ROUTER_ALERT,       label: "Router Alert", meta: { rfc: 3032 } }
+      - { value: 2,  name: IPv6_EXPLICIT_NULL, label: "IPv6 Explicit NULL", meta: { rfc: 3032 } }
+      - { value: 3,  name: IMPLICIT_NULL,      label: "Implicit NULL (PHP)", meta: { rfc: 3032 } }
+      - { value: 7,  name: ELI,                label: "Entropy Label Indicator", meta: { rfc: 6790 } }
+      - { value: 13, name: GAL,                label: "Generic Associated Channel Label", meta: { rfc: 5586 } }
+      - { value: 14, name: OAM_ALERT,          label: "OAM Alert", meta: { rfc: 3429 } }
+      - { value: 15, name: XL,                 label: "Extension Label", meta: { rfc: 7274 } }
   - kind: group
     id: tcSGroup
     name: TC / S
@@ -18,6 +28,7 @@ body:
         name: TC
         type: { kind: bits, n: 3 }
         category: flags
+        meta: { rfc: { defined: 3032, updates: [5462] }, section: "2.1" }
         doc: Traffic Class (renamed from Exp by RFC 5462). Used for QoS differentiation (per-hop behaviour selection) and ECN signalling between LSRs. The actual mapping of TC values to scheduling classes is local policy; the IETF recommends DSCP-to-TC inheritance on ingress. [RFC 3032 §2.1 / RFC 5462]
       - id: s
         name: S

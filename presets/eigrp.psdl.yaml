@@ -15,7 +15,7 @@ body:
         type: { kind: int, bits: 8 }
         category: type
         defaultValue: 2
-        doc: "EIGRP header version. MUST be 2 for packets conforming to RFC 7868. A receiver that receives a packet with an unrecognised version number SHOULD log the event and discard the packet. [RFC 7868 §6.1]"
+        doc: "EIGRP header version. MUST be 2 for packets conforming to RFC 7868. This is the Packet Header Format version and is not the same as the TLV Version field. A receiver that receives a packet with an unrecognised version number SHOULD log the event and discard the packet. [RFC 7868 §6.5]"
 
       - id: eigrpOpcode
         name: Opcode
@@ -35,43 +35,49 @@ body:
             11: "SIA-Reply"
         category: type
         defaultValue: 5
-        doc: "Packet type. 1=Update (carries routing information changes), 2=Request (requests specific information from a neighbour), 3=Query (requests best-path information from neighbours), 4=Reply (response to a Query), 5=Hello (neighbour discovery and keepalive), 6/7/8=Reserved (legacy IPX-SAP, PROBE, ACK), 10=SIA-Query / 11=SIA-Reply (Stuck-In-Active recovery per RFC 7868 §5.4.4). [RFC 7868 §6.5]"
+        doc: "Packet type. 1=Update (carries routing information changes), 2=Request (requests specific information from a neighbour), 3=Query (requests best-path information from neighbours), 4=Reply (response to a Query), 5=Hello (neighbour discovery and keepalive), 6/7/8=Reserved (legacy IPX-SAP, PROBE, ACK), 9=Reserved; 10=SIA-Query / 11=SIA-Reply (Stuck-In-Active recovery per RFC 7868 §5.4.4). [RFC 7868 §6.5]"
 
       - id: eigrpChecksum
         name: Checksum
         type: { kind: int, bits: 16 }
         category: checksum
-        doc: "Standard IP one's-complement checksum computed over the entire EIGRP packet beginning with the Version field. The checksum is calculated with this field set to zero. A receiver MUST discard packets with an invalid checksum. [RFC 7868 §6.1]"
+        doc: "Standard IP one's-complement checksum computed over the entire EIGRP packet beginning with the Version field. The checksum is calculated with this field set to zero. A receiver MUST discard packets with an invalid checksum. [RFC 7868 §6.5]"
 
   - id: eigrpFlags
     name: Flags
     type: { kind: bits, n: 32 }
     category: flags
-    doc: "32-bit flags field. INIT-Flag = 0x01 (low-order bit) — set on the first Update sent to a new neighbour to trigger a full topology-table exchange. CR-Flag = 0x02 (Conditionally Received) — set when the packet may be received by a neighbour that has not yet established a full adjacency. RS-Flag = 0x04 (Restart) and EOT-Flag = 0x08 (End-of-Table) are used during graceful restart. All remaining high-order bits are reserved and MUST be set to zero on transmission. [RFC 7868 §6.5]"
+    doc: "32-bit flags field. INIT-Flag = 0x01 (low-order bit) — set on the first Update sent to a new neighbour to trigger a full topology-table exchange. CR-Flag = 0x02 (Conditionally Received) — set when the packet may be received by a neighbour that has not yet established a full adjacency. RS-Flag = 0x04 (Restart) and EOT-Flag = 0x08 (End-of-Table) are used during graceful restart. All remaining bits are reserved and MUST be set to zero on transmission. [RFC 7868 §6.5]"
 
   - id: eigrpSequence
     name: Sequence Number
     type: { kind: int, bits: 32 }
     category: identifier
-    doc: "Sequence number used for reliable transport. Each reliable packet (Update, Query, Reply, SIA-Query, SIA-Reply) carries a unique, monotonically increasing sequence number. Hello and Ack packets carry sequence number 0. The receiver sends an acknowledgment containing this value in the Ack Number field. [RFC 7868 §6.1 / §5.3]"
+    doc: "Sequence number used for reliable transport. Each reliable packet (Update, Query, Reply, SIA-Query, SIA-Reply) carries a unique, monotonically increasing sequence number. Hello and Ack packets carry sequence number 0. A value of 0 means that an acknowledgment is not required. The receiver sends an acknowledgment containing this value in the Ack Number field. [RFC 7868 §6.5 / §5.3]"
 
   - id: eigrpAck
     name: Ack Number
     type: { kind: int, bits: 32 }
     category: identifier
-    doc: "Acknowledgment number piggybacked on outgoing packets. Contains the highest sequence number received from the neighbour to which this packet is addressed. A standalone Ack is sent as a Hello (Opcode 5) with a non-zero Ack Number and a unicast destination. A value of 0 means no acknowledgment is being piggybacked. [RFC 7868 §6.1 / §5.3]"
+    doc: "Acknowledgment number piggybacked on outgoing packets. Contains the highest sequence number received from the neighbour to which this packet is addressed. A standalone Ack is sent as a Hello (Opcode 5) with a non-zero Ack Number and a unicast destination. A non-zero value can only be present in unicast-addressed packets. A value of 0 means no acknowledgment is present. [RFC 7868 §6.5 / §5.3]"
 
   - id: eigrpVirtualRouterId
     name: Virtual Router ID
     type: { kind: int, bits: 16 }
     category: identifier
-    doc: "Virtual Router ID (VRID) that identifies the address-family instance for this packet. Well-known values: 0x0001 = IPv4 unicast, 0x0002 = IPv6 unicast, 0x8001 = IPv4 multicast, 0x8006 = IPv6 multicast. Allows multiple EIGRP address-family processes to share a single neighbour relationship over the same interface. [RFC 7868 §6.1]"
+    doc: "Virtual Router ID (VRID) that identifies the virtual router with which this packet is associated. Defined ranges (RFC 7868 §6.5): 0x0000 = Unicast Address Family, 0x0001 = Multicast Address Family, 0x0002–0x7FFF reserved, 0x8000 = Unicast Service Family, 0x8001–0xFFFF reserved. Packets received with an unknown or unsupported value are discarded. Allows multiple EIGRP processes to share a single neighbour relationship over the same interface. [RFC 7868 §6.5]"
+    values:
+      - { value: 0, name: VRID_UNICAST_AF, label: "Unicast Address Family", meta: { rfc: 7868, section: "6.5" } }
+      - { value: 1, name: VRID_MULTICAST_AF, label: "Multicast Address Family", meta: { rfc: 7868, section: "6.5" } }
+      - { range: [2, 32767], name: VRID_RESERVED_LOW, label: "Reserved", level: must }
+      - { value: 32768, name: VRID_UNICAST_SF, label: "Unicast Service Family", meta: { rfc: 7868, section: "6.5" } }
+      - { range: [32769, 65535], name: VRID_RESERVED_HIGH, label: "Reserved", level: must }
 
   - id: eigrpAsNumber
     name: AS Number
     type: { kind: int, bits: 16 }
     category: identifier
-    doc: "Autonomous System number that identifies the EIGRP routing domain. Neighbours with different AS numbers MUST NOT form an adjacency unless explicitly configured for route redistribution. Together with Virtual Router ID, this field scopes all topology information carried in the TLVs that follow. [RFC 7868 §6.1]"
+    doc: "Autonomous System number that identifies the EIGRP routing domain. Neighbours with different AS numbers MUST NOT form an adjacency unless explicitly configured for route redistribution. The valid range is 1 through 65535. Together with Virtual Router ID, this field scopes all topology information carried in the TLVs that follow. [RFC 7868 §6.5]"
 
   - kind: repeat
     id: eigrpTlvs
@@ -96,13 +102,13 @@ body:
               1026: "IPv6 Internal Route (0x0402)"
               1027: "IPv6 External Route (0x0403)"
           category: type
-          doc: "TLV type code identifying the content of this record. 0x0001=General Parameters (hello interval, hold time, K-values, and neighbour flags used to verify compatibility); 0x0005=Multicast Sequence used by EIGRP multicast reliable transport; 0x0006=Peer Information; 0x0007=Peer Termination graceful neighbour shutdown; 0x0102=IP Internal Route (EIGRP-originated prefix reachable within the AS); 0x0103=IP External Route (prefix redistributed from another routing domain, carrying the original protocol attributes); 0x0402/0x0403=IPv6 Internal/External Route equivalents. [RFC 7868 §6.2–6.9]"
+          doc: "TLV type code identifying the content of this record. 0x0001=General Parameters (hello interval, hold time, K-values, and neighbour flags used to verify compatibility); 0x0005=Multicast Sequence used by EIGRP multicast reliable transport; 0x0006=Peer Information; 0x0007=Peer Termination graceful neighbour shutdown; 0x0102=IP Internal Route (EIGRP-originated prefix reachable within the AS); 0x0103=IP External Route (prefix redistributed from another routing domain, carrying the original protocol attributes); 0x0402/0x0403=IPv6 Internal/External Route equivalents. [RFC 7868 §6.6–6.9]"
 
         - id: eigrpTlvLen
           name: TLV Length
           type: { kind: int, bits: 16 }
           category: length
-          doc: "Total length of this TLV record in bytes, including the 4-byte Type and Length fields themselves. A value of 4 means the Value field is empty. Receivers MUST use this field to skip over unrecognised TLV types without discarding the entire packet. [RFC 7868 §6.2]"
+          doc: "Total length of this TLV record in bytes, including the 4-byte Type and Length fields themselves. A value of 4 means the Value field is empty. A TLV is malformed (and the containing message silently discarded) if the Length is invalid or the TLV extends beyond the end of the message. [RFC 7868 §6.6]"
 
         - id: eigrpTlvValue
           name: TLV Value
@@ -114,5 +120,5 @@ body:
               a: { kind: ref, field: eigrpTlvLen }
               b: { kind: lit, value: 4 }
           category: variable
-          doc: "TLV value payload whose length is (TLV Length − 4) bytes. Content is type-specific: 0x0001 General Parameters carries K1–K6 metric coefficients, hold time, and neighbour flags; 0x0102 IP Internal carries delay, bandwidth, MTU, hop count, reliability, load, prefix length, and destination IPv4 prefix; 0x0103 IP External additionally carries the originating router ID, originating AS, external protocol tag, and external protocol metric. [RFC 7868 §6.3–6.5]"
+          doc: "TLV value payload whose length is (TLV Length − 4) bytes. Content is type-specific: 0x0001 General Parameters carries K1–K6 metric coefficients, hold time, and neighbour flags; 0x0102 IP Internal carries delay, bandwidth, MTU, hop count, reliability, load, prefix length, and destination IPv4 prefix; 0x0103 IP External additionally carries the originating router ID, originating AS, external protocol tag, and external protocol metric. [RFC 7868 §6.7–6.9]"
     count: "eos"

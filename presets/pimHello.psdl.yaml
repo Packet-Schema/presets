@@ -15,6 +15,18 @@ body:
     element:
       id: pimHelloOption
       fields:
-        - { id: pimOptType, name: Option Type, type: { kind: int, bits: 16 }, category: type, doc: "TLV option type code (e.g., 1=Holdtime, 19=DR Priority, 20=Generation ID, 24=Address List)." }
+        - id: pimOptType
+          name: Option Type
+          type: { kind: int, bits: 16 }
+          category: type
+          doc: "TLV option type code; values assigned by the IANA PIM-Hello Options registry."
+          values:
+            - { value: 1,  name: Holdtime,            label: "Hold Time",             level: should, meta: { rfc: 7761 } }
+            - { value: 2,  name: LANPruneDelay,        label: "LAN Prune Delay",       meta: { rfc: 3973 } }
+            - { value: 19, name: DRPriority,           label: "DR Priority",           level: should, meta: { rfc: 7761 } }
+            - { value: 20, name: GenerationID,         label: "Generation ID",         level: should, meta: { rfc: 3973 } }
+            - { value: 21, name: StateRefresh,         label: "State-Refresh",         meta: { rfc: 3973 } }
+            - { value: 22, name: BidirectionalCapable, label: "Bidirectional Capable", meta: { rfc: 5015 } }
+            - { value: 24, name: AddressList,          label: "Address List",          meta: { rfc: 7761 } }
         - { id: pimOptLen, name: Option Length, type: { kind: int, bits: 16 }, category: length, doc: "Length in bytes of the Option Value field that follows." }
-        - { id: pimOptValue, name: Option Value, type: { kind: bytes, n: { kind: ref, field: pimOptLen } }, category: payload-marker, doc: "Variable-length option value; interpretation depends on Option Type." }
+        - { id: pimOptValue, name: Option Value, type: { kind: bytes, n: { kind: ref, field: pimOptLen } }, category: variable, doc: "Variable-length option value; interpretation depends on Option Type." }

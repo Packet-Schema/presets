@@ -31,7 +31,7 @@ body:
   - kind: repeat
     id: ripngRtes
     name: Route Table Entries
-    count: { kind: ref, field: ripngRteCount }
+    count: eos
     element:
       id: ripngRte
       fields:

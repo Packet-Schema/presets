@@ -10,8 +10,8 @@ body:
       { id: vn,        name: Version Number,    type: { kind: int, bits: 3  }, category: type,     doc: "3-bit NTP version number; value is 4 for NTPv4" },
       { id: mode,      name: Mode,              type: { kind: int, bits: 3  }, category: type,     doc: "3-bit association mode: 0=reserved, 1=symmetric active, 2=symmetric passive, 3=client, 4=server, 5=broadcast, 6=NTP control, 7=private" },
       { id: stratum,   name: Stratum,           type: { kind: int, bits: 8  }, category: type,     doc: "8-bit stratum level: 0=unspecified/kiss-o'-death, 1=primary reference clock, 2-15=secondary (NTP-synchronized), 16=unsynchronized" },
-      { id: poll,      name: Poll Interval,     type: { kind: int, bits: 8  }, category: type,     doc: "8-bit signed integer representing log2 of the maximum interval in seconds between successive NTP messages" },
-      { id: precision, name: Precision,         type: { kind: int, bits: 8  }, category: type,     doc: "8-bit signed integer representing log2 of the precision of the system clock in seconds" },
+      { id: poll,      name: Poll Interval,     type: { kind: int, bits: 8, signed: true }, category: type,     doc: "8-bit signed integer representing log2 of the maximum interval in seconds between successive NTP messages" },
+      { id: precision, name: Precision,         type: { kind: int, bits: 8, signed: true }, category: type,     doc: "8-bit signed integer representing log2 of the precision of the system clock in seconds" },
     ] }
   - { id: rootDelay,          name: Root Delay,           type: { kind: int, bits: 32 }, category: variable,  doc: "Total round-trip delay to the reference clock in NTP Short Format (16-bit seconds + 16-bit fraction)" }
   - { id: rootDispersion,     name: Root Dispersion,      type: { kind: int, bits: 32 }, category: variable,  doc: "Total dispersion (maximum error) relative to the reference clock in NTP Short Format" }

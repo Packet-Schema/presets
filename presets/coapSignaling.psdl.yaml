@@ -96,6 +96,6 @@ body:
 
   - id: coapSigBody
     name: Options / Payload
-    type: { kind: bytes, n: { kind: ref, field: coapSigBodyBytes } }
+    type: { kind: bytes, n: { kind: remaining } }
     category: variable
-    doc: "Remaining message body containing Signaling Options (TLV-encoded, delta-numbered as in RFC 7252 §3.1) and an optional 0xFF Payload Marker followed by a Payload. Each Signaling code defines its own option set: CSM options include Max-Message-Size (2) and Block-Wise-Transfer (4); Release includes Alt-Address (2) and Hold-Off (4); Abort includes Bad-CSM-Option (2). The byte count coapSigBodyBytes is computed from the Len/Extended-Length fields and must be supplied externally. [RFC 8323 §5.2–5.6 / §5.7]"
+    doc: "Remaining message body containing Signaling Options (TLV-encoded, delta-numbered as in RFC 7252 §3.1) and an optional 0xFF Payload Marker followed by a Payload. Each Signaling code defines its own option set: CSM options include Max-Message-Size (2) and Block-Wise-Transfer (4); Release includes Alt-Address (2) and Hold-Off (4); Abort includes Bad-CSM-Option (2). This region runs to the end of the message body; its length is the Len / Extended-Length value minus the bytes already consumed by Code and Token, so it is modelled as the remaining bytes of the packet scope. [RFC 8323 §5.2–5.6 / §5.7]"

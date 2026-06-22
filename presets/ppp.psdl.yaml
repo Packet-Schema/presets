@@ -5,8 +5,37 @@ rowBits: 32
 byteOrder: BE
 description: PPP frame with HDLC-like framing (RFC 1661 + RFC 1662). HDLC flag bytes (0x7E) and escaping are handled at the HDLC layer and are not included here.
 body:
-  - { id: address, name: Address, type: { kind: int, bits: 8 }, category: addressing, doc: "All-Stations broadcast address, always 0xFF per RFC 1662." }
-  - { id: control, name: Control, type: { kind: int, bits: 8 }, category: type, doc: "Unnumbered Information (UI) command, always 0x03 per RFC 1662." }
-  - { id: protocol, name: Protocol, type: { kind: int, bits: 16 }, category: type, doc: "Identifies the encapsulated protocol: 0x0021=IPv4, 0x0057=IPv6, 0x002B=IPX, 0x8021=IPCP, 0x8057=IPv6CP, 0xC021=LCP, 0xC023=PAP, 0xC025=LQR, 0xC223=CHAP." }
-  - { id: information, name: Information, type: { kind: bytes, n: { kind: ref, field: "pppInfoLen" } }, category: payload-marker, doc: "Variable-length payload carrying the encapsulated protocol data unit (PDU) identified by the Protocol field." }
-  - { id: fcs, name: FCS, type: { kind: int, bits: 16 }, category: checksum, doc: "Frame Check Sequence using CRC-16-CCITT computed over the Address, Control, Protocol, and Information fields." }
+  - { id: address, name: Address, type: { kind: int, bits: 8 }, category: addressing, const: 0xFF, doc: "All-Stations broadcast address, always 0xFF per RFC 1662 §3.1. May be elided by Address-and-Control-Field Compression (ACFC); the uncompressed frame modeled here always carries it." }
+  - { id: control, name: Control, type: { kind: int, bits: 8 }, category: type, const: 0x03, doc: "Unnumbered Information (UI) command with the Poll/Final bit clear, always 0x03 per RFC 1662 §3.1. May be elided by ACFC." }
+  - id: protocol
+    name: Protocol
+    type:
+      kind: enum
+      bits: 16
+      variants:
+        0x0021: IPv4
+        0x0057: IPv6
+        0x002B: IPX
+        0x8021: IPCP
+        0x8057: IPv6CP
+        0xC021: LCP
+        0xC023: PAP
+        0xC025: LQR
+        0xC223: CHAP
+    category: type
+    doc: "Identifies the encapsulated protocol (RFC 1661 §2, IANA PPP DLL Protocol Numbers). Values 0x0***–0x3*** are network-layer protocols, 0x8***–0xB*** their NCPs, 0xC***–0xF*** link-layer control protocols. The least-significant bit of the most-significant octet is 0 and the LSB of the least-significant octet is 1 for all assigned values."
+  - { id: information, name: Information, type: { kind: bytes, n: { kind: op, op: "-", a: { kind: remaining }, b: { kind: lit, value: 2 } } }, category: payload-marker, doc: "Variable-length payload carrying the encapsulated protocol data unit (PDU) identified by the Protocol field. Runs to the end of the frame less the trailing 2-byte FCS (which is parsed as an end-anchored field)." }
+  - id: fcs
+    name: FCS
+    type: { kind: int, bits: 16 }
+    category: checksum
+    checksumAlgorithm: crc16
+    checksumCovers: [address, control, protocol, information]
+    checksumParams:
+      polynomial: 0x1021
+      initValue: 0xFFFF
+      finalXOR: 0xFFFF
+      inputReflect: true
+      outputReflect: true
+      width: 16
+    doc: "Frame Check Sequence: 16-bit FCS (CRC-16/X-25, also called FCS-16) per RFC 1662 §C.2, computed over the Address, Control, Protocol, and Information fields. A 32-bit FCS (RFC 1662 §C.3) may be negotiated but is not modeled here."

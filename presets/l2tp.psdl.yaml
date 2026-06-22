@@ -32,3 +32,6 @@ body:
   - kind: optional
     when: { kind: ref, field: "o" }
     container: { id: offsetSize, name: "Offset Size", type: { kind: int, bits: 16 }, category: length, doc: "Number of bytes past the L2TP header at which the payload data starts. Present only when O=1." }
+  - kind: optional
+    when: { kind: ref, field: "o" }
+    container: { id: offsetPad, name: "Offset Pad", type: { kind: bytes, n: { kind: ref, field: offsetSize } }, category: variable, doc: "Offset Padding: Offset Size octets of padding between the Offset Size field and the start of the payload. Contents are unspecified; the L2TP header ends after the last octet of the offset padding. Present only when O=1. [RFC 2661 §3.1]" }

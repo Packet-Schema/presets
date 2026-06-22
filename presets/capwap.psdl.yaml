@@ -3,7 +3,7 @@ version: "0.5"
 name: CAPWAP (Control And Provisioning of Wireless Access Points)
 rowBits: 32
 byteOrder: BE
-description: "Control And Provisioning of Wireless Access Points (CAPWAP) transport header (RFC 5415). CAPWAP provides a UDP-based tunnel between a Wireless LAN Controller (WLC) and one or more Access Points (APs), carrying both control-plane messages (port 5246) and data-plane traffic (port 5247). Every CAPWAP packet begins with an 8-bit Preamble (upper 4 bits = Version, lower 4 bits = Type: 0=CAPWAP, 1=CAPWAP-DTLS). The Transport Header then carries: a 5-bit Header Length (HLEN, units of 4 bytes), a 5-bit Radio ID (RID) identifying the AP radio, a 5-bit Wireless Binding ID (WBID, e.g. 1=IEEE 802.11), and several 1-bit control flags (T=native frame type, F=fragment, L=last fragment, W=wireless specific info present, M=MAC address present, K=keep-alive). A 16-bit Fragment ID and a 13-bit Fragment Offset (units of 8 bytes) support fragmentation of large CAPWAP messages across the UDP transport. An optional MAC address field (6 bytes) and an optional Wireless Specific Information field follow when M and W flags are set respectively. The payload bytes complete the packet."
+description: "Control And Provisioning of Wireless Access Points (CAPWAP) transport header (RFC 5415). CAPWAP provides a UDP-based tunnel between a Wireless LAN Controller (WLC) and one or more Access Points (APs), carrying both control-plane messages (port 5246) and data-plane traffic (port 5247). Every CAPWAP packet begins with an 8-bit Preamble (upper 4 bits = Version, lower 4 bits = Type: 0=CAPWAP, 1=CAPWAP-DTLS). The Transport Header then carries: a 5-bit Header Length (HLEN, units of 4 bytes), a 5-bit Radio ID (RID) identifying the AP radio, a 5-bit Wireless Binding ID (WBID, e.g. 1=IEEE 802.11), and several 1-bit control flags (T=native frame type, F=fragment, L=last fragment, W=wireless specific info present, M=Radio MAC address present, K=keep-alive). A 16-bit Fragment ID and a 13-bit Fragment Offset (units of 8 bytes) support fragmentation of large CAPWAP messages across the UDP transport. An optional Radio MAC Address field (an 8-bit Length followed by a 6-byte EUI-48 or 8-byte EUI-64 address, zero-padded to a 4-byte boundary) and an optional Wireless Specific Information field follow when M and W flags are set respectively. The payload bytes complete the packet."
 
 body:
   - kind: group
@@ -55,17 +55,18 @@ body:
           variants:
             0: "Reserved"
             1: "IEEE 802.11"
-            2: "IEEE 802.16e"
+            2: "Reserved"
+            3: "EPCGlobal"
         category: type
         defaultValue: 1
-        doc: "Wireless Binding ID. Identifies the wireless technology carried by this CAPWAP tunnel. 1=IEEE 802.11 (Wi-Fi), 2=IEEE 802.16e (WiMAX). Determines the format of the optional Wireless Specific Information field when the W flag is set. [RFC 5415 §4.3, RFC 5416 §2.1]"
+        doc: "Wireless Binding ID. Identifies the wireless technology carried by this CAPWAP tunnel. Per the IANA CAPWAP Wireless Binding Identifier registry (RFC 5833): 0=Reserved, 1=IEEE 802.11 (Wi-Fi), 2=Reserved, 3=EPCGlobal. Determines the format of the optional Wireless Specific Information field when the W flag is set. [RFC 5415 §4.3, RFC 5416 §2.1]"
 
       - id: capwapFlagT
         name: T
         type: { kind: int, bits: 1 }
         category: flags
         defaultValue: 0
-        doc: "Type (T) flag. When 0, the payload is a CAPWAP control or IEEE 802.3 data frame. When 1, the payload is a native wireless frame whose format is determined by the WBID field (e.g. IEEE 802.11 frame). Used on the data channel to distinguish native wireless frames from bridged Ethernet frames. [RFC 5415 §4.3]"
+        doc: "Type (T) flag. When 0, the payload is an IEEE 802.3 (Ethernet) frame. When 1, the payload is a native wireless frame whose format is determined by the WBID field (e.g. IEEE 802.11 frame). Used on the data channel to distinguish native wireless frames from bridged Ethernet frames. (The control-vs-data distinction is by channel/port, not the T bit.) [RFC 5415 §4.3]"
 
       - id: capwapFlagF
         name: F
@@ -93,7 +94,7 @@ body:
         type: { kind: int, bits: 1 }
         category: flags
         defaultValue: 0
-        doc: "MAC Address (M) flag. When set to 1, a 6-byte wireless client MAC address field is present immediately following the Fragment Offset word, padded to a 4-byte boundary. When 0, no MAC address field is present. Used on the data channel to identify the originating wireless client. [RFC 5415 §4.3]"
+        doc: "Radio MAC Address (M) flag. When set to 1, a Radio MAC Address field is present immediately following the Fragment Offset word. This field carries an 8-bit Length subfield followed by the MAC address of the receiving radio (the WTP's radio), padded to a 4-byte boundary. When 0, no Radio MAC Address field is present. [RFC 5415 §4.3]"
 
       - id: capwapFlagK
         name: K
@@ -135,32 +136,57 @@ body:
   - kind: optional
     when: { kind: ref, field: capwapFlagM }
     container:
-      id: capwapMacAddress
-      name: MAC Address
-      type: { kind: bits, n: 48 }
+      kind: group
+      id: capwapRadioMacAddress
+      name: Radio MAC Address
       category: addressing
-      doc: "Wireless client MAC address (6 bytes). Present only when the M flag is set. Identifies the wireless client station that originated (uplink) or is the destination of (downlink) the encapsulated data frame. Followed by a 2-byte padding field to restore 4-byte alignment. [RFC 5415 §4.3]"
+      doc: "Radio MAC Address field. Present only when the M flag is set. Carries an 8-bit Length subfield giving the length of the MAC address that follows (6 bytes for EUI-48 or 8 bytes for EUI-64), then the MAC address of the receiving radio (the WTP's radio), and finally zero padding to restore 32-bit alignment of the header. [RFC 5415 §4.3]"
+      children:
+        - id: capwapRadioMacLength
+          name: Length
+          type: { kind: int, bits: 8 }
+          category: length
+          doc: "Length, in bytes, of the Radio MAC Address that immediately follows this octet. 6 for an EUI-48 MAC address, 8 for an EUI-64 MAC address. [RFC 5415 §4.3]"
 
-  - kind: optional
-    when: { kind: ref, field: capwapFlagM }
-    container:
-      id: capwapMacPadding
-      name: MAC Padding
-      type: { kind: int, bits: 16 }
-      category: reserved
-      doc: "2-byte padding field appended after the 6-byte MAC Address to restore 32-bit alignment of the header. MUST be set to zero by the sender and ignored by the receiver. Present only when the M flag is set. [RFC 5415 §4.3]"
+        - id: capwapRadioMacValue
+          name: MAC Address
+          type: { kind: bytes, n: { kind: ref, field: capwapRadioMacLength } }
+          category: addressing
+          doc: "MAC address of the receiving radio (the WTP's radio), capwapRadioMacLength bytes long (6 = EUI-48, 8 = EUI-64). [RFC 5415 §4.3]"
+
+        - kind: align
+          to: 32
+          fill: 0
+          doc: "Zero padding restoring 32-bit alignment of the header after the variable-length Radio MAC Address. For a 1-byte Length + 6-byte EUI-48 MAC (7 bytes) this is 1 byte; for a 1-byte Length + 8-byte EUI-64 MAC (9 bytes) this is 3 bytes. MUST be zero. [RFC 5415 §4.3]"
 
   - kind: optional
     when: { kind: ref, field: capwapFlagW }
     container:
+      kind: group
       id: capwapWirelessInfo
       name: Wireless Specific Information
-      type: { kind: bytes, n: { kind: ref, field: capwapWirelessInfoBytes } }
       category: variable
-      doc: "Wireless Specific Information field whose length and format depend on the WBID. For IEEE 802.11 (WBID=1) this carries the 802.11 radio-specific header including RSSI, SNR, and data rate information as defined in RFC 5416. The byte count capwapWirelessInfoBytes is supplied externally. Present only when the W flag is set. [RFC 5415 §4.3, RFC 5416 §2.1]"
+      doc: "Wireless Specific Information field whose format depends on the WBID. The field is self-describing on the wire: an 8-bit Length octet gives the number of bytes of Data that follow, and the whole field is then padded with zeroes to the next 32-bit boundary. For IEEE 802.11 (WBID=1) the Data carries the 802.11 radio-specific header (RSSI, SNR, Data Rate) defined in RFC 5416 §2.1. Present only when the W flag is set. [RFC 5415 §4.3, RFC 5416 §2.1]"
+      children:
+        - id: capwapWirelessInfoLength
+          name: Length
+          type: { kind: int, bits: 8 }
+          category: length
+          doc: "Length, in bytes, of the Wireless Specific Information Data field that immediately follows this octet (not counting this Length octet itself nor any trailing alignment padding). [RFC 5415 §4.3]"
+
+        - id: capwapWirelessInfoData
+          name: Data
+          type: { kind: bytes, n: { kind: ref, field: capwapWirelessInfoLength } }
+          category: variable
+          doc: "Wireless Specific Information Data, capwapWirelessInfoLength bytes long, whose internal format is determined by the WBID (e.g. the IEEE 802.11 Frame Info structure of RFC 5416 §2.1 carrying RSSI, SNR, and Data Rate). [RFC 5415 §4.3, RFC 5416 §2.1]"
+
+        - kind: align
+          to: 32
+          fill: 0
+          doc: "Zero padding restoring 32-bit alignment of the header after the variable-length Wireless Specific Information field. The Length octet plus Data are padded to the next 4-byte boundary. [RFC 5415 §4.3]"
 
   - id: capwapPayload
     name: Payload
-    type: { kind: bytes, n: { kind: ref, field: capwapBodyBytes } }
+    type: { kind: bytes, n: { kind: remaining } }
     category: payload-marker
-    doc: "CAPWAP payload. On the control channel (UDP port 5246): encapsulated CAPWAP control message consisting of Message Type, Sequence Number, Message Length, and Message Element TLVs. On the data channel (UDP port 5247): an IEEE 802.3 Ethernet frame (T=0) or a native wireless frame (T=1) for the identified wireless client. When K=1, carries keep-alive message elements. The byte count capwapBodyBytes is supplied externally from the UDP payload length minus the parsed header size. [RFC 5415 §4.3, §4.4]"
+    doc: "CAPWAP payload, consuming all remaining bytes of the packet after the parsed transport header. On the control channel (UDP port 5246): an encapsulated CAPWAP control message consisting of Message Type, Sequence Number, Message Length, and Message Element TLVs. On the data channel (UDP port 5247): an IEEE 802.3 Ethernet frame (T=0) or a native wireless frame (T=1) for the identified wireless client. When K=1, carries keep-alive message elements. The decoder supplies the total packet size (from the UDP payload length) so `remaining` is bounded. [RFC 5415 §4.3, §4.4]"

@@ -66,21 +66,11 @@ body:
         field: vnScidLen
     category: addressing
     doc: Source Connection ID — vnScidLen bytes, chosen by the server; may be zero-length. [RFC 9000 §17.2.1]
-  - id: vnVersionCount
-    name: Supported Version Count
-    type:
-      kind: int
-      bits: 8
-    category: length
-    defaultValue: 0
-    doc: Number of Supported Version entries that follow. Not an on-wire field in RFC 9000 (the list runs to end-of-packet); modeled here as an explicit count for preset display. [RFC 9000 §17.2.1]
   - kind: repeat
     id: vnSupportedVersions
     name: Supported Versions
     category: variable
-    count:
-      kind: ref
-      field: vnVersionCount
+    count: eos
     element:
       id: vnSupportedVersion
       fields:

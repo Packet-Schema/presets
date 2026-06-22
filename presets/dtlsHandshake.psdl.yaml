@@ -4,6 +4,9 @@ name: DTLS Handshake
 rowBits: 32
 byteOrder: BE
 description: "DTLS 1.2 Handshake Protocol header and body (RFC 6347 §4.2.2). Extends the TLS 1.2 Handshake header (RFC 5246 §7.4) by inserting three fields between Length and the body: a 2-byte message_seq for deduplication across retransmissions, a 3-byte fragment_offset indicating where in the reassembled message this fragment begins, and a 3-byte fragment_length indicating how many bytes this fragment carries. Together these three fields enable DTLS to fragment large handshake messages across multiple records and to retransmit lost messages without confusing the peer. The body is fragment_length bytes of the (possibly partial) handshake message payload."
+meta:
+  rfc: { defined: 6347, updates: [{ rfc: 5246, section: "7.4" }] }
+  section: "4.2.2"
 
 body:
   - id: dtlsHsType
@@ -23,6 +26,9 @@ body:
         16: "ClientKeyExchange"
         20: "Finished"
     category: type
+    meta:
+      rfc: { defined: 5246, updates: [{ rfc: 6347, section: "4.2.1" }] }
+      section: "7.4"
     doc: "One-byte HandshakeType identifying the specific handshake message. Values mirror TLS 1.2 (RFC 5246 §7.4) with the addition of 3=HelloVerifyRequest introduced by DTLS for the cookie exchange that prevents amplification attacks. [RFC 6347 §4.2.1]"
 
   - id: dtlsHsLength

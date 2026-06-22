@@ -3,7 +3,7 @@ version: "0.5"
 name: AMT (Automatic Multicast Tunneling)
 rowBits: 32
 byteOrder: BE
-description: "Automatic Multicast Tunneling (AMT) control and data messages (RFC 7450). AMT enables a host without native IP multicast connectivity to receive multicast traffic through a unicast tunnel to an AMT Relay. All messages begin with a 4-bit Version (always 0) and a 4-bit Type field selecting one of seven message types: 1=Relay Discovery, 2=Relay Advertisement, 3=Request, 4=Membership Query, 5=Membership Update, 6=Multicast Data, 7=Teardown. The per-type body that follows is represented by a Switch on amtType; for types not explicitly expanded the body is captured as raw bytes whose length is supplied externally via amtBodyBytes."
+description: "Automatic Multicast Tunneling (AMT) control and data messages (RFC 7450). AMT enables a host without native IP multicast connectivity to receive multicast traffic through a unicast tunnel to an AMT Relay. All messages begin with a 4-bit Version (always 0) and a 4-bit Type field selecting one of seven message types: 1=Relay Discovery, 2=Relay Advertisement, 3=Request, 4=Membership Query, 5=Membership Update, 6=Multicast Data, 7=Teardown. The per-type body that follows is represented by a Switch on amtType; for types not explicitly expanded the body is captured as raw bytes consuming the remainder of the message."
 
 body:
   - kind: group
@@ -113,13 +113,13 @@ body:
             type: { kind: int, bits: 1 }
             category: flags
             defaultValue: 0
-            doc: "L (limit) flag. When set to 1, the relay has reached its capacity and the gateway SHOULD NOT send a Membership Update in response; it SHOULD send a new Request to find a less-loaded relay. When 0, the relay can accept membership updates. [RFC 7450 §5.4]"
+            doc: "L (Limit) flag. When set to 1, the relay is NOT accepting Membership Updates from new gateway tunnel endpoints and will ignore any such update; a new gateway SHOULD find a less-loaded relay via a fresh Relay Discovery. Existing sessions are unaffected. When 0, the relay accepts updates from new endpoints. [RFC 7450 §5.1.4.4]"
           - id: amtMqG
             name: G
             type: { kind: int, bits: 1 }
             category: flags
             defaultValue: 0
-            doc: "G (gateway address change) flag. When set to 1, the relay is notifying the gateway that it has detected a change in the gateway's IP address or UDP port (e.g. after a NAT rebinding) and the gateway SHOULD send a new Request. [RFC 7450 §5.4]"
+            doc: "G (Gateway Address) flag. Set to 0 to indicate that the message does NOT carry the trailing Gateway Port Number and Gateway IP Address fields, and 1 to indicate that it does. When G=1 the relay reports the gateway's source UDP port and IP address as it observed them (e.g. the NAT-mapped endpoint), so the gateway can detect address/port changes. [RFC 7450 §5.1.4.5]"
           - id: amtMqResponseMac
             name: Response MAC
             type: { kind: bits, n: 48 }
@@ -132,9 +132,32 @@ body:
             doc: "Echo of the Request Nonce from the corresponding Request message (type 3). Returned unchanged by the gateway in the Membership Update to allow the relay to correlate request, query, and update. [RFC 7450 §5.4]"
           - id: amtMqData
             name: Encapsulated Query
-            type: { kind: bytes, n: { kind: ref, field: amtBodyBytes } }
+            type:
+              kind: bytes
+              n:
+                kind: cond
+                test: { kind: ref, field: amtMqG }
+                t: { kind: op, op: "-", a: { kind: remaining }, b: { kind: lit, value: 18 } }
+                f: { kind: remaining }
             category: variable
-            doc: "Encapsulated IGMP Membership Query (IPv4) or MLD Query (IPv6) datagram, including the IP header. The P flag in the preceding Request selects the IP version. The gateway forwards this query to the local multicast listeners so they can respond with their current group memberships. [RFC 7450 §5.4]"
+            doc: "Encapsulated IGMP Membership Query (IPv4) or MLD Query (IPv6) datagram, including the IP header. When the G flag is 0 it consumes the remainder of the AMT message; when G=1 it stops 18 bytes early so the trailing Gateway Port Number (16 bits) and Gateway IP Address (16 bytes) at the tail are not swallowed (§5.1.4.9 locates these by subtracting their length from the datagram length). The P flag in the preceding Request selects the IP version. The gateway forwards this query to the local multicast listeners so they can respond with their current group memberships. [RFC 7450 §5.1.4]"
+          - kind: optional
+            when: { kind: ref, field: amtMqG }
+            container:
+              kind: group
+              id: amtMqGateway
+              name: Gateway Endpoint
+              children:
+                - id: amtMqGatewayPort
+                  name: Gateway Port Number
+                  type: { kind: int, bits: 16 }
+                  category: addressing
+                  doc: "Present only when the G flag is 1. The gateway's source UDP port number as observed by the relay (the NAT-mapped port), allowing the gateway to detect a change in its mapped endpoint. [RFC 7450 §5.1.4.6]"
+                - id: amtMqGatewayAddress
+                  name: Gateway IP Address
+                  type: { kind: bits, n: 128 }
+                  category: addressing
+                  doc: "Present only when the G flag is 1. The gateway's source IP address as observed by the relay (the NAT-mapped address). Always a 16-byte field: an IPv6 address, or an IPv4 address stored as an IPv4-compatible IPv6 address (the IPv4 address prefixed with 96 zero bits). [RFC 7450 §5.1.4.7 / §5.1.4.9.2]"
 
       "5":
         id: amtMembershipUpdate
@@ -157,9 +180,9 @@ body:
             doc: "Echo of the Request Nonce from the Membership Query. Together with the Response MAC it authenticates the Membership Update and ties it to the session. The relay verifies that this nonce matches the one issued in the query. [RFC 7450 §5.5]"
           - id: amtMuData
             name: Encapsulated Report
-            type: { kind: bytes, n: { kind: ref, field: amtBodyBytes } }
+            type: { kind: bytes, n: { kind: remaining } }
             category: variable
-            doc: "Encapsulated IGMP Membership Report (IGMPv2/v3, IPv4) or MLD Report (MLDv1/v2, IPv6) datagram, including the IP header. Carries the gateway's current group membership state to the relay so the relay can join or prune the appropriate multicast groups upstream. [RFC 7450 §5.5]"
+            doc: "Encapsulated IGMP Membership Report (IGMPv2/v3, IPv4) or MLD Report (MLDv1/v2, IPv6) datagram, including the IP header, consuming the remainder of the AMT message. Carries the gateway's current group membership state to the relay so the relay can join or prune the appropriate multicast groups upstream. [RFC 7450 §5.5]"
 
       "6":
         id: amtMulticastData
@@ -172,9 +195,9 @@ body:
             doc: "Reserved bits in the Multicast Data fixed header. MUST be set to zero by the sender and ignored by the receiver. [RFC 7450 §5.6]"
           - id: amtMdData
             name: Encapsulated Datagram
-            type: { kind: bytes, n: { kind: ref, field: amtBodyBytes } }
+            type: { kind: bytes, n: { kind: remaining } }
             category: payload-marker
-            doc: "Encapsulated IP multicast datagram (IPv4 or IPv6), including the IP header. The relay forwards native multicast traffic to the gateway inside this message. The gateway decapsulates the inner IP datagram and delivers it to local listeners. [RFC 7450 §5.6]"
+            doc: "Encapsulated IP multicast datagram (IPv4 or IPv6), including the IP header, consuming the remainder of the AMT message. The relay forwards native multicast traffic to the gateway inside this message. The gateway decapsulates the inner IP datagram and delivers it to local listeners. [RFC 7450 §5.6]"
 
       "7":
         id: amtTeardown
@@ -212,6 +235,6 @@ body:
         fields:
         - id: amtRawBody
           name: Body
-          type: { kind: bytes, n: { kind: ref, field: amtBodyBytes } }
+          type: { kind: bytes, n: { kind: remaining } }
           category: variable
-          doc: "Raw message body for AMT message types not explicitly decoded. The byte count amtBodyBytes is supplied externally from the enclosing transport (UDP payload length minus 1 byte for the Version+Type header octet). [RFC 7450 §5]"
+          doc: "Raw message body for AMT message types not explicitly decoded, consuming the remainder of the AMT message (the rest of the UDP payload after the Version+Type header octet). [RFC 7450 §5]"

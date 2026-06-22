@@ -3,7 +3,7 @@ version: "0.5"
 name: SCTP AUTH Chunk (RFC 4895)
 rowBits: 32
 byteOrder: BE
-description: "SCTP Authenticated Chunks (AUTH) chunk (RFC 4895, chunk type 0x0F = 15). Provides per-chunk integrity protection for SCTP associations that negotiate the AUTH extension during INIT/INIT-ACK via the RANDOM, CHUNKS, and HMAC-ALGO parameters. The AUTH chunk MUST be inserted immediately before the first protected DATA, SACK, or other negotiated chunk type in the SCTP packet. The structure is a standard 4-byte SCTP chunk header (Type=15, Flags, Length) followed by a Shared Key Identifier, an HMAC Identifier, and a variable-length HMAC value whose size is determined by the negotiated algorithm (e.g. 20 bytes for HMAC-SHA-1-96 per RFC 2104, 32 bytes for HMAC-SHA-256)."
+description: "SCTP Authenticated Chunks (AUTH) chunk (RFC 4895, chunk type 0x0F = 15). Provides per-chunk integrity protection for SCTP associations that negotiate the AUTH extension during INIT/INIT-ACK via the RANDOM, CHUNKS, and HMAC-ALGO parameters. The AUTH chunk MUST be inserted immediately before the first protected DATA, SACK, or other negotiated chunk type in the SCTP packet. The structure is a standard 4-byte SCTP chunk header (Type=15, Flags, Length) followed by a Shared Key Identifier, an HMAC Identifier, and a variable-length HMAC value whose size is determined by the negotiated algorithm (e.g. 20 bytes for SHA-1/HMAC-SHA-1 per RFC 2104, 32 bytes for HMAC-SHA-256)."
 
 body:
   - id: chunkType
@@ -39,13 +39,15 @@ body:
       bits: 16
       variants:
         0: "Reserved"
-        1: "HMAC-SHA-1-96"
+        1: "SHA-1"
         3: "HMAC-SHA-256"
     category: identifier
-    doc: "Identifies the HMAC algorithm applied to produce the HMAC field. Negotiated via the HMAC-ALGO parameter in the INIT/INIT-ACK exchange. 1=HMAC-SHA-1-96 (20-byte digest, RFC 2104), 3=HMAC-SHA-256 (32-byte digest, RFC 4868). Endpoints MUST support HMAC-SHA-1-96 as the mandatory-to-implement algorithm. Value 0 is reserved; value 2 is unassigned. [RFC 4895 §4.1 / §6.2 / IANA SCTP HMAC Algorithm Identifiers]"
+    doc: "Identifies the HMAC algorithm applied to produce the HMAC field. Negotiated via the HMAC-ALGO parameter in the INIT/INIT-ACK exchange. 1=SHA-1 (full HMAC-SHA-1, 20-byte/160-bit digest, FIPS 180-2 / RFC 2104), 3=HMAC-SHA-256 (32-byte digest, RFC 4868). Endpoints MUST support SHA-1 as the mandatory-to-implement algorithm. Values 0 and 2 are reserved. [RFC 4895 §3.3 / §4.1 / IANA SCTP HMAC Algorithm Identifiers]"
 
   - id: hmacValue
     name: HMAC
-    type: { kind: bytes, n: { kind: ref, field: sctpAuthHmacBytes } }
+    type:
+      kind: bytes
+      n: { kind: op, op: "-", a: { kind: ref, field: chunkLength }, b: { kind: lit, value: 8 } }
     category: variable
-    doc: "HMAC digest computed over the entire SCTP packet (Common Header + all chunks, with this HMAC field zeroed during computation) using the algorithm identified by HMAC Identifier and the shared key identified by Shared Key Identifier. Length = chunkLength - 8 bytes (header 4 + SharedKeyIdentifier 2 + HMACIdentifier 2). For HMAC-SHA-1-96 this is 20 bytes; for HMAC-SHA-256 this is 32 bytes. [RFC 4895 §4.1 / §6.3]"
+    doc: "HMAC digest computed over the entire SCTP packet (Common Header + all chunks, with this HMAC field zeroed during computation) using the algorithm identified by HMAC Identifier and the shared key identified by Shared Key Identifier. Length = chunkLength - 8 bytes (header 4 + SharedKeyIdentifier 2 + HMACIdentifier 2). For SHA-1 this is 20 bytes; for HMAC-SHA-256 this is 32 bytes. [RFC 4895 §4.1 / §6.3]"

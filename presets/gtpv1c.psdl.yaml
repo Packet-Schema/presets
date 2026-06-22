@@ -52,6 +52,16 @@ body:
         defaultValue: 0
         doc: "N-PDU Number flag. Set to 1 when the N-PDU Number in the optional block carries a meaningful value (used for SNDCP in-order delivery over 2G/3G). When PN=0, the N-PDU Number SHOULD be set to 0 by the sender. [3GPP TS 29.060 §6]"
 
+  - kind: virtual
+    id: gtpcOpt
+    name: (optional block present)
+    expr:
+      kind: op
+      op: "|"
+      a: { kind: op, op: "|", a: { kind: ref, field: gtpcE }, b: { kind: ref, field: gtpcS } }
+      b: { kind: ref, field: gtpcPN }
+    doc: "Decode-time predicate (0 wire bytes): non-zero when any of the E, S, or PN flag bits is set, in which case the 4-byte optional block (Sequence Number, N-PDU Number, Next Extension Header Type) is present. Derived from the real flag bits already read above; it is not itself a wire field. [3GPP TS 29.060 §6]"
+
   - id: gtpcMessageType
     name: Message Type
     type:
@@ -177,6 +187,6 @@ body:
 
   - id: gtpcIEs
     name: Information Elements
-    type: { kind: bytes, n: { kind: ref, field: gtpcIeBytes } }
+    type: { kind: bytes, n: { kind: remaining } }
     category: variable
-    doc: "Information Elements (IEs) carrying all GTPv1-C signalling parameters, encoded in TV (type-value) or TLV (type-length-value) format. Type octets 1..127 use TV encoding (fixed length per type); type octets 128..254 use TLV encoding with a 2-byte length field after the type. Common IEs: 1=Cause (1B), 2=IMSI (8B TV), 14=Recovery (1B), 16=NSAPI (1B), 128=End User Address, 131=Access Point Name, 132=Protocol Config Options, 133=GSN Address, 134=MSISDN, 135=QoS Profile. gtpcIeBytes is an external reference supplying the byte count of this field. [3GPP TS 29.060 §7.7]"
+    doc: "Information Elements (IEs) carrying all GTPv1-C signalling parameters, encoded in TV (type-value) or TLV (type-length-value) format. Type octets 1..127 use TV encoding (fixed length per type); type octets 128..254 use TLV encoding with a 2-byte length field after the type. Common IEs: 1=Cause (1B), 2=IMSI (8B TV), 14=Recovery (1B), 16=NSAPI (1B), 128=End User Address, 131=Access Point Name, 132=Protocol Config Options, 133=GSN Address, 134=MSISDN, 135=QoS Profile. The IE block runs to the end of the packet; its extent (the Length-field count minus any optional block) is the rest of the enclosing scope, so it consumes all remaining bytes. [3GPP TS 29.060 §7.7]"

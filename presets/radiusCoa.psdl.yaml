@@ -19,6 +19,13 @@ body:
         45: "CoA-NAK"
     category: type
     doc: "Identifies the Dynamic Authorization packet type. 40=Disconnect-Request (terminate session), 41=Disconnect-ACK (success), 42=Disconnect-NAK (failure), 43=CoA-Request (modify session), 44=CoA-ACK (CoA accepted), 45=CoA-NAK (CoA rejected). Codes outside 40–45 are not defined by this extension. [RFC 5176 §3]"
+    values:
+      - { value: 40, name: Disconnect-Request, label: Disconnect-Request, level: must, meta: { rfc: 5176, section: "3.1" } }
+      - { value: 41, name: Disconnect-ACK, label: Disconnect-ACK, level: must, meta: { rfc: 5176, section: "3.2" } }
+      - { value: 42, name: Disconnect-NAK, label: Disconnect-NAK, level: must, meta: { rfc: 5176, section: "3.3" } }
+      - { value: 43, name: CoA-Request, label: CoA-Request, level: must, meta: { rfc: 5176, section: "3.4" } }
+      - { value: 44, name: CoA-ACK, label: CoA-ACK, level: must, meta: { rfc: 5176, section: "3.5" } }
+      - { value: 45, name: CoA-NAK, label: CoA-NAK, level: must, meta: { rfc: 5176, section: "3.6" } }
 
   - id: coaIdentifier
     name: Identifier

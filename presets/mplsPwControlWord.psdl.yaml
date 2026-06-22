@@ -37,13 +37,14 @@ body:
             2: "Last Fragment"
             3: "Middle Fragment"
         category: flags
-        doc: "Fragmentation bits (bits 8–9). Indicate whether this Control Word carries a complete payload (00) or a fragment: 01=first fragment, 10=last fragment, 11=middle fragment. Fragmentation allows large payloads to be split across multiple MPLS packets and reassembled at the egress PE using the Sequence Number. [RFC 4385 §3]"
+        meta: { rfc: { defined: 4385, updates: [{ rfc: 4623, section: "4.1" }] }, section: "3" }
+        doc: "Fragmentation bits (bits 8–9). Indicate whether this Control Word carries a complete payload (00) or a fragment: 01=first fragment, 10=last fragment, 11=intermediate (middle) fragment. RFC 4385 §3 reserves these bits and defers their meaning to the fragmentation specification; RFC 4623 §4.1 (the B/E bits) defines the encoding above. Fragmentation allows large payloads to be split across multiple MPLS packets and reassembled at the egress PE using the Sequence Number. PW types that never fragment MAY repurpose these as generic flags. [RFC 4385 §3 / RFC 4623 §4.1]"
 
       - id: pwCwLength
         name: Length
         type: { kind: int, bits: 6 }
         category: length
-        doc: "Payload length field (bits 10–15). When non-zero, specifies the length of the pseudowire payload in bytes, enabling the receiver to strip any padding appended by the transmitter to meet minimum MTU requirements. When zero, the payload extends to the end of the MPLS packet and no padding is present. [RFC 4385 §3]"
+        doc: "Length field (bits 10–15). If the MPLS payload (PW payload plus this Control Word) is less than 64 bytes, this field MUST be set to that combined length — i.e. the PW payload length plus the length of the PW MPLS Control Word — so the receiver can strip the zero padding the PSN added to reach the 64-byte minimum. When the MPLS payload is 64 bytes or more, the field is set to zero and no padding is present. [RFC 4385 §3]"
 
   - id: pwCwSequenceNumber
     name: Sequence Number

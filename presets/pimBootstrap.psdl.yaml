@@ -113,20 +113,11 @@ body:
           Used by PIM routers to elect the BSR (highest priority/address wins)
           and to unicast Candidate-RP-Advertisement messages toward the BSR.
           [RFC 5059 §4]
-  - id: pimBsrGroupCount
-    name: No. of Group Sets
-    type: { kind: int, bits: 8 }
-    category: length
-    doc: >-
-      Number of Group Set records that follow in this message fragment. Each
-      Group Set associates one multicast group prefix with a list of
-      Candidate-RPs. A value of 0 is valid (BSR election only, no RP
-      mappings). [RFC 5059 §4]
   - kind: repeat
     id: pimGroupSets
     name: Group Sets
     category: variable
-    count: { kind: ref, field: pimBsrGroupCount }
+    count: eos
     element:
       id: pimGroupSet
       fields:

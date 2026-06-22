@@ -14,11 +14,17 @@ body:
         name: Version
         type: { kind: int, bits: 4 }
         category: type
+        defaultValue: 2
+        values:
+          - { value: 2, name: PIMv2, label: "PIM version 2", level: must, meta: { rfc: 7761, section: "4.9" } }
         doc: "PIM version number; MUST be 2. A router receiving a packet with any other version number MUST silently discard it. [RFC 7761 §4.9]"
       - id: pimType
         name: Type
         type: { kind: int, bits: 4 }
         category: type
+        defaultValue: 1
+        values:
+          - { value: 1, name: Register, label: "Register", level: must, meta: { rfc: 7761, section: "4.9.3" } }
         doc: "PIM message type; 1 for Register. The DR unicasts Register messages toward the RP to tunnel multicast data into the RP-rooted shared tree. [RFC 7761 §4.9]"
       - id: pimReserved
         name: Reserved
@@ -39,6 +45,9 @@ body:
         name: B
         type: { kind: int, bits: 1 }
         category: flags
+        meta: { rfc: { defined: 4601, updates: [{ rfc: 7761, section: "4.9.3" }] }, section: "4.9.1" }
+        values:
+          - { value: 0, name: NotBorder, label: "Border function disabled", level: must, meta: { rfc: 7761, section: "4.9.3" } }
         doc: "Border (B) bit. Deprecated by RFC 7761: it MUST be set to zero on transmission and MUST be ignored on reception. (Formerly used to signal inter-domain border registrations.) [RFC 7761 §4.9.3]"
       - id: pimNullRegisterBit
         name: N

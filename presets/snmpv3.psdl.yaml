@@ -232,9 +232,35 @@ body:
             doc: "UTF-8 string naming the management context within the authoritative engine. An empty contextName selects the default context. VACM (RFC 3415) uses the combination of contextEngineID and contextName to determine which MIB views are accessible. [RFC 3412 §6.6 / RFC 3415 §4]"
           - id: plainPduData
             name: PDU Data
-            type: { kind: bytes, n: { kind: ref, field: scopedPduLength } }
+            type:
+              kind: bytes
+              n:
+                kind: op
+                op: "-"
+                a: { kind: ref, field: scopedPduLength }
+                b:
+                  kind: op
+                  op: "+"
+                  a:
+                    kind: op
+                    op: "+"
+                    a: { kind: wireSize, target: ctxEngineIdTag }
+                    b:
+                      kind: op
+                      op: "+"
+                      a: { kind: wireSize, target: ctxEngineIdLength }
+                      b: { kind: wireSize, target: ctxEngineIdValue }
+                  b:
+                    kind: op
+                    op: "+"
+                    a: { kind: wireSize, target: ctxNameTag }
+                    b:
+                      kind: op
+                      op: "+"
+                      a: { kind: wireSize, target: ctxNameLength }
+                      b: { kind: wireSize, target: ctxNameValue }
             category: payload-marker
-            doc: "BER-encoded PDU carried inside the ScopedPDU: one of GetRequest (0xA0), GetNextRequest (0xA1), Response (0xA2), SetRequest (0xA3), GetBulkRequest (0xA5), InformRequest (0xA7), SNMPv2-Trap (0xA8), or Report (0xA8 with specific OIDs). Each PDU contains request-id, error-status, error-index, and VarBindList fields per RFC 3416. [RFC 3412 §6.6 / RFC 3416 §3]"
+            doc: "BER-encoded PDU carried inside the ScopedPDU, after contextEngineID and contextName. Its length is the ScopedPDU SEQUENCE content length (scopedPduLength) minus the wire footprint of the contextEngineID and contextName TLVs already consumed. One of GetRequest (0xA0), GetNextRequest (0xA1), Response (0xA2), SetRequest (0xA3), GetBulkRequest (0xA5), InformRequest (0xA6), SNMPv2-Trap (0xA7), or Report (0xA8). Each PDU contains request-id, error-status, error-index, and VarBindList fields per RFC 3416. [RFC 3412 §6.6 / RFC 3416 §3]"
       "4":
         id: msgDataEncrypted
         doc: "msgData Encrypted ScopedPDU"

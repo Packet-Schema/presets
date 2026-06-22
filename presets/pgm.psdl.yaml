@@ -3,7 +3,7 @@ version: "0.5"
 name: PGM (Pragmatic General Multicast)
 rowBits: 32
 byteOrder: BE
-description: "Pragmatic General Multicast (PGM) reliable multicast transport protocol (RFC 3208). PGM provides a reliable, receiver-driven multicast service: sources transmit Original Data (ODATA) packets; receivers detect losses and issue Negative Acknowledgements (NAK); the network or source replies with Repair Data (RDATA); Source Path Messages (SPM) carry path state. Every PGM packet shares a 16-byte common header: Source Port (16 bits), Destination Port (16 bits), Type (8 bits, 0=SPM, 4=ODATA, 5=RDATA, 8=NAK, 9=NCF), Options flags (8 bits), Checksum (16 bits), Global Source ID / TSDU-Origin (48 bits, 6 bytes), and TSDU Length (16 bits). The type-specific extension header and data payload follow the common header; their combined byte count is supplied externally via pgmBodyBytes. PGM is designed to scale to very large multicast groups with bounded state at routers and guarantees that all receivers either obtain all data or are explicitly notified of irrecoverable loss."
+description: "Pragmatic General Multicast (PGM) reliable multicast transport protocol (RFC 3208). PGM provides a reliable, receiver-driven multicast service: sources transmit Original Data (ODATA) packets; receivers detect losses and issue Negative Acknowledgements (NAK); the network or source replies with Repair Data (RDATA); Source Path Messages (SPM) carry path state. Every PGM packet shares a 16-byte common header: Source Port (16 bits), Destination Port (16 bits), Type (8 bits, 0=SPM, 4=ODATA, 5=RDATA, 8=NAK, 9=NNAK, 10=NCF), Options flags (8 bits), Checksum (16 bits), Global Source ID / TSDU-Origin (48 bits, 6 bytes), and TSDU Length (16 bits). The type-specific extension header and data payload follow the common header; for ODATA/RDATA the payload length is carried by the TSDU Length field, variable-width NLAs are sized by their preceding NLA AFI, and an undecoded body consumes the remainder of the packet. PGM is designed to scale to very large multicast groups with bounded state at routers and guarantees that all receivers either obtain all data or are explicitly notified of irrecoverable loss."
 
 body:
   - kind: group
@@ -37,14 +37,14 @@ body:
             13: "SPMR"
         category: type
         defaultValue: 4
-        doc: "PGM packet type. 0=SPM (Source Path Message, carries path state from source), 4=ODATA (Original Data, data sent by source), 5=RDATA (Repair Data, retransmitted copy), 8=NAK (Negative Acknowledgement, loss report from receiver), 9=NCF (NAK Confirmation, router or source confirming NAK), 10=NNAK (Null NAK, used by network elements to suppress duplicate NAKs), 13=SPMR (SPM Request, solicits an SPM). [RFC 3208 §5, §8–§14]"
+        doc: "PGM packet type. 0=SPM (Source Path Message, carries path state from source), 4=ODATA (Original Data, data sent by source), 5=RDATA (Repair Data, retransmitted copy), 8=NAK (Negative Acknowledgement, loss report from receiver), 9=NNAK (Null NAK, used by network elements to suppress duplicate NAKs), 10=NCF (NAK Confirmation, router or source confirming NAK), 13=SPMR (SPM Request, solicits an SPM). [RFC 3208 §5, §8–§14]"
 
       - id: pgmOptions
         name: Options
         type: { kind: int, bits: 8 }
         category: flags
         defaultValue: 0
-        doc: "Options flags byte. Bit 7 (0x80) = PARITY, indicates the packet is a parity FEC packet; bit 6 (0x40) = VAR_PKTLEN, variable-length FEC; bit 5 (0x20) = PRESENT, one or more option extensions follow the type-specific header; lower bits are reserved and MUST be zero. [RFC 3208 §5]"
+        doc: "Options flags byte (bit 0 = MSB per RFC numbering). Bit 0 (0x80) = O_FLAG, one or more Option Extensions are present in this packet; bit 1 (0x40) = N_FLAG, one or more options are network-significant; bit 6 (0x02) = OPT_VAR_PKTLEN, parity packet for a transmission group of variable-sized packets (only with OPT_PARITY); bit 7 (0x01) = OPT_PARITY, the packet is a parity (FEC) packet; remaining bits are reserved and MUST be zero. [RFC 3208 §5]"
 
       - id: pgmChecksum
         name: Checksum
@@ -99,9 +99,9 @@ body:
             doc: "Reserved field following the NLA AFI in the SPM header. MUST be set to zero by the sender and ignored by the receiver. [RFC 3208 §8]"
           - id: pgmSpmNla
             name: Source NLA
-            type: { kind: bytes, n: { kind: ref, field: pgmBodyBytes } }
+            type: { kind: bytes, n: { kind: lookup, key: { kind: ref, field: pgmSpmNlaAfi }, table: { "1": 4, "2": 16 } } }
             category: addressing
-            doc: "Network Layer Address of the SPM originator (source). For AFI_IP this is 4 bytes (IPv4); for AFI_IP6 this is 16 bytes (IPv6). Receivers record this address to direct NAKs toward the source path. pgmBodyBytes carries the externally supplied byte count. [RFC 3208 §8]"
+            doc: "Network Layer Address (Path NLA) of the SPM originator (source). For AFI_IP (AFI=1) this is 4 bytes (IPv4); for AFI_IP6 (AFI=2) this is 16 bytes (IPv6). The width is derived from the preceding NLA AFI. Receivers record this address to direct NAKs toward the source path. Any Option Extensions follow. [RFC 3208 §8]"
 
       "4":
         id: pgmOdata
@@ -119,9 +119,9 @@ body:
             doc: "Sequence number of the oldest ODATA packet still held by the source for potential retransmission. Receivers that fall below this window cannot recover lost packets and SHOULD notify the application of unrecoverable loss. [RFC 3208 §9]"
           - id: pgmOdataData
             name: ODATA Payload
-            type: { kind: bytes, n: { kind: ref, field: pgmBodyBytes } }
+            type: { kind: bytes, n: { kind: ref, field: pgmTsduLength } }
             category: payload-marker
-            doc: "Original application data payload carried in this ODATA packet. The number of bytes is indicated by the TSDU Length field in the common header and supplied externally via pgmBodyBytes. [RFC 3208 §9]"
+            doc: "Original application data payload (TSDU) carried in this ODATA packet. Its length in bytes is given by the TSDU Length field in the common header, exclusive of all headers and options. Any Option Extensions appear ahead of this payload when the O_FLAG bit is set in the common-header Options byte. [RFC 3208 §9]"
 
       "5":
         id: pgmRdata
@@ -139,9 +139,9 @@ body:
             doc: "Current trailing edge of the source transmit window at the time the repair is sent. Receivers use this to determine whether they are still within the recovery window. [RFC 3208 §10]"
           - id: pgmRdataData
             name: RDATA Payload
-            type: { kind: bytes, n: { kind: ref, field: pgmBodyBytes } }
+            type: { kind: bytes, n: { kind: ref, field: pgmTsduLength } }
             category: payload-marker
-            doc: "Repair data payload — a copy of the original ODATA payload for the indicated sequence number. The byte count is supplied externally via pgmBodyBytes. [RFC 3208 §10]"
+            doc: "Repair data payload — a copy of the original ODATA payload (TSDU) for the indicated sequence number. Its length in bytes is given by the TSDU Length field in the common header. Any Option Extensions appear ahead of this payload when the O_FLAG bit is set in the common-header Options byte. [RFC 3208 §10]"
 
       "8":
         id: pgmNak
@@ -229,6 +229,6 @@ body:
         fields:
         - id: pgmRawBody
           name: Body
-          type: { kind: bytes, n: { kind: ref, field: pgmBodyBytes } }
+          type: { kind: bytes, n: { kind: remaining } }
           category: variable
-          doc: "Raw type-specific body for PGM packet types not explicitly decoded (e.g. NNAK type 10, SPMR type 13). The byte count pgmBodyBytes is supplied externally from the enclosing transport (IP payload length minus 16 bytes for the PGM common header). [RFC 3208 §5]"
+          doc: "Raw type-specific body for PGM packet types not explicitly decoded (e.g. SPMR type 13). It consumes all bytes remaining after the common header to the end of the packet. [RFC 3208 §5]"

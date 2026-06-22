@@ -17,6 +17,11 @@ body:
         3: Success
         4: Failure
     category: type
+    values:
+      - { value: 1, name: Request, label: Request, level: must, meta: { rfc: 3748, section: "4" } }
+      - { value: 2, name: Response, label: Response, level: must, meta: { rfc: 3748, section: "4" } }
+      - { value: 3, name: Success, label: Success, level: must, meta: { rfc: 3748, section: "4" } }
+      - { value: 4, name: Failure, label: Failure, level: must, meta: { rfc: 3748, section: "4" } }
     doc: "Identifies the EAP packet type. 1=Request (authenticator sends an authentication challenge), 2=Response (peer replies to a Request), 3=Success (authenticator signals successful authentication), 4=Failure (authenticator signals failed authentication). Values 0 and 5..255 are unassigned or reserved. [RFC 3748 §4]"
   - id: eapIdentifier
     name: Identifier

@@ -7,5 +7,13 @@ description: UDP-Lite header (RFC 3828) — fixed 8 bytes. Replaces UDP Length w
 body:
   - { id: srcPort, name: Source Port, type: { kind: int, bits: 16 }, category: addressing, doc: "Source port number identifying the sending application [RFC 3828 §4]." }
   - { id: dstPort, name: Destination Port, type: { kind: int, bits: 16 }, category: addressing, doc: "Destination port number identifying the receiving application [RFC 3828 §4]." }
-  - { id: checksumCoverage, name: Checksum Coverage, type: { kind: int, bits: 16 }, category: length, doc: "Number of bytes covered by the checksum starting from the first byte of the UDP-Lite header. Value 0 means the entire datagram is covered; values 1-7 are illegal; value 8 means the header only is covered [RFC 3828 §3.1]." }
+  - id: checksumCoverage
+    name: Checksum Coverage
+    type: { kind: int, bits: 16 }
+    category: length
+    doc: "Number of bytes covered by the checksum starting from the first byte of the UDP-Lite header. Value 0 means the entire datagram is covered; values 1-7 are illegal and the packet MUST be discarded; value 8 means the 8-byte header only is covered. A value greater than the IP payload length MUST also cause the packet to be discarded [RFC 3828 §3.1]."
+    values:
+      - { value: 0,             name: FULL,    label: "Entire datagram covered", level: may,  meta: { rfc: 3828, section: "3.1" } }
+      - { range: [1, 7],        name: ILLEGAL, label: "Illegal — receiver MUST discard", level: must, meta: { rfc: 3828, section: "3.1" } }
+      - { value: 8,             name: HEADER,  label: "Header only covered (minimal)", level: may, meta: { rfc: 3828, section: "3.1" } }
   - { id: checksum, name: Checksum, type: { kind: int, bits: 16 }, category: checksum, doc: "One's complement checksum computed over the pseudo-header, UDP-Lite header, and the portion of the payload indicated by Checksum Coverage. Must not be zero [RFC 3828 §3.1]." }

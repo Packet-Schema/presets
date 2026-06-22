@@ -11,6 +11,7 @@ body:
       kind: bits
       n: 4
     category: type
+    const: 6
     doc: IP version field — always 6 for IPv6, distinguishing this header from an IPv4 header that begins with 4. [RFC 8200 §3]
   - id: trafficClass
     name: Traffic Class

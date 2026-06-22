@@ -167,6 +167,16 @@ body:
         doc: IPv4 destination address of the inner datagram. After the decapsulating node strips the outer header, the inner datagram is forwarded toward this address. [RFC 791 §3.1, RFC 2003 §3]
   - id: innerPayload
     name: Inner Payload
-    type: { kind: bytes, n: { kind: ref, field: innerPayloadBytes } }
+    type:
+      kind: bytes
+      n:
+        kind: op
+        op: "-"
+        a: { kind: ref, field: innerTotalLength }
+        b:
+          kind: op
+          op: "*"
+          a: { kind: ref, field: innerIhl }
+          b: { kind: lit, value: 4 }
     category: payload-marker
-    doc: "Payload of the inner IPv4 datagram (e.g. TCP segment, UDP datagram, ICMP message), starting immediately after the inner IPv4 header. Length = inner Total Length − (inner IHL × 4). Not parsed in this preset; use the appropriate protocol preset for the inner Protocol value. [RFC 2003 §3, RFC 791 §3.1]"
+    doc: "Payload of the inner IPv4 datagram (e.g. TCP segment, UDP datagram, ICMP message), starting immediately after the inner IPv4 header. Length = inner Total Length − (inner IHL × 4), derived from the two preceding inner-header length fields. Not parsed in this preset; use the appropriate protocol preset for the inner Protocol value. [RFC 2003 §3, RFC 791 §3.1]"

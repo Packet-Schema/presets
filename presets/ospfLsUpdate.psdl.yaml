@@ -43,6 +43,10 @@ body:
     category: type
     defaultValue: 0
     doc: Authentication scheme applied per-interface. 0=Null (no authentication), 1=Simple password, 2=Cryptographic (MD5/HMAC). [RFC 2328 §D.1]
+    values:
+      - { value: 0, name: NULL_AUTH, label: "Null authentication", level: may, meta: { rfc: 2328, section: "D.3" } }
+      - { value: 1, name: SIMPLE, label: "Simple password", level: may, meta: { rfc: 2328, section: "D.3" } }
+      - { value: 2, name: CRYPTOGRAPHIC, label: "Cryptographic authentication", level: may, meta: { rfc: 2328, section: "D.3" } }
   - id: authentication
     name: Authentication
     type: { kind: bits, n: 64 }
@@ -76,6 +80,12 @@ body:
           type: { kind: int, bits: 8 }
           category: type
           doc: LSA type code. 1=Router-LSA (describes a router's links), 2=Network-LSA (describes a broadcast/NBMA segment's attached routers), 3=Summary-LSA for an IP network (inter-area prefix reachability), 4=Summary-LSA for an ASBR (inter-area ASBR reachability), 5=AS-external-LSA (routes redistributed from outside OSPF). [RFC 2328 §A.4.1]
+          values:
+            - { value: 1, name: ROUTER_LSA, label: "Router-LSA", level: must, meta: { rfc: 2328, section: "A.4.2" } }
+            - { value: 2, name: NETWORK_LSA, label: "Network-LSA", level: must, meta: { rfc: 2328, section: "A.4.3" } }
+            - { value: 3, name: SUMMARY_LSA_IP, label: "Summary-LSA (IP network)", level: must, meta: { rfc: 2328, section: "A.4.4" } }
+            - { value: 4, name: SUMMARY_LSA_ASBR, label: "Summary-LSA (ASBR)", level: must, meta: { rfc: 2328, section: "A.4.4" } }
+            - { value: 5, name: AS_EXTERNAL_LSA, label: "AS-external-LSA", level: must, meta: { rfc: 2328, section: "A.4.5" } }
         - id: linkStateId
           name: Link State ID
           type: { kind: int, bits: 32 }
@@ -88,9 +98,9 @@ body:
           doc: Router ID (dotted-quad on the wire) of the router that originated this LSA. Together with LS Type and Link State ID forms the unique key for the LSA in the link-state database. [RFC 2328 §A.4.1]
         - id: lsSeqNum
           name: LS Sequence Number
-          type: { kind: int, bits: 32 }
+          type: { kind: int, bits: 32, signed: true }
           category: identifier
-          doc: Signed 32-bit sequence number incremented each time the LSA is re-originated. InitialSequenceNumber is 0x80000001; MaxSequenceNumber is 0x7FFFFFFF. A larger value means a more recent instance; used to discard duplicate or stale LSAs during flooding. [RFC 2328 §A.4.1]
+          doc: Signed 32-bit sequence number incremented each time the LSA is re-originated. InitialSequenceNumber is 0x80000001 (−2147483647); MaxSequenceNumber is 0x7FFFFFFF. A larger (signed) value means a more recent instance; used to discard duplicate or stale LSAs during flooding. [RFC 2328 §A.4.1, §12.1.6]
         - id: lsChecksum
           name: LS Checksum
           type: { kind: int, bits: 16 }

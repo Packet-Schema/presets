@@ -8,15 +8,17 @@ body:
   - id: icmpRdiscType
     name: Type
     type:
-      kind: bits
-      n: 8
+      kind: int
+      bits: 8
+    const: 9
     category: type
     doc: ICMP message type. 9 = Router Advertisement, sent by routers to advertise their addresses as default gateways. The complementary Router Solicitation sent by hosts uses Type 10. [RFC 1256 §3.2]
   - id: icmpRdiscCode
     name: Code
     type:
-      kind: bits
-      n: 8
+      kind: int
+      bits: 8
+    const: 0
     category: type
     doc: ICMP code subtype for Router Advertisement. Must be 0; any other value causes the message to be silently discarded by conforming receivers. [RFC 1256 §3.2]
   - id: icmpRdiscChecksum
@@ -43,9 +45,8 @@ body:
   - id: icmpRdiscLifetime
     name: Lifetime
     type:
-      kind: bits
-      n: 16
-    category: variable
+      kind: int
+      bits: 16
     doc: Maximum number of seconds that the advertised addresses may be considered valid as default router addresses. The maximum value is 9000 seconds (2.5 hours). A Lifetime of 0 withdraws all addresses in this advertisement. [RFC 1256 §3.2]
   - kind: repeat
     id: icmpRdiscAddresses
@@ -65,10 +66,10 @@ body:
         - id: icmpRdiscPreferenceLevel
           name: Preference Level
           type:
-            kind: bits
-            n: 32
-          category: variable
-          doc: Signed 32-bit preference for this router address relative to other addresses on the same subnet. Higher values indicate more preferred routers; the default is 0. The value 0x80000000 (most negative 32-bit integer) marks the address as being advertised but not usable as a default router. [RFC 1256 §3.2]
+            kind: int
+            bits: 32
+            signed: true
+          doc: Signed 32-bit preference for this router address relative to other addresses on the same subnet. Higher values indicate more preferred routers; the default is 0. The value 0x80000000 (most negative 32-bit integer, -2147483648) marks the address as being advertised but not usable as a default router. [RFC 1256 §3.2]
     count:
       kind: ref
       field: icmpRdiscAddrCount

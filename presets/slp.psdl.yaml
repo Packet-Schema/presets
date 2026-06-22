@@ -16,6 +16,8 @@ body:
         category: type
         defaultValue: 2
         doc: "SLP protocol version. MUST be 2 for SLPv2; implementations MUST silently discard packets with any other version. [RFC 2608 §8]"
+        values:
+          - { value: 2, name: SLPv2, label: "SLP version 2", level: must, meta: { rfc: 2608, section: "8" } }
       - id: slpFunctionID
         name: Function-ID
         type:

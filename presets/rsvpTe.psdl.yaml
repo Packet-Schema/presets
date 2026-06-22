@@ -66,22 +66,10 @@ body:
         category: length
         doc: "Total length of the RSVP message in bytes, including the 8-byte Common Header and all RSVP objects that follow. Receivers use this field, together with the IP Total Length, to locate the boundary of the RSVP message within the IP datagram. The minimum Path message length is 8 bytes (header only). [RFC 2205 §3.1]"
 
-  - id: rsvpTeObjCount
-    name: Object Count
-    type: { kind: int, bits: 16 }
-    category: length
-    doc: "Number of RSVP objects that follow this field in the packet. This field is a PSDL-level framing aid; in standard RSVP the object sequence is bounded by the RSVP Length field rather than an explicit count. Each object carries ObjLength, Class-Num, C-Type, and Contents. Typical Path messages contain 6–12 objects covering SESSION, RSVP_HOP, TIME_VALUES, EXPLICIT_ROUTE (ERO), LABEL_REQUEST, SENDER_TEMPLATE, SENDER_TSPEC, and optionally SESSION_ATTRIBUTE. [RFC 2205 §3.1, RFC 3209 §4]"
-
-  - id: rsvpTeObjPad
-    name: Pad
-    type: { kind: int, bits: 16 }
-    category: reserved
-    doc: "16-bit alignment padding field inserted before the object array to maintain 32-bit alignment of the object repeat block when the PSDL object count field above consumes only 16 bits. MUST be set to zero. Not present in the wire format of RFC 2205; introduced as a PSDL structural artefact. [RFC 2205 §3.1]"
-
   - kind: repeat
     id: rsvpTeObjects
     name: RSVP Objects
-    count: { kind: ref, field: rsvpTeObjCount }
+    count: eos
     element:
       id: rsvpTeObj
       fields:
@@ -120,7 +108,7 @@ body:
           name: C-Type
           type: { kind: int, bits: 8 }
           category: type
-          doc: "C-Type (class-type) sub-identifier scoped within Class-Num. Allows multiple encodings of the same object class. Common C-Type values: SESSION Class-Num 1: C-Type 7=IPv4 LSP Session (RFC 3209 §4.6.1); RSVP_HOP Class-Num 3: C-Type 1=IPv4 (RFC 2205); LABEL Class-Num 16: C-Type 1=generalized label (RFC 3473); LABEL_REQUEST Class-Num 19: C-Type 1=without label range (MPLS, RFC 3209 §4.1); EXPLICIT_ROUTE Class-Num 20: C-Type 1=Type 1 ERO (RFC 3209 §4.3); SESSION_ATTRIBUTE Class-Num 207: C-Type 7=with resource colors / C-Type 1=without (RFC 3209 §4.7). [RFC 2205 §3.1.4, RFC 3209 §4]"
+          doc: "C-Type (class-type) sub-identifier scoped within Class-Num. Allows multiple encodings of the same object class. Common C-Type values: SESSION Class-Num 1: C-Type 7=IPv4 LSP Session (RFC 3209 §4.6.1); RSVP_HOP Class-Num 3: C-Type 1=IPv4 (RFC 2205); LABEL Class-Num 16: C-Type 1=generalized label (RFC 3473); LABEL_REQUEST Class-Num 19: C-Type 1=without label range (MPLS, RFC 3209 §4.1); EXPLICIT_ROUTE Class-Num 20: C-Type 1=Type 1 ERO (RFC 3209 §4.3); SESSION_ATTRIBUTE Class-Num 207: C-Type 7=LSP_TUNNEL (without resource affinities) / C-Type 1=LSP_TUNNEL_RA (with resource affinities) (RFC 3209 §4.7). [RFC 2205 §3.1.4, RFC 3209 §4]"
 
         - id: rsvpTeObjContents
           name: Contents
@@ -132,4 +120,4 @@ body:
               a: { kind: ref, field: rsvpTeObjLength }
               b: { kind: lit, value: 4 }
           category: variable
-          doc: "Object contents payload: ObjLength minus the 4-byte object header bytes. Interpretation is determined by Class-Num and C-Type. LABEL_REQUEST (Class 19, C-Type 1): 16-bit Reserved + 16-bit L3PID (0x0800=IPv4/MPLS). EXPLICIT_ROUTE (Class 20, C-Type 1): sequence of ERO sub-objects each with Type(1B)+Length(1B)+Value encoding IPv4/IPv6 prefix or AS hops with L-bit for loose routing. SESSION_ATTRIBUTE (Class 207, C-Type 7): Setup Priority(1B)+Hold Priority(1B)+Flags(1B)+Name Length(1B)+Session Name(variable)+Resource Colors(4B). LABEL (Class 16, C-Type 1): 32-bit generalised label value (bottom-of-stack label for MPLS). SENDER_TSPEC (Class 12, C-Type 2): IntServ token bucket spec — service header + TB parameter set (peak rate, token rate, bucket depth, min policed unit, max packet size). [RFC 2205 §3.1.4, RFC 3209 §4.1–4.7, RFC 3473 §2.1]"
+          doc: "Object contents payload: ObjLength minus the 4-byte object header bytes. Interpretation is determined by Class-Num and C-Type. LABEL_REQUEST (Class 19, C-Type 1): 16-bit Reserved + 16-bit L3PID (0x0800=IPv4/MPLS). EXPLICIT_ROUTE (Class 20, C-Type 1): sequence of ERO sub-objects each with Type(1B)+Length(1B)+Value encoding IPv4/IPv6 prefix or AS hops with L-bit for loose routing. SESSION_ATTRIBUTE (Class 207, C-Type 7, LSP_TUNNEL): Setup Priority(1B)+Hold Priority(1B)+Flags(1B)+Name Length(1B)+Session Name(variable); the C-Type 1 LSP_TUNNEL_RA variant prepends Exclude-any(4B)+Include-any(4B)+Include-all(4B) resource affinity bitmaps. LABEL (Class 16, C-Type 1): 32-bit generalised label value (bottom-of-stack label for MPLS). SENDER_TSPEC (Class 12, C-Type 2): IntServ token bucket spec — service header + TB parameter set (peak rate, token rate, bucket depth, min policed unit, max packet size). [RFC 2205 §3.1.4, RFC 3209 §4.1–4.7, RFC 3473 §2.1]"

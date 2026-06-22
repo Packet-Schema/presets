@@ -17,6 +17,9 @@ body:
     category: type
     defaultValue: 4
     doc: "Identifies the type of RADIUS Accounting packet. 4 = Accounting-Request (sent by NAS to report start/stop/interim session events); 5 = Accounting-Response (sent by the server to acknowledge a request). [RFC 2866 §3]"
+    values:
+      - { value: 4, name: Accounting-Request, label: Accounting-Request, level: must, meta: { rfc: 2866, section: "4.1" } }
+      - { value: 5, name: Accounting-Response, label: Accounting-Response, level: must, meta: { rfc: 2866, section: "4.2" } }
 
   - id: acctIdentifier
     name: Identifier
@@ -36,17 +39,10 @@ body:
     category: checksum
     doc: "16-octet field used to authenticate the packet and protect passwords. In Accounting-Request it is an MD5 hash computed over Code+Identifier+Length+16-zero-bytes+Attributes+SharedSecret. In Accounting-Response it MUST equal the MD5 hash over Code+Identifier+Length+RequestAuthenticator-from-request+Attributes+SharedSecret. [RFC 2866 §3]"
 
-  - id: acctAttrCount
-    name: Attribute Count
-    type: { kind: int, bits: 8 }
-    category: length
-    defaultValue: 0
-    doc: "Number of RADIUS Attributes that follow. This field is a rendering aid — it is not part of the wire format defined by RFC 2866, which instead uses the packet Length field to delimit the attribute list. Set to 0 when no attributes are present so the default state is non-breaking. [RFC 2866 §3]"
-
   - kind: repeat
     id: acctAttrs
     name: Attributes
-    count: { kind: ref, field: acctAttrCount }
+    count: eos
     element:
       id: acctAttr
       fields:
@@ -81,15 +77,14 @@ body:
           category: length
           doc: "Total length of this Attribute in octets, including the Type and Length octets themselves. Minimum value is 2 (type + length with no value); maximum is 255. A Length of 1 is invalid. [RFC 2866 §5]"
 
-        - id: acctAttrValLen
-          name: Value Length
-          type: { kind: int, bits: 8 }
-          category: length
-          defaultValue: 0
-          doc: "Byte count of the Value field that immediately follows. Derived as acctAttrLen minus 2 (the Type and Length octets). This rendering-aid field is not on the wire; it drives the bytes field below. Set to 0 so the default state is non-breaking. [RFC 2866 §5]"
-
         - id: acctAttrValue
           name: Value
-          type: { kind: bytes, n: { kind: ref, field: acctAttrValLen } }
+          type:
+            kind: bytes
+            n:
+              kind: op
+              op: "-"
+              a: { kind: ref, field: acctAttrLen }
+              b: { kind: lit, value: 2 }
           category: variable
-          doc: "Attribute value whose encoding depends on Type. Acct-Status-Type (40): 4-octet integer (1=Start, 2=Stop, 3=Interim-Update, 7=Accounting-On, 8=Accounting-Off). Acct-Input-Octets (42): 4-octet integer counting bytes received from the user during the session. Acct-Session-Time (46): 4-octet integer counting seconds elapsed since the session began. [RFC 2866 §5]"
+          doc: "Attribute value whose encoding depends on Type; its length is acctAttrLen minus 2 (the Type and Length octets), giving 0–253 octets. Acct-Status-Type (40): 4-octet integer (1=Start, 2=Stop, 3=Interim-Update, 7=Accounting-On, 8=Accounting-Off). Acct-Input-Octets (42): 4-octet integer counting bytes received from the user during the session. Acct-Session-Time (46): 4-octet integer counting seconds elapsed since the session began. [RFC 2866 §5]"

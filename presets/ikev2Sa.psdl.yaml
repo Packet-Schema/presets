@@ -103,8 +103,23 @@ body:
 
         - id: ikev2TransformBytes
           name: Transforms
-          type: { kind: bytes, n: { kind: ref, field: ikev2TransformBytesLen } }
+          type:
+            kind: bytes
+            n:
+              kind: op
+              op: "-"
+              a:
+                kind: op
+                op: "-"
+                a: { kind: ref, field: ikev2ProposalLength }
+                b: { kind: lit, value: 8 }
+              b: { kind: ref, field: ikev2SpiLen }
           category: variable
-          doc: "Concatenated Transform substructures for this Proposal. Each Transform substructure contains: Last Substruc (0=last, 3=more, 1 byte), Reserved (1 byte), Transform Length (2 bytes), Transform Type (1 byte: 1=Encr, 2=PRF, 3=Integ, 4=DH, 5=ESN), Reserved2 (1 byte), Transform ID (2 bytes), and optional Transform Attributes (variable, e.g. key length for AES). The total byte count is implicitly (Proposal Length - 8 - SPI Size). [RFC 7296 §3.3.2]"
+          doc: "Concatenated Transform substructures for this Proposal. The byte count is derived from the real header fields as (Proposal Length - 8 - SPI Size): the 8-byte Proposal header plus the SPI are subtracted from the Proposal Length. Each Transform substructure contains: Last Substruc (0=last, 3=more, 1 byte), Reserved (1 byte), Transform Length (2 bytes), Transform Type (1 byte: 1=Encr, 2=PRF, 3=Integ, 4=DH, 5=ESN), Reserved2 (1 byte), Transform ID (2 bytes), and optional Transform Attributes (variable, e.g. key length for AES). [RFC 7296 §3.3.2]"
 
-    count: { kind: ref, field: ikev2ProposalCount }
+    count:
+      until:
+        kind: op
+        op: "=="
+        a: { kind: ref, field: ikev2ProposalLast }
+        b: { kind: lit, value: 0 }

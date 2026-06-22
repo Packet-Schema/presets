@@ -3,7 +3,7 @@ version: "0.5"
 name: OWAMP-Test (Unauthenticated)
 rowBits: 32
 byteOrder: BE
-description: One-Way Active Measurement Protocol (OWAMP) Test packet, unauthenticated mode (RFC 4656). Sent by the Session-Sender to the Session-Receiver over UDP. The fixed portion consists of a 32-bit Sequence Number, a 64-bit NTP Timestamp, and a 16-bit Error Estimate (S/Z flags + scale + multiplier). A variable-length Padding field of owampPadBytes bytes follows; the padding length is negotiated during OWAMP-Control session setup (OWAMP-Control Request-Session message) and is typically 27 bytes for IPv4 to pad the packet to 41 bytes total, ensuring minimal interference from header compression.
+description: One-Way Active Measurement Protocol (OWAMP) Test packet, unauthenticated mode (RFC 4656). Sent by the Session-Sender to the Session-Receiver over UDP. The fixed portion consists of a 32-bit Sequence Number, a 64-bit NTP Timestamp, and a 16-bit Error Estimate (S/Z flags + scale + multiplier). A variable-length Padding field follows and fills the remainder of the UDP datagram; the padding length is negotiated during OWAMP-Control session setup (OWAMP-Control Request-Session message) and is typically 27 bytes for IPv4 to pad the packet to 41 bytes total, ensuring minimal interference from header compression.
 
 body:
   - id: sequenceNumber
@@ -19,12 +19,10 @@ body:
       - id: timestampSeconds
         name: Timestamp Seconds
         type: { kind: int, bits: 32 }
-        category: variable
         doc: "Seconds part of the 64-bit NTP timestamp at which the packet was sent, expressed as unsigned seconds since 1 January 1900 (NTP era 0). Combined with Timestamp Fraction to form a 64-bit NTP timestamp as specified in RFC 1305. [RFC 4656 §4.1.2]"
       - id: timestampFraction
         name: Timestamp Fraction
         type: { kind: int, bits: 32 }
-        category: variable
         doc: "Fractional seconds part of the 64-bit NTP timestamp. The 32-bit value represents the binary fraction of a second (1 LSB ≈ 232 picoseconds). Combined with Timestamp Seconds this forms the NTP-format Send Timestamp recorded immediately before transmitting the UDP datagram. [RFC 4656 §4.1.2]"
 
   - kind: group
@@ -56,6 +54,6 @@ body:
     name: Padding
     type:
       kind: bytes
-      n: { kind: ref, field: owampPadBytes }
-    category: payload-marker
-    doc: "Variable-length padding appended to bring the Test packet to the negotiated size. The number of padding bytes (owampPadBytes) is agreed during OWAMP-Control session setup in the Request-Session message. Typical values: 27 bytes for IPv4 (total 41 bytes) or 0 bytes when no padding is required. Contents MUST be ignored by the receiver. [RFC 4656 §4.1.2]"
+      n: { kind: remaining }
+    category: variable
+    doc: "Variable-length padding that fills the remainder of the UDP payload, bringing the Test packet to the size negotiated during OWAMP-Control session setup (Request-Session message, Padding Length). It occupies all bytes after the Error Estimate to the end of the datagram. Typical values: 27 bytes for IPv4 (total 41 bytes) or 0 bytes when no padding is required. Contents MUST be ignored by the receiver. [RFC 4656 §4.1.2]"

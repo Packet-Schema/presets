@@ -4,9 +4,28 @@ name: DTLS 1.2 Record
 rowBits: 32
 byteOrder: BE
 description: DTLS 1.2 record layer header (RFC 6347 §4.1) — 13-byte fixed header followed by a variable-length encrypted fragment. Extends TLS record format with a 2-byte epoch and 6-byte sequence number for replay detection across cipher state changes.
+meta:
+  rfc: { defined: 6347, updates: [{ rfc: 5246, section: "6.2.1" }] }
+  section: "4.1"
 body:
-  - { id: contentType, name: Content Type, type: { kind: int, bits: 8 }, category: type, doc: "Record content type: 20=ChangeCipherSpec, 21=Alert, 22=Handshake, 23=ApplicationData." }
-  - { id: version, name: Version, type: { kind: int, bits: 16 }, category: type, doc: "DTLS protocol version: 0xFEFF=DTLS 1.0, 0xFEFD=DTLS 1.2. Note that DTLS version numbers are inverted relative to TLS (higher wire value = older version)." }
+  - id: contentType
+    name: Content Type
+    type: { kind: int, bits: 8 }
+    category: type
+    values:
+      - { value: 20, name: ChangeCipherSpec, label: ChangeCipherSpec, level: must, meta: { rfc: 5246, section: "6.2.1" } }
+      - { value: 21, name: Alert, label: Alert, level: must, meta: { rfc: 5246, section: "6.2.1" } }
+      - { value: 22, name: Handshake, label: Handshake, level: must, meta: { rfc: 5246, section: "6.2.1" } }
+      - { value: 23, name: ApplicationData, label: ApplicationData, level: must, meta: { rfc: 5246, section: "6.2.1" } }
+    doc: "Record content type: 20=ChangeCipherSpec, 21=Alert, 22=Handshake, 23=ApplicationData."
+  - id: version
+    name: Version
+    type: { kind: int, bits: 16 }
+    category: type
+    values:
+      - { value: 65279, name: DTLS10, label: "DTLS 1.0", doc: "0xFEFF", level: must, meta: { rfc: 4347 } }
+      - { value: 65277, name: DTLS12, label: "DTLS 1.2", doc: "0xFEFD", level: must, meta: { rfc: 6347 } }
+    doc: "DTLS protocol version: 0xFEFF=DTLS 1.0, 0xFEFD=DTLS 1.2. Note that DTLS version numbers are inverted relative to TLS (higher wire value = older version)."
   - { id: epoch, name: Epoch, type: { kind: int, bits: 16 }, category: identifier, doc: "Epoch counter incremented each time the cipher state changes (e.g., after a ChangeCipherSpec). Sequence numbers restart from zero at each new epoch. Not present in TLS." }
   - { id: sequenceNumber, name: Sequence Number, type: { kind: int, bits: 48 }, category: identifier, doc: "Per-epoch 48-bit sequence number used for replay detection and reordering. Monotonically increasing within an epoch. Not present in TLS." }
   - { id: length, name: Length, type: { kind: int, bits: 16 }, category: length, doc: "Length in bytes of the DTLSCiphertext fragment that follows this header." }

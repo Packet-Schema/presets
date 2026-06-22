@@ -23,7 +23,7 @@ body:
         name: Type
         type: { kind: int, bits: 8 }
         category: type
-        defaultValue: 2
+        const: 2
         doc: BGP message type. 1 = OPEN, 2 = UPDATE (this preset), 3 = NOTIFICATION, 4 = KEEPALIVE. 5 = ROUTE-REFRESH was added later by RFC 2918. [RFC 4271 §4.1]
   - id: bgpWithdrawnRoutesLength
     name: Withdrawn Routes Length

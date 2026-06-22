@@ -3,35 +3,7 @@ version: "0.5"
 name: CoAP Message
 rowBits: 32
 byteOrder: BE
-description: Constrained Application Protocol message (RFC 7252). A 4-byte fixed header — Version (always 1), Type (CON/NON/ACK/RST), Token Length (0..8; 9..15 are reserved and MUST be treated as a message format error), Code (3-bit Class + 5-bit Detail, e.g. 0.01 GET, 2.05 Content, 4.04 Not Found), and Message ID — followed by a Token of TKL bytes, a chain of TLV Options ordered by absolute Option Number via delta encoding (Uri-Path=11, Content-Format=12, Uri-Query=15, ETag=4, Observe=6 etc.), and (optionally) a 0xFF Payload Marker plus the message Payload. PSDL 0.4 has no comparison operator, so the 13/14/15 magic values on Option Delta and Option Length are unpacked with nested Switches rather than range checks. The fixed 4-byte header carries Ver/T/TKL/Code/Message ID; an optional Token of TKL bytes (0..8) follows; then a chain of Options each prefixed by a 1-byte (Delta<<4 | Length) header with optional 1- or 2-byte extension fields for Delta and Length when the nibble is 13 or 14; the chain ends either at the end of the datagram or at a 0xFF Payload Marker which is followed by the message Payload running to end-of-datagram.
-
-_coap_option_length_variant_13: &coap_option_length_variant_13
-  id: optLen13
-  doc: "Length=13 (extended)"
-  fields:
-    - { id: optLength, name: "Length=13", type: { kind: int, bits: 4 }, category: length, defaultValue: 13, doc: "Length nibble = 13: an additional 1-byte unsigned length follows the option header; the actual Option Length value = (extended byte) + 13, giving the range 13..268. [RFC 7252 §3.1]" }
-    - { id: optLengthExt1, name: Length Extended (1 B), type: { kind: int, bits: 8 }, category: length, doc: "Extended length byte. Actual Option Length = this value + 13 (range 13..268). [RFC 7252 §3.1]" }
-    - id: optValue
-      name: Option Value
-      type: { kind: bytes, n: { kind: ref, field: coapOptValueBytes } }
-      category: variable
-      doc: Option Value, `optLengthExt1 + 13` bytes long. Format is option-specific (empty, uint, opaque, or UTF-8 string per RFC 7252 §3.2). [RFC 7252 §3.1]
-_coap_option_length_variant_14: &coap_option_length_variant_14
-  id: optLen14
-  doc: "Length=14 (extended)"
-  fields:
-    - { id: optLength, name: "Length=14", type: { kind: int, bits: 4 }, category: length, defaultValue: 14, doc: "Length nibble = 14: an additional 2-byte (network order) unsigned length follows the option header; the actual Option Length value = (extended word) + 269, giving the range 269..65804. [RFC 7252 §3.1]" }
-    - { id: optLengthExt2, name: Length Extended (2 B), type: { kind: int, bits: 16 }, category: length, doc: "Extended length word (big-endian). Actual Option Length = this value + 269 (range 269..65804). [RFC 7252 §3.1]" }
-    - id: optValue
-      name: Option Value
-      type: { kind: bytes, n: { kind: ref, field: coapOptValueBytes } }
-      category: variable
-      doc: Option Value, `optLengthExt2 + 269` bytes long. Format is option-specific (empty, uint, opaque, or UTF-8 string per RFC 7252 §3.2). [RFC 7252 §3.1]
-_coap_option_length_variant_15: &coap_option_length_variant_15
-  id: optLen15
-  doc: "Length=15 (reserved)"
-  fields:
-    - { id: optLength, name: "Length=15", type: { kind: int, bits: 4 }, category: reserved, defaultValue: 15, doc: "Length nibble = 15 is reserved for future use. A receiver MUST treat this as a message format error. (The 0xFF byte 'delta=15, length=15' is the Payload Marker and is handled outside the Option Switch.) [RFC 7252 §3.1]" }
+description: Constrained Application Protocol message (RFC 7252). A 4-byte fixed header — Version (always 1), Type (CON/NON/ACK/RST), Token Length (0..8; 9..15 are reserved and MUST be treated as a message format error), Code (3-bit Class + 5-bit Detail, e.g. 0.01 GET, 2.05 Content, 4.04 Not Found), and Message ID — followed by a Token of TKL bytes, a chain of TLV Options ordered by absolute Option Number via delta encoding (Uri-Path=11, Content-Format=12, Uri-Query=15, ETag=4, Observe=6 etc.), and (optionally) a 0xFF Payload Marker plus the message Payload. Each option is prefixed by a 1-byte (Delta<<4 | Length) header; when either nibble is 13 or 14 a 1- or 2-byte extension field carries the high part of that value (13/14 sentinels are unpacked with a switch on the 4-bit nibble per the §3 CoAP note), and the literal value is base+13 or base+269 respectively. The option chain ends either at the end of the datagram or at a 0xFF Payload Marker (Delta=15, Length=15) which is itself not an option; the options repeat therefore terminates on a peek of 0xFF (or end-of-stream), and the marker plus the Payload (running to end-of-datagram) follow as an optional region.
 
 body:
   - kind: group
@@ -103,104 +75,101 @@ body:
     id: options
     name: Options
     category: variable
-    doc: Chain of Option records in ascending Option Number order, encoded as deltas from the previous option's number. Each record is a 1-byte (Delta<<4 | Length) header optionally followed by 1- or 2-byte Delta and Length extensions (when the nibble is 13 or 14). The chain ends at the end of the datagram or at the 0xFF Payload Marker (which is NOT an option — Delta=15 inside an option header is a format error). Common option numbers (RFC 7252 §5.10) — 1 If-Match, 3 Uri-Host, 4 ETag, 5 If-None-Match, 6 Observe (RFC 7641), 7 Uri-Port, 8 Location-Path, 11 Uri-Path, 12 Content-Format, 14 Max-Age, 15 Uri-Query, 17 Accept, 20 Location-Query, 23 Block2 / 27 Block1 (RFC 7959), 28 Size2 / 60 Size1, 35 Proxy-Uri, 39 Proxy-Scheme. [RFC 7252 §3.1 / §5.10]
+    doc: Chain of Option records in ascending Option Number order, encoded as deltas from the previous option's number. Each record is a 1-byte (Delta<<4 | Length) header optionally followed by 1- or 2-byte Delta and Length extensions (when the nibble is 13 or 14), then the Option Value. The chain ends at the end of the datagram or at the 0xFF Payload Marker (which is NOT an option — Delta=15 inside an option header is a format error). The repeat therefore terminates when a peek of the next byte equals 0xFF (the marker), or at end-of-stream. Common option numbers (RFC 7252 §5.10) — 1 If-Match, 3 Uri-Host, 4 ETag, 5 If-None-Match, 6 Observe (RFC 7641), 7 Uri-Port, 8 Location-Path, 11 Uri-Path, 12 Content-Format, 14 Max-Age, 15 Uri-Query, 17 Accept, 20 Location-Query, 23 Block2 / 27 Block1 (RFC 7959), 28 Size2 / 60 Size1, 35 Proxy-Uri, 39 Proxy-Scheme. [RFC 7252 §3.1 / §5.10]
+    count:
+      until: { kind: op, op: "==", a: { kind: peek, bits: 8 }, b: { kind: lit, value: 255 } }
     element:
       id: optionRecord
       fields:
+        - kind: group
+          id: optHeaderByte
+          name: Option Header (Delta | Length)
+          doc: "The 1-byte option header: high nibble = Option Delta, low nibble = Option Length, both interpreted with the 13/14/15 sentinel scheme below. A header byte of 0xFF (Delta=15, Length=15) is the Payload Marker and is never parsed as an option — the enclosing repeat stops on a peek of 0xFF before this iteration begins. [RFC 7252 §3.1]"
+          children:
+            - id: optDelta
+              name: Delta
+              type: { kind: int, bits: 4 }
+              category: length
+              doc: "Option Delta nibble. 0..12 are interpreted literally; 13 means a 1-byte extension follows (actual delta = ext + 13); 14 means a 2-byte big-endian extension follows (actual delta = ext + 269); 15 is reserved inside an option header (a message format error — the 0xFF marker is filtered out by the repeat's until-peek). The absolute Option Number is the running sum of all prior deltas (reconstruction is a codec concern, §4). [RFC 7252 §3.1]"
+              values:
+                - { range: [0, 12], name: literal, label: "Literal delta (no extension)", level: must }
+                - { value: 13, name: ext8, label: "1-byte delta extension follows (+13)", level: must }
+                - { value: 14, name: ext16, label: "2-byte delta extension follows (+269)", level: must }
+                - { value: 15, name: reserved, label: "Reserved (Payload Marker / format error)", level: must }
+            - id: optLength
+              name: Length
+              type: { kind: int, bits: 4 }
+              category: length
+              doc: "Option Length nibble. 0..12 are the literal Option Value byte count; 13 means a 1-byte extension follows (actual length = ext + 13); 14 means a 2-byte big-endian extension follows (actual length = ext + 269); 15 is reserved inside an option header (a message format error). [RFC 7252 §3.1]"
+              values:
+                - { range: [0, 12], name: literal, label: "Literal length (no extension)", level: must }
+                - { value: 13, name: ext8, label: "1-byte length extension follows (+13)", level: must }
+                - { value: 14, name: ext16, label: "2-byte length extension follows (+269)", level: must }
+                - { value: 15, name: reserved, label: "Reserved (Payload Marker / format error)", level: must }
         - kind: switch
           id: byOptDelta
-          on: { kind: ref, field: optDeltaRaw }
-          doc: Outer Switch decoding the Option Delta nibble. Values 0..12 use the same simple shape (no Delta extension); 13 inserts a 1-byte Delta extension; 14 inserts a 2-byte (big-endian) Delta extension; 15 is reserved inside an option header and means message format error (the 0xFF byte with both nibbles = 15 is the Payload Marker, handled below). [RFC 7252 §3.1]
+          on: { kind: ref, field: optDelta }
+          doc: "Reads the Option Delta extension field, if any, selected by the already-parsed Delta nibble. Nibble 13 → 1-byte extension; 14 → 2-byte big-endian extension; all other values (0..12, and the reserved 15) consume no extension. [RFC 7252 §3.1]"
           cases:
             "13":
-              id: optDelta13
-              doc: "Delta=13 (extended)"
+              id: optDeltaExt13
+              doc: "Delta=13: a 1-byte unsigned extension follows."
               fields:
-                - { id: optDeltaRaw, name: "Delta=13", type: { kind: int, bits: 4 }, category: length, defaultValue: 13, doc: "Delta nibble = 13: an additional 1-byte unsigned delta follows; the actual Option Delta = (extended byte) + 13 (range 13..268). [RFC 7252 §3.1]" }
-                - kind: switch
-                  id: byOptLength_d13
-                  on: { kind: ref, field: optLengthRaw }
-                  cases:
-                    "13": *coap_option_length_variant_13
-                    "14": *coap_option_length_variant_14
-                    "15": *coap_option_length_variant_15
-                    "_":
-                      id: optLenSimple_d13
-                      doc: "Length=0..12"
-                      fields:
-                      - { id: optLengthRaw, name: Length, type: { kind: int, bits: 4 }, category: length, doc: "Length nibble 0..12 — interpreted literally as the byte count of Option Value (no extension byte). [RFC 7252 §3.1]" }
-                      - { id: optDeltaExt1, name: Delta Extended (1 B), type: { kind: int, bits: 8 }, category: length, doc: "Extended delta byte. Actual Option Delta = this value + 13. [RFC 7252 §3.1]" }
-                      - id: optValue
-                        name: Option Value
-                        type: { kind: bytes, n: { kind: ref, field: coapOptValueBytes } }
-                        category: variable
-                        doc: Option Value, `optLengthRaw` bytes long. Format is option-specific (empty, uint, opaque, or UTF-8 string per RFC 7252 §3.2). [RFC 7252 §3.1]
+                - { id: optDeltaExt1, name: Delta Extended (1 B), type: { kind: int, bits: 8 }, category: length, doc: "Extended delta byte. Actual Option Delta = this value + 13 (range 13..268). [RFC 7252 §3.1]" }
             "14":
-              id: optDelta14
-              doc: "Delta=14 (extended)"
+              id: optDeltaExt14
+              doc: "Delta=14: a 2-byte big-endian unsigned extension follows."
               fields:
-                - { id: optDeltaRaw, name: "Delta=14", type: { kind: int, bits: 4 }, category: length, defaultValue: 14, doc: "Delta nibble = 14: an additional 2-byte (network order) unsigned delta follows; the actual Option Delta = (extended word) + 269 (range 269..65804). [RFC 7252 §3.1]" }
-                - kind: switch
-                  id: byOptLength_d14
-                  on: { kind: ref, field: optLengthRaw }
-                  cases:
-                    "13": *coap_option_length_variant_13
-                    "14": *coap_option_length_variant_14
-                    "15": *coap_option_length_variant_15
-                    "_":
-                      id: optLenSimple_d14
-                      doc: "Length=0..12"
-                      fields:
-                      - { id: optLengthRaw, name: Length, type: { kind: int, bits: 4 }, category: length, doc: "Length nibble 0..12 — interpreted literally as the byte count of Option Value (no extension byte). [RFC 7252 §3.1]" }
-                      - { id: optDeltaExt2, name: Delta Extended (2 B), type: { kind: int, bits: 16 }, category: length, doc: "Extended delta word (big-endian). Actual Option Delta = this value + 269. [RFC 7252 §3.1]" }
-                      - id: optValue
-                        name: Option Value
-                        type: { kind: bytes, n: { kind: ref, field: coapOptValueBytes } }
-                        category: variable
-                        doc: Option Value, `optLengthRaw` bytes long. Format is option-specific (empty, uint, opaque, or UTF-8 string per RFC 7252 §3.2). [RFC 7252 §3.1]
-            "15":
-              id: optDelta15
-              doc: "Delta=15 (reserved / Payload Marker)"
+                - { id: optDeltaExt2, name: Delta Extended (2 B), type: { kind: int, bits: 16 }, category: length, doc: "Extended delta word (big-endian). Actual Option Delta = this value + 269 (range 269..65804). [RFC 7252 §3.1]" }
+        - kind: switch
+          id: byOptLength
+          on: { kind: ref, field: optLength }
+          doc: "Reads the Option Length extension field, if any, selected by the already-parsed Length nibble. Nibble 13 → 1-byte extension; 14 → 2-byte big-endian extension; all other values consume no extension. [RFC 7252 §3.1]"
+          cases:
+            "13":
+              id: optLenExt13
+              doc: "Length=13: a 1-byte unsigned extension follows."
               fields:
-                - { id: optDeltaRaw, name: "Delta=15", type: { kind: int, bits: 4 }, category: reserved, defaultValue: 15, doc: "Delta nibble = 15 inside an option header is reserved and MUST be processed as a message format error. The byte 0xFF (Delta=15, Length=15) is reserved as the Payload Marker — but it is detected at the option-chain level, not parsed as an option. This case is included so the layout can render a malformed input transparently. [RFC 7252 §3.1]" }
-                - { id: optLengthRaw, name: "Length=15", type: { kind: int, bits: 4 }, category: reserved, defaultValue: 15, doc: "Length nibble = 15 is reserved. With Delta=15 it forms the 0xFF Payload Marker; in any other context it is a format error. [RFC 7252 §3.1]" }
-            "_":
-              id: optDeltaSimple
-              doc: "Delta=0..12"
+                - { id: optLengthExt1, name: Length Extended (1 B), type: { kind: int, bits: 8 }, category: length, doc: "Extended length byte. Actual Option Length = this value + 13 (range 13..268). [RFC 7252 §3.1]" }
+            "14":
+              id: optLenExt14
+              doc: "Length=14: a 2-byte big-endian unsigned extension follows."
               fields:
-                - { id: optDeltaRaw, name: Delta, type: { kind: int, bits: 4 }, category: length, doc: "Delta nibble 0..12 — interpreted literally; the absolute Option Number = previous option's number + this delta (initial 'previous' is 0). [RFC 7252 §3.1]" }
-                - kind: switch
-                  id: byOptLength
-                  on: { kind: ref, field: optLengthRaw }
-                  cases:
-                    "13": *coap_option_length_variant_13
-                    "14": *coap_option_length_variant_14
-                    "15": *coap_option_length_variant_15
-                    "_":
-                      id: optLenSimple
-                      doc: "Length=0..12"
-                      fields:
-                        - { id: optLengthRaw, name: Length, type: { kind: int, bits: 4 }, category: length, doc: "Length nibble 0..12 — interpreted literally as the byte count of Option Value (no extension byte). [RFC 7252 §3.1]" }
-                        - id: optValue
-                          name: Option Value
-                          type: { kind: bytes, n: { kind: ref, field: coapOptValueBytes } }
-                          category: variable
-                          doc: Option Value, `optLengthRaw` bytes long. Format is option-specific (empty, uint, opaque, or UTF-8 string per RFC 7252 §3.2). [RFC 7252 §3.1]
-    count: { kind: ref, field: options_count }
+                - { id: optLengthExt2, name: Length Extended (2 B), type: { kind: int, bits: 16 }, category: length, doc: "Extended length word (big-endian). Actual Option Length = this value + 269 (range 269..65804). [RFC 7252 §3.1]" }
+        - kind: virtual
+          id: optValueBytes
+          name: Option Value length
+          doc: "Decode-time Option Value byte count, derived from the Length nibble and its extension: nibble 13 → optLengthExt1 + 13; nibble 14 → optLengthExt2 + 269; otherwise the literal nibble value. Absent extension fields seed to 0, so the literal branch reduces to optLength. [RFC 7252 §3.1]"
+          expr:
+            kind: cond
+            test: { kind: op, op: "==", a: { kind: ref, field: optLength }, b: { kind: lit, value: 13 } }
+            t: { kind: op, op: "+", a: { kind: ref, field: optLengthExt1 }, b: { kind: lit, value: 13 } }
+            f:
+              kind: cond
+              test: { kind: op, op: "==", a: { kind: ref, field: optLength }, b: { kind: lit, value: 14 } }
+              t: { kind: op, op: "+", a: { kind: ref, field: optLengthExt2 }, b: { kind: lit, value: 269 } }
+              f: { kind: ref, field: optLength }
+        - id: optValue
+          name: Option Value
+          type: { kind: bytes, n: { kind: ref, field: optValueBytes } }
+          category: variable
+          doc: "Option Value, optValueBytes bytes long (0..65804). Format is option-specific — empty, uint, opaque, or UTF-8 string per RFC 7252 §3.2. [RFC 7252 §3.1]"
   - kind: optional
-    when: { kind: ref, field: coapHasPayload }
+    when: { kind: op, op: "==", a: { kind: peek, bits: 8 }, b: { kind: lit, value: 255 } }
     container:
-      id: payloadMarker
-      name: Payload Marker
-      type: { kind: int, bits: 8 }
-      category: payload-marker
-      defaultValue: 255
-      doc: "Single byte 0xFF marking the end of the Options chain and the start of the Payload. Present only when the message carries a payload; the absence of this marker denotes a zero-length payload. A marker followed by a zero-length payload MUST be processed as a message format error. Because 0xFF can also occur inside an option length or value, a parser cannot simply byte-scan for it — Options must be parsed in order. [RFC 7252 §3]"
-  - kind: optional
-    when: { kind: ref, field: coapHasPayload }
-    container:
-      id: payload
+      kind: group
+      id: payloadRegion
       name: Payload
-      type: { kind: bytes, n: { kind: ref, field: coapPayloadBytes } }
-      category: variable
-      doc: "Message Payload, running from immediately after the 0xFF marker to the end of the UDP datagram (or DTLS record). The payload's media type and encoding are described by the Content-Format option (number 12); its semantics depend on the request method or response code. CoAP does NOT carry a payload length in the message — `coapPayloadBytes` here is supplied by the transport. [RFC 7252 §3 / §5.5]"
+      doc: "End of the Options chain. Present only when the next byte is the 0xFF Payload Marker; its absence denotes a zero-length payload (and no marker). A marker followed by a zero-length payload MUST be processed as a message format error. Because 0xFF can also occur inside an option length or value, the marker is found by parsing Options in order, not by byte-scanning. [RFC 7252 §3]"
+      children:
+        - id: payloadMarker
+          name: Payload Marker
+          type: { kind: int, bits: 8 }
+          category: payload-marker
+          const: 255
+          doc: "Single byte 0xFF marking the end of the Options chain and the start of the Payload. [RFC 7252 §3]"
+        - id: payload
+          name: Payload
+          type: { kind: bytes, n: { kind: remaining } }
+          category: variable
+          doc: "Message Payload, running from immediately after the 0xFF marker to the end of the UDP datagram (or DTLS record). The payload's media type and encoding are described by the Content-Format option (number 12); its semantics depend on the request method or response code. CoAP carries no payload length in the message, so the payload consumes all remaining bytes of the decoder-supplied datagram. [RFC 7252 §3 / §5.5]"

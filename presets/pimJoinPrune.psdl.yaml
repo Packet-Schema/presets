@@ -10,12 +10,16 @@ body:
     type: { kind: int, bits: 4 }
     category: type
     defaultValue: 2
+    values:
+      - { value: 2, name: PIMv2, label: "PIM version 2", level: must, meta: { rfc: 7761, section: "4.9" } }
     doc: PIM protocol version number. Always 2 for PIM-SM as defined in RFC 7761. [RFC 7761 §4.9]
   - id: pimType
     name: Type
     type: { kind: int, bits: 4 }
     category: type
     defaultValue: 3
+    values:
+      - { value: 3, name: JoinPrune, label: "Join/Prune", level: must, meta: { rfc: 7761, section: "4.9.5" } }
     doc: >-
       PIM message type. 3 = Join/Prune (this preset). Other values: 0=Hello, 1=Register, 2=Register-Stop, 4=Bootstrap, 5=Assert, 8=Candidate-RP-Advertisement. [RFC 7761 §4.9]
   - id: pimReserved
@@ -64,6 +68,9 @@ body:
     type: { kind: int, bits: 16 }
     category: identifier
     defaultValue: 210
+    values:
+      - { value: 0, name: CancelNow, label: "Cancel Join/Prune state immediately" }
+      - { value: 65535, name: Infinity, label: "Hold state forever" }
     doc: Time in seconds for which the receiver MUST keep the Join/Prune state alive in the absence of further Join/Prune messages. 0 means the state should be cancelled immediately (equivalent to sending only Prune entries). The typical default is 210 seconds (3.5 × Join/Prune Interval of 60 s). 0xFFFF means infinity. [RFC 7761 §4.9.5]
   - kind: repeat
     id: pimGroupRecords
@@ -158,6 +165,8 @@ body:
                     name: S
                     type: { kind: bits, n: 1 }
                     category: flags
+                    values:
+                      - { value: 1, name: Sparse, label: "Sparse-mode tree", level: must, meta: { rfc: 7761, section: "4.9.1" } }
                     doc: Sparse bit. When set, the source is on a PIM-SM (sparse-mode) tree. MUST be 1 in all PIM-SM Join/Prune messages. [RFC 7761 §4.9.1]
                   - id: jSrcW
                     name: W
@@ -213,6 +222,8 @@ body:
                     name: S
                     type: { kind: bits, n: 1 }
                     category: flags
+                    values:
+                      - { value: 1, name: Sparse, label: "Sparse-mode tree", level: must, meta: { rfc: 7761, section: "4.9.1" } }
                     doc: Sparse bit. When set, the source is on a PIM-SM sparse-mode tree. MUST be 1 in PIM-SM Join/Prune messages. [RFC 7761 §4.9.1]
                   - id: pSrcW
                     name: W

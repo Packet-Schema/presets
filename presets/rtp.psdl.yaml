@@ -25,3 +25,20 @@ body:
       id: csrcEntry
       fields:
         - { id: csrc, name: CSRC, type: { kind: int, bits: 32 }, category: identifier, doc: "Contributing Source Identifier; identifies a contributing source to the payload of the packet." }
+  - kind: optional
+    id: headerExtension
+    when: { kind: ref, field: x }
+    meta: { rfc: 3550, section: "5.3.1" }
+    container:
+      kind: group
+      id: rtpExtension
+      name: Header Extension
+      doc: "Present only when the X bit is set. Exactly one header extension follows the CSRC list. [RFC 3550 §5.3.1]"
+      children:
+        - { id: extProfile, name: Defined By Profile, type: { kind: int, bits: 16 }, category: identifier, doc: "Profile-defined 16-bit field used to distinguish identifiers or parameters; its meaning is defined by the RTP profile in use. [RFC 3550 §5.3.1]" }
+        - { id: extLength, name: Length, type: { kind: int, bits: 16 }, category: length, doc: "Length of the extension in 32-bit words, NOT counting the four-octet extension header (the Defined By Profile and Length fields). A length of 0 is permitted. [RFC 3550 §5.3.1]" }
+        - id: extData
+          name: Extension Data
+          type: { kind: bytes, n: { kind: op, op: "*", a: { kind: ref, field: extLength }, b: { kind: lit, value: 4 } } }
+          category: variable
+          doc: "Header extension payload, extLength * 4 bytes (extLength 32-bit words). Format is profile-defined. [RFC 3550 §5.3.1]"

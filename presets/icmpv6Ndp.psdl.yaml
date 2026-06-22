@@ -84,7 +84,7 @@ body:
               fields:
                 - kind: switch
                   id: rsByOptType
-                  on: { kind: ref, field: ndpOptType }
+                  on: { kind: peek, bits: 8 }
                   cases:
                     "1":
                       id: ndpOptSourceLinkAddr
@@ -133,7 +133,7 @@ body:
                         - { id: ndpOptType, name: Type, type: { kind: int, bits: 8 }, category: type, doc: "Type of an NDP option not catalogued in this preset. Receivers MUST silently ignore options with an unrecognized Type. [RFC 4861 §4.6]" }
                         - { id: ndpOptLength, name: Length, type: { kind: int, bits: 8 }, category: length, doc: "Option length in units of 8 octets (including the 2-byte Type+Length header); the Value below is therefore ndpOptLength*8 - 2 octets. A Length of 0 is invalid. [RFC 4861 §4.6]" }
                         - { id: ndpOptValue, name: Value, type: { kind: bytes, n: { kind: op, op: "-", a: { kind: op, op: "*", a: { kind: ref, field: ndpOptLength }, b: { kind: lit, value: 8 } }, b: { kind: lit, value: 2 } } }, category: variable, doc: "Opaque body of an NDP option whose Type is not modelled here; ndpOptLength*8 - 2 octets. [RFC 4861 §4.6]" }
-            count: { kind: ref, field: rsOptions_count }
+            count: eos
       "134":
         id: routerAdvertisement
         doc: Router Advertisement
@@ -159,7 +159,7 @@ body:
               fields:
                 - kind: switch
                   id: raByOptType
-                  on: { kind: ref, field: ndpOptType }
+                  on: { kind: peek, bits: 8 }
                   cases:
                     "1":
                       id: ndpOptSourceLinkAddr
@@ -208,7 +208,7 @@ body:
                         - { id: ndpOptType, name: Type, type: { kind: int, bits: 8 }, category: type, doc: "Type of an NDP option not catalogued in this preset. Receivers MUST silently ignore unrecognized option types. [RFC 4861 §4.6]" }
                         - { id: ndpOptLength, name: Length, type: { kind: int, bits: 8 }, category: length, doc: "Option length in units of 8 octets (including the 2-byte Type+Length header); the Value below is ndpOptLength*8 - 2 octets. [RFC 4861 §4.6]" }
                         - { id: ndpOptValue, name: Value, type: { kind: bytes, n: { kind: op, op: "-", a: { kind: op, op: "*", a: { kind: ref, field: ndpOptLength }, b: { kind: lit, value: 8 } }, b: { kind: lit, value: 2 } } }, category: variable, doc: "Opaque body of an NDP option whose Type is not modelled here; ndpOptLength*8 - 2 octets. [RFC 4861 §4.6]" }
-            count: { kind: ref, field: raOptions_count }
+            count: eos
       "135":
         id: neighborSolicitation
         doc: Neighbor Solicitation
@@ -225,7 +225,7 @@ body:
               fields:
                 - kind: switch
                   id: nsByOptType
-                  on: { kind: ref, field: ndpOptType }
+                  on: { kind: peek, bits: 8 }
                   cases:
                     "1":
                       id: ndpOptSourceLinkAddr
@@ -274,7 +274,7 @@ body:
                         - { id: ndpOptType, name: Type, type: { kind: int, bits: 8 }, category: type, doc: "Type of an NDP option not catalogued in this preset. Receivers MUST silently ignore unrecognized option types. [RFC 4861 §4.6]" }
                         - { id: ndpOptLength, name: Length, type: { kind: int, bits: 8 }, category: length, doc: "Option length in units of 8 octets (including the 2-byte Type+Length header); the Value below is ndpOptLength*8 - 2 octets. [RFC 4861 §4.6]" }
                         - { id: ndpOptValue, name: Value, type: { kind: bytes, n: { kind: op, op: "-", a: { kind: op, op: "*", a: { kind: ref, field: ndpOptLength }, b: { kind: lit, value: 8 } }, b: { kind: lit, value: 2 } } }, category: variable, doc: "Opaque body of an NDP option whose Type is not modelled here; ndpOptLength*8 - 2 octets. [RFC 4861 §4.6]" }
-            count: { kind: ref, field: nsOptions_count }
+            count: eos
       "136":
         id: neighborAdvertisement
         doc: Neighbor Advertisement
@@ -298,7 +298,7 @@ body:
               fields:
                 - kind: switch
                   id: naByOptType
-                  on: { kind: ref, field: ndpOptType }
+                  on: { kind: peek, bits: 8 }
                   cases:
                     "1":
                       id: ndpOptSourceLinkAddr
@@ -347,7 +347,7 @@ body:
                         - { id: ndpOptType, name: Type, type: { kind: int, bits: 8 }, category: type, doc: "Type of an NDP option not catalogued in this preset. Receivers MUST silently ignore unrecognized option types. [RFC 4861 §4.6]" }
                         - { id: ndpOptLength, name: Length, type: { kind: int, bits: 8 }, category: length, doc: "Option length in units of 8 octets (including the 2-byte Type+Length header); the Value below is ndpOptLength*8 - 2 octets. [RFC 4861 §4.6]" }
                         - { id: ndpOptValue, name: Value, type: { kind: bytes, n: { kind: op, op: "-", a: { kind: op, op: "*", a: { kind: ref, field: ndpOptLength }, b: { kind: lit, value: 8 } }, b: { kind: lit, value: 2 } } }, category: variable, doc: "Opaque body of an NDP option whose Type is not modelled here; ndpOptLength*8 - 2 octets. [RFC 4861 §4.6]" }
-            count: { kind: ref, field: naOptions_count }
+            count: eos
       "137":
         id: redirect
         doc: Redirect
@@ -365,7 +365,7 @@ body:
               fields:
                 - kind: switch
                   id: rdByOptType
-                  on: { kind: ref, field: ndpOptType }
+                  on: { kind: peek, bits: 8 }
                   cases:
                     "1":
                       id: ndpOptSourceLinkAddr
@@ -414,13 +414,13 @@ body:
                         - { id: ndpOptType, name: Type, type: { kind: int, bits: 8 }, category: type, doc: "Type of an NDP option not catalogued in this preset (e.g. 4 Redirected Header). Receivers MUST silently ignore unrecognized option types. [RFC 4861 §4.6]" }
                         - { id: ndpOptLength, name: Length, type: { kind: int, bits: 8 }, category: length, doc: "Option length in units of 8 octets (including the 2-byte Type+Length header); the Value below is ndpOptLength*8 - 2 octets. [RFC 4861 §4.6]" }
                         - { id: ndpOptValue, name: Value, type: { kind: bytes, n: { kind: op, op: "-", a: { kind: op, op: "*", a: { kind: ref, field: ndpOptLength }, b: { kind: lit, value: 8 } }, b: { kind: lit, value: 2 } } }, category: variable, doc: "Opaque body of an NDP option whose Type is not modelled here; ndpOptLength*8 - 2 octets. For type 4 (Redirected Header) this is 6 reserved octets followed by the original IP packet. [RFC 4861 §4.6.3]" }
-            count: { kind: ref, field: rdOptions_count }
+            count: eos
       "_":
         id: ndpUnknown
         doc: Unknown ICMPv6 Body
         fields:
           - id: ndpOpaque
             name: Body
-            type: { kind: bytes, n: { kind: ref, field: ndpOpaqueBytes } }
+            type: { kind: bytes, n: { kind: remaining } }
             category: variable
             doc: "Opaque message body for an ICMPv6 Type not modelled by this Neighbor Discovery preset. The five NDP types (133-137) are decoded above; other ICMPv6 types (e.g. 1 Destination Unreachable, 128/129 Echo) are covered by the dedicated ICMPv6 preset. [RFC 4443 / RFC 4861]"

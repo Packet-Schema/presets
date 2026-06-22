@@ -16,7 +16,24 @@ body:
     name: Flags
     children:
       - { id: res, name: Reserved, type: { kind: int, bits: 3 }, category: reserved, doc: "Reserved bits; must be set to zero by senders and ignored by receivers." }
-      - { id: type, name: Type, type: { kind: int, bits: 4 }, category: type, doc: "Packet type: 0=Request, 1=Response, 2=Data, 3=Ack, 4=DataAck, 5=CloseReq, 6=Close, 7=Reset, 8=Sync, 9=SyncAck." }
+      - id: type
+        name: Type
+        type:
+          kind: enum
+          bits: 4
+          variants:
+            0: "Request (DCCP-Request)"
+            1: "Response (DCCP-Response)"
+            2: "Data (DCCP-Data)"
+            3: "Ack (DCCP-Ack)"
+            4: "DataAck (DCCP-DataAck)"
+            5: "CloseReq (DCCP-CloseReq)"
+            6: "Close (DCCP-Close)"
+            7: "Reset (DCCP-Reset)"
+            8: "Sync (DCCP-Sync)"
+            9: "SyncAck (DCCP-SyncAck)"
+        category: type
+        doc: "Packet type. 0=Request, 1=Response, 2=Data, 3=Ack, 4=DataAck, 5=CloseReq, 6=Close, 7=Reset, 8=Sync, 9=SyncAck; types 10-15 are reserved and MUST NOT be sent. [RFC 4340 §5.1]"
       - { id: x, name: X, type: { kind: int, bits: 1 }, category: flags, doc: "Extended sequence numbers flag: 0 uses 24-bit sequence numbers, 1 uses 48-bit sequence numbers." }
   - kind: switch
     id: seqNum

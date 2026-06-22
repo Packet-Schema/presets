@@ -18,11 +18,17 @@ body:
         name: Length
         type: { kind: int, bits: 16 }
         category: length
-        defaultValue: 19
+        const: 19
         doc: Total length of the BGP message in octets, including this 19-byte Common Header. For KEEPALIVE this field is always 19 — there is no message body. Must not exceed 4096. [RFC 4271 §4.1 §4.4]
       - id: bgpType
         name: Type
         type: { kind: int, bits: 8 }
         category: type
-        defaultValue: 4
+        const: 4
+        meta: { rfc: 4271, section: "4.1" }
         doc: BGP message type. 1 = OPEN, 2 = UPDATE, 3 = NOTIFICATION, 4 = KEEPALIVE (this preset). Sent at intervals no greater than the Hold Time negotiated in OPEN to keep the session alive and reset the peer's Hold Timer. [RFC 4271 §4.1 §4.4]
+        values:
+          - { value: 1, name: OPEN, label: OPEN, meta: { rfc: 4271, section: "4.2" } }
+          - { value: 2, name: UPDATE, label: UPDATE, meta: { rfc: 4271, section: "4.3" } }
+          - { value: 3, name: NOTIFICATION, label: NOTIFICATION, meta: { rfc: 4271, section: "4.5" } }
+          - { value: 4, name: KEEPALIVE, label: KEEPALIVE, level: must, meta: { rfc: 4271, section: "4.4" } }

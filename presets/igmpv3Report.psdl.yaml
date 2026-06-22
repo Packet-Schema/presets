@@ -9,6 +9,7 @@ body:
     name: Type
     type: { kind: int, bits: 8 }
     category: type
+    const: 34
     doc: IGMP message type. Fixed to 0x22 (decimal 34) for IGMPv3 Membership Report. Routers use this field to distinguish IGMPv3 Reports (0x22) from Membership Queries (0x11), IGMPv1/v2 Reports (0x12, 0x16), and Leave Group (0x17). [RFC 3376 §4.2]
   - id: igmpv3Reserved1
     name: Reserved

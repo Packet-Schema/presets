@@ -3,7 +3,11 @@ version: "0.5"
 name: TWAMP-Test (Sender)
 rowBits: 32
 byteOrder: BE
-description: "Two-Way Active Measurement Protocol (TWAMP) Test packet — Sender format, unauthenticated mode (RFC 5357). TWAMP provides two-way IP performance measurements (delay, jitter, packet loss) by combining a control session (TWAMP-Control, TCP port 862) with one-way test streams (TWAMP-Test, UDP). In unauthenticated mode the Sender packet contains a 32-bit Sequence Number, a 64-bit NTP Timestamp, a 16-bit Error Estimate, 16 bits of MBZ (Must Be Zero), and zero or more padding bytes whose count is supplied externally via twampPadBytes. The Reflector echoes this data together with additional timestamp and TTL fields (not shown here)."
+description: "Two-Way Active Measurement Protocol (TWAMP) Test packet — Sender format, unauthenticated mode (RFC 5357). TWAMP provides two-way IP performance measurements (delay, jitter, packet loss) by combining a control session (TWAMP-Control, TCP port 862) with one-way test streams (TWAMP-Test, UDP). In unauthenticated mode the Sender packet contains a 32-bit Sequence Number, a 64-bit NTP Timestamp, a 16-bit Error Estimate, and zero or more trailing padding bytes that pad the packet up to the Padding Length negotiated during TWAMP-Control setup; the padding therefore runs to the end of the UDP datagram and is consumed as the remaining bytes of the packet. The Reflector echoes this data together with additional timestamp and TTL fields (not shown here)."
+meta:
+  rfc: { defined: 5357 }
+  section: "4.1.2"
+  aliases: [twamp, twamp-test]
 
 body:
   - id: twampSeqNumber
@@ -33,14 +37,8 @@ body:
     category: variable
     doc: "Estimate of the error and uncertainty of the associated timestamp. Bit 15 (S) selects the timescale (1=NTP, 0=PTP/other); bit 14 (Z) MUST be zero; bits 13-8 carry a base-2 scale exponent; bits 7-0 carry a multiplier. The product of multiplier and 2^scale gives the estimated one-way error in seconds. [RFC 5357 §4.1.2]"
 
-  - id: twampMBZ
-    name: MBZ
-    type: { kind: int, bits: 16 }
-    category: reserved
-    doc: "Must Be Zero (MBZ). These 16 bits MUST be set to zero by the Sender and MUST be ignored by the Reflector. Reserved for future use in unauthenticated mode. [RFC 5357 §4.1.2]"
-
   - id: twampPadding
     name: Padding
-    type: { kind: bytes, n: { kind: ref, field: twampPadBytes } }
+    type: { kind: bytes, n: { kind: remaining } }
     category: payload-marker
-    doc: "Zero-filled padding bytes appended after the fixed fields to reach the desired test packet size. The count twampPadBytes is supplied externally from the Session-Sender port configuration negotiated during TWAMP-Control setup. When zero, no padding is present and the packet is exactly 16 bytes. [RFC 5357 §4.1.2]"
+    doc: "Zero-filled packet padding appended after the fixed fields to reach the test packet size negotiated during TWAMP-Control setup (the Session-Sender Padding Length). The TWAMP-Test packet carries no on-wire padding-length field, so the padding runs from immediately after the Error Estimate to the end of the UDP datagram and is consumed as the remaining bytes of the packet. When the negotiated padding is zero, no padding is present and the packet is exactly 14 bytes (Sequence Number 4 + Timestamp 8 + Error Estimate 2), the minimum data segment length in unauthenticated mode. [RFC 5357 §4.1.2, RFC 4656 §4.1.2]"

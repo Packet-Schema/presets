@@ -63,7 +63,10 @@ body:
       kind: int
       bits: 16
     category: flags
-    doc: "Flags field. In RFC 951 this field was unused and set to zero. RFC 1542 later defined bit 15 (the most-significant bit) as the Broadcast flag (B): when set, the server and relay agents are instructed to broadcast the reply rather than unicast it. Bits 0–14 are reserved and MUST be zero. [RFC 951 §3, RFC 1542 §2.1]"
+    meta: { rfc: { defined: 951, updates: [{ rfc: 1542, section: "2.2" }] }, section: "3" }
+    values:
+      - { pattern: "1xxxxxxxxxxxxxxx", name: B, label: "Broadcast", doc: "RFC 1542 §2.2: server/relay must broadcast the reply", level: may, meta: { rfc: 1542, section: "2.2" } }
+    doc: "Flags field. In RFC 951 this field was unused and set to zero. RFC 1542 later defined bit 15 (the most-significant bit) as the Broadcast flag (B): when set, the server and relay agents are instructed to broadcast the reply rather than unicast it. Bits 0–14 are reserved and MUST be zero. [RFC 951 §3, RFC 1542 §2.2]"
 
   - id: ciaddr
     name: CIAddr
@@ -111,7 +114,8 @@ body:
       kind: bytes
       n: { kind: lit, value: 64 }
     category: variable
-    doc: "Optional server host name, a null-terminated ASCII string. The server fills this in if known; clients may use it to choose among multiple BOOTP servers. 64 bytes, zero-padded. May be overloaded by DHCP option overloading (RFC 2132 §9.3). [RFC 951 §3]"
+    display: ascii
+    doc: "Optional server host name, a null-terminated ASCII string. The server fills this in if known; clients may use it to choose among multiple BOOTP servers. This is a fixed 64-byte field (the name is NUL-terminated and zero-padded to 64 bytes), not a delimiter-framed string. May be overloaded by DHCP option overloading (RFC 2132 §9.3). [RFC 951 §3]"
 
   - id: file
     name: File
@@ -119,7 +123,8 @@ body:
       kind: bytes
       n: { kind: lit, value: 128 }
     category: variable
-    doc: "Boot file name, a null-terminated ASCII string specifying the path on the boot server from which the client should download its boot image (e.g., via TFTP). 128 bytes, zero-padded. May be overloaded by DHCP option overloading (RFC 2132 §9.3). [RFC 951 §3]"
+    display: ascii
+    doc: "Boot file name, a null-terminated ASCII string specifying the path on the boot server from which the client should download its boot image (e.g., via TFTP). This is a fixed 128-byte field (the name is NUL-terminated and zero-padded to 128 bytes), not a delimiter-framed string. May be overloaded by DHCP option overloading (RFC 2132 §9.3). [RFC 951 §3]"
 
   - id: vend
     name: Vend

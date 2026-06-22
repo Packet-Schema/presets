@@ -24,13 +24,27 @@ body:
         name: Type
         type: { kind: int, bits: 8 }
         category: type
-        defaultValue: 3
+        const: 3
+        meta: { rfc: 4271, section: "4.1" }
         doc: BGP message type. 1 = OPEN, 2 = UPDATE, 3 = NOTIFICATION (this preset), 4 = KEEPALIVE. [RFC 4271 §4.1]
+        values:
+          - { value: 1, name: OPEN, label: OPEN, meta: { rfc: 4271, section: "4.2" } }
+          - { value: 2, name: UPDATE, label: UPDATE, meta: { rfc: 4271, section: "4.3" } }
+          - { value: 3, name: NOTIFICATION, label: NOTIFICATION, level: must, meta: { rfc: 4271, section: "4.5" } }
+          - { value: 4, name: KEEPALIVE, label: KEEPALIVE, meta: { rfc: 4271, section: "4.4" } }
   - id: errorCode
     name: Error Code
     type: { kind: int, bits: 8 }
     category: type
+    meta: { rfc: 4271, section: "4.5" }
     doc: "Indicates the type of NOTIFICATION. Defined values: 1 = Message Header Error (malformed header — Bad Message Length, Bad Message Type, etc.), 2 = OPEN Message Error (problem in OPEN — Unsupported Version Number, Bad Peer AS, Bad BGP Identifier, etc.), 3 = UPDATE Message Error (malformed UPDATE — Malformed Attribute List, Unrecognized Well-known Attribute, Missing Well-known Attribute, etc.), 4 = Hold Timer Expired (the Hold Timer expired before a KEEPALIVE or UPDATE was received), 5 = Finite State Machine Error (unexpected event in the BGP FSM), 6 = Cease (administrative shutdown or max-prefix limit reached; subcodes defined in RFC 4486). [RFC 4271 §4.5 / §6]"
+    values:
+      - { value: 1, name: MSG_HEADER_ERR, label: Message Header Error, meta: { rfc: 4271, section: "6.1" } }
+      - { value: 2, name: OPEN_MSG_ERR, label: OPEN Message Error, meta: { rfc: 4271, section: "6.2" } }
+      - { value: 3, name: UPDATE_MSG_ERR, label: UPDATE Message Error, meta: { rfc: 4271, section: "6.3" } }
+      - { value: 4, name: HOLD_TIMER_EXPIRED, label: Hold Timer Expired, meta: { rfc: 4271, section: "6.5" } }
+      - { value: 5, name: FSM_ERR, label: Finite State Machine Error, meta: { rfc: 4271, section: "6.6" } }
+      - { value: 6, name: CEASE, label: Cease, meta: { rfc: { defined: 4271, updates: [4486, 8538] }, section: "6.7" } }
   - id: errorSubcode
     name: Error Subcode
     type: { kind: int, bits: 8 }

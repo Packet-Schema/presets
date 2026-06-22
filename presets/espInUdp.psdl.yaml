@@ -4,6 +4,9 @@ name: UDP Encapsulation of IPsec ESP (NAT-T)
 rowBits: 32
 byteOrder: BE
 description: "UDP Encapsulation of IPsec ESP packets for NAT Traversal (RFC 3948). When an IPsec peer is behind a Network Address Translator (NAT), the NAT rewrites the outer IP source address and port, which would normally break ESP's integrity check and prevent demultiplexing of IKE vs. ESP traffic. RFC 3948 solves this by wrapping ESP inside a UDP datagram on port 4500 (for both source and destination). An SPI value of 0 in the ESP header is a sentinel indicating that the UDP payload is an IKE message rather than an ESP packet (since valid ESP SPIs are always non-zero); non-zero SPI identifies a normal ESP-encrypted data packet. The fixed overhead is 8 bytes (UDP header) + 8 bytes (ESP header) = 16 bytes before the encrypted payload."
+meta:
+  rfc: 3948
+  section: "2"
 body:
   - id: srcPort
     name: Source Port
@@ -43,6 +46,12 @@ body:
 
   - id: espPayload
     name: Payload Data (Encrypted)
-    type: { kind: bytes, n: { kind: ref, field: espUdpPayloadBytes } }
+    type:
+      kind: bytes
+      n:
+        kind: op
+        op: "-"
+        a: { kind: ref, field: udpLength }
+        b: { kind: lit, value: 16 }
     category: payload-marker
-    doc: "Encrypted ESP payload bytes. Contains the ciphertext produced by the negotiated encryption algorithm (e.g. AES-GCM, AES-CBC, ChaCha20-Poly1305). In Transport mode the original upper-layer PDU (TCP/UDP datagram) is encrypted; in Tunnel mode the entire inner IP datagram is encrypted. Also includes any padding, the Pad Length byte, the Next Header byte, and the Integrity Check Value (ICV/authentication tag) — all of which are opaque to a passive observer. The total encapsulated length equals udpLength minus 8 (UDP header) minus 8 (SPI + Sequence Number). [RFC 4303 §2.4, RFC 3948 §2]"
+    doc: "Encrypted ESP payload bytes. Contains the ciphertext produced by the negotiated encryption algorithm (e.g. AES-GCM, AES-CBC, ChaCha20-Poly1305). In Transport mode the original upper-layer PDU (TCP/UDP datagram) is encrypted; in Tunnel mode the entire inner IP datagram is encrypted. Also includes any padding, the Pad Length byte, the Next Header byte, and the Integrity Check Value (ICV/authentication tag) — all of which are opaque to a passive observer. The payload byte count is derived from the on-wire UDP Length field: udpLength minus 8 (UDP header) minus 8 (SPI + Sequence Number) = udpLength − 16. [RFC 4303 §2.4, RFC 3948 §2]"

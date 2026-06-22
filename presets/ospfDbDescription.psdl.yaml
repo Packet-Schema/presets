@@ -127,52 +127,58 @@ body:
     type: { kind: int, bits: 32 }
     category: identifier
     doc: Used to sequence the collection of Database Description packets. The master sets the initial value (typically a unique, increasing number) in the first I-bit packet and increments it for each subsequent packet; the slave echoes the master's number. Guarantees reliable, ordered exchange. [RFC 2328 §A.3.3]
-  - kind: repeat
-    id: lsaHeaders
+  - kind: bounded
+    id: lsaHeaderList
     name: LSA Header List
-    category: variable
-    doc: Zero or more 20-byte LSA headers describing the contents of the originator's link-state database. The header alone is sufficient to identify an LSA and decide whether the receiver's copy is up to date during the Database Exchange. [RFC 2328 §A.3.3 / §A.4.1]
-    element:
-      id: lsaHeaderRecord
-      fields:
-        - id: lsAge
-          name: LS Age
-          type: { kind: int, bits: 16 }
-          category: identifier
-          doc: Time in seconds since the LSA was originated. Used together with the LS Sequence Number to determine which of two instances is more recent. [RFC 2328 §A.4.1]
-        - id: lsaOptions
-          name: Options
-          type: { kind: int, bits: 8 }
-          category: flags
-          doc: Optional capabilities supported by the described portion of the routing domain, encoded with the same bit assignments as the common Options field. [RFC 2328 §A.4.1]
-        - id: lsType
-          name: LS Type
-          type: { kind: int, bits: 8 }
-          category: type
-          doc: LSA type. 1=Router-LSA, 2=Network-LSA, 3=Summary-LSA (IP network), 4=Summary-LSA (ASBR), 5=AS-external-LSA. [RFC 2328 §A.4.1]
-        - id: linkStateId
-          name: Link State ID
-          type: { kind: int, bits: 32 }
-          category: identifier
-          doc: Identifies the portion of the routing domain being described by the LSA; its exact meaning depends on the LS Type (e.g. Router ID for Router-LSAs, IP network number for Summary-LSAs). [RFC 2328 §A.4.1]
-        - id: advertisingRouter
-          name: Advertising Router
-          type: { kind: int, bits: 32 }
-          category: identifier
-          doc: Router ID of the router that originated the LSA (dotted-quad on the wire). [RFC 2328 §A.4.1]
-        - id: lsSeqNum
-          name: LS Sequence Number
-          type: { kind: int, bits: 32 }
-          category: identifier
-          doc: Signed 32-bit number incremented each time the LSA is re-originated, used to detect old or duplicate instances. Larger numbers are more recent. [RFC 2328 §A.4.1]
-        - id: lsChecksum
-          name: LS Checksum
-          type: { kind: int, bits: 16 }
-          category: checksum
-          doc: Fletcher checksum over the complete contents of the LSA excluding the LS Age field. [RFC 2328 §A.4.1]
-        - id: lsaLength
-          name: Length
-          type: { kind: int, bits: 16 }
-          category: length
-          doc: Length in bytes of the LSA, including the 20-byte LSA header. [RFC 2328 §A.4.1]
-    count: { kind: ref, field: ospfLsaHeaderCount }
+    doc: Length-delimited region holding the list of LSA headers. Its byte budget is the OSPF Packet Length minus the 24-byte common header and the 8-byte fixed DD body (Interface MTU, Options, DD flags, DD Sequence Number), i.e. packetLength − 32; the contained repeat runs to the end of this region. [RFC 2328 §A.3.3]
+    bytes: { kind: op, op: "-", a: { kind: ref, field: packetLength }, b: { kind: lit, value: 32 } }
+    fields:
+      - kind: repeat
+        id: lsaHeaders
+        name: LSA Headers
+        category: variable
+        doc: Zero or more 20-byte LSA headers describing the contents of the originator's link-state database. The header alone is sufficient to identify an LSA and decide whether the receiver's copy is up to date during the Database Exchange. [RFC 2328 §A.3.3 / §A.4.1]
+        count: eos
+        element:
+          id: lsaHeaderRecord
+          fields:
+            - id: lsAge
+              name: LS Age
+              type: { kind: int, bits: 16 }
+              category: identifier
+              doc: Time in seconds since the LSA was originated. Used together with the LS Sequence Number to determine which of two instances is more recent. [RFC 2328 §A.4.1]
+            - id: lsaOptions
+              name: Options
+              type: { kind: int, bits: 8 }
+              category: flags
+              doc: Optional capabilities supported by the described portion of the routing domain, encoded with the same bit assignments as the common Options field. [RFC 2328 §A.4.1]
+            - id: lsType
+              name: LS Type
+              type: { kind: int, bits: 8 }
+              category: type
+              doc: LSA type. 1=Router-LSA, 2=Network-LSA, 3=Summary-LSA (IP network), 4=Summary-LSA (ASBR), 5=AS-external-LSA. [RFC 2328 §A.4.1]
+            - id: linkStateId
+              name: Link State ID
+              type: { kind: int, bits: 32 }
+              category: identifier
+              doc: Identifies the portion of the routing domain being described by the LSA; its exact meaning depends on the LS Type (e.g. Router ID for Router-LSAs, IP network number for Summary-LSAs). [RFC 2328 §A.4.1]
+            - id: advertisingRouter
+              name: Advertising Router
+              type: { kind: int, bits: 32 }
+              category: identifier
+              doc: Router ID of the router that originated the LSA (dotted-quad on the wire). [RFC 2328 §A.4.1]
+            - id: lsSeqNum
+              name: LS Sequence Number
+              type: { kind: int, bits: 32, signed: true }
+              category: identifier
+              doc: Signed 32-bit number incremented each time the LSA is re-originated, used to detect old or duplicate instances. Larger numbers are more recent. [RFC 2328 §A.4.1]
+            - id: lsChecksum
+              name: LS Checksum
+              type: { kind: int, bits: 16 }
+              category: checksum
+              doc: Fletcher checksum over the complete contents of the LSA excluding the LS Age field. [RFC 2328 §A.4.1]
+            - id: lsaLength
+              name: Length
+              type: { kind: int, bits: 16 }
+              category: length
+              doc: Length in bytes of the LSA, including the 20-byte LSA header. [RFC 2328 §A.4.1]

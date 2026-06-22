@@ -11,6 +11,7 @@ body:
       kind: bits
       n: 16
     category: type
+    const: 0x88E5
     doc: MACsec EtherType 0x88E5 — marks the start of a SecTAG in an Ethernet frame. A receiver that encounters this value knows a SecTAG follows and that the payload is MACsec-protected. [IEEE 802.1AE-2018 clause 9.5]
   - kind: group
     id: tciAn
@@ -65,13 +66,24 @@ body:
           n: 2
         category: identifier
         doc: 2-bit Association Number (0–3) — identifies which Secure Association Key (SAK) within the Secure Channel was used to protect this frame. Allows keyroll-over without interrupting traffic. [IEEE 802.1AE-2018 clause 9.6]
-  - id: macsecSl
-    name: SL (Short Length)
-    type:
-      kind: bits
-      n: 8
-    category: length
-    doc: Short Length — when non-zero, indicates the number of octets of user data that are genuinely part of the payload (1–47). A value of zero means the full frame payload participates in protection. Allows short frames to be padded to the Ethernet minimum without obscuring the true data length. [IEEE 802.1AE-2018 clause 9.7]
+  - kind: group
+    id: slByte
+    name: SL
+    children:
+      - id: macsecSlReserved
+        name: Reserved
+        type:
+          kind: bits
+          n: 2
+        category: reserved
+        doc: Reserved — the two most-significant bits of the SL octet are unused and MUST be transmitted as zero and ignored on receipt. [IEEE 802.1AE-2018 clause 9.7]
+      - id: macsecSl
+        name: SL (Short Length)
+        type:
+          kind: bits
+          n: 6
+        category: length
+        doc: Short Length — a 6-bit field (the low six bits of the SL octet). When non-zero it indicates the number of octets of user data between the last octet of the SecTAG and the first octet of the ICV, when that number is less than 48 (i.e. 1–47). A value of zero means the user data is 48 octets or longer, so the true length is not obscured by minimum-frame padding. [IEEE 802.1AE-2018 clause 9.7]
   - id: macsecPn
     name: PN (Packet Number)
     type:

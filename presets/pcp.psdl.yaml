@@ -14,6 +14,7 @@ body:
         name: Version
         type: { kind: int, bits: 8 }
         category: type
+        const: 2
         doc: "PCP protocol version. MUST be 2; a server MUST silently discard packets with version != 2. [RFC 6887 §7.1]"
       - id: pcpR
         name: R

@@ -13,6 +13,7 @@ body:
         name: Version
         type: { kind: int, bits: 2 }
         category: type
+        const: 2
         doc: "RTCP version number; MUST be 2. Packets with any other version value MUST be ignored. [RFC 3550 §6.1]"
       - id: p
         name: Padding
@@ -28,6 +29,7 @@ body:
     name: Packet Type
     type: { kind: int, bits: 8 }
     category: type
+    const: 202
     doc: "RTCP packet type; value 202 (0xCA) identifies a Source Description packet. [RFC 3550 §6.5]"
   - id: length
     name: Length
@@ -51,7 +53,12 @@ body:
           id: rtcpSdesItems
           name: SDES Items
           category: variable
-          count: "eos"
+          count:
+            until:
+              kind: op
+              op: "=="
+              a: { kind: ref, field: "rtcpSdesItemType" }
+              b: { kind: lit, value: 0 }
           element:
             id: rtcpSdesItem
             fields:
@@ -71,14 +78,28 @@ body:
                     7: "NOTE"
                     8: "PRIV"
                 category: type
-                doc: "SDES item type code. 0=END terminates the item list (no Length or Value follows); 1=CNAME canonical end-point identifier (MUST be present in every SDES packet); 2=NAME user name; 3=EMAIL email address; 4=PHONE phone number; 5=LOC geographic location; 6=TOOL application name; 7=NOTE note about source; 8=PRIV private extensions. [RFC 3550 §6.5.1–6.5.8]"
-              - id: rtcpSdesItemLen
-                name: Item Length
-                type: { kind: int, bits: 8 }
-                category: length
-                doc: "Length of the Item Value field in octets. Not present for END items (type=0). Maximum 255 octets per item. [RFC 3550 §6.5]"
-              - id: rtcpSdesItemValue
-                name: Item Value
-                type: { kind: bytes, n: { kind: ref, field: "rtcpSdesItemLen" } }
-                category: variable
-                doc: "Item value as a UTF-8 encoded string without a null terminator. Length is given by the preceding Item Length field. For CNAME, SHOULD be in the form 'user@host' and MUST be unique across all participants. [RFC 3550 §6.5.1]"
+                doc: "SDES item type code. 0=END terminates the item list for this chunk (no Length or Value octets follow); 1=CNAME canonical end-point identifier (MUST be present in every SDES packet); 2=NAME user name; 3=EMAIL email address; 4=PHONE phone number; 5=LOC geographic location; 6=TOOL application name; 7=NOTE note about source; 8=PRIV private extensions. The item list ends at the first END item. [RFC 3550 §6.5.1–6.5.8]"
+              - kind: switch
+                id: rtcpSdesItemBody
+                on: { kind: ref, field: "rtcpSdesItemType" }
+                cases:
+                  "0":
+                    id: rtcpSdesEnd
+                    fields: []
+                  _:
+                    id: rtcpSdesData
+                    fields:
+                      - id: rtcpSdesItemLen
+                        name: Item Length
+                        type: { kind: int, bits: 8 }
+                        category: length
+                        doc: "Length of the Item Value field in octets. Present only for non-END items. Maximum 255 octets per item. [RFC 3550 §6.5]"
+                      - id: rtcpSdesItemValue
+                        name: Item Value
+                        type: { kind: bytes, n: { kind: ref, field: "rtcpSdesItemLen" } }
+                        category: variable
+                        doc: "Item value as a UTF-8 encoded string without a null terminator. Length is given by the preceding Item Length field. For CNAME, SHOULD be in the form 'user@host' and MUST be unique across all participants. [RFC 3550 §6.5.1]"
+        - kind: align
+          to: 32
+          fill: 0
+          doc: "Each SDES chunk is padded with null (END) octets to the next 32-bit boundary; the first octet after the item list is the terminating END item already parsed above, and any further padding aligns the chunk so the next SSRC/CSRC begins on a 32-bit boundary. [RFC 3550 §6.5]"

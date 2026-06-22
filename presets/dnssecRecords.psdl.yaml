@@ -159,16 +159,42 @@ body:
             type: { kind: bits, n: 16 }
             category: identifier
             doc: "A 16-bit value computed from the DNSKEY RR that can be used to verify this signature. Used as a hint to select the correct DNSKEY when multiple keys are present; if the tag matches but verification fails, other keys with the same tag MUST be tried. Computed per the algorithm in RFC 4034 Appendix B. [RFC 4034 §3.1.6, Appendix B]"
-          - id: rrsigSignerName
-            name: Signer's Name
-            type: { kind: bytes, n: { kind: ref, field: rrsigSignerNameLen } }
-            category: addressing
-            doc: "The fully-qualified owner name of the DNSKEY RR that contains the public key used to verify this signature, encoded as uncompressed DNS wire-format labels. The zone apex name for a zone signing key. Byte length given by the auxiliary counter rrsigSignerNameLen; defaults to 0 bytes (empty) when the field is not yet set. [RFC 4034 §3.1.7]"
-          - id: rrsigSignature
-            name: Signature
-            type: { kind: bytes, n: { kind: ref, field: rrsigSigLen } }
-            category: variable
-            doc: "The cryptographic signature over the covered RRset, encoded in the algorithm-specific wire format. For RSA, this is the big-endian signature integer. For ECDSA/EdDSA, this is the concatenated (r, s) integers or the raw signature bytes per the relevant RFC. Byte length given by the auxiliary counter rrsigSigLen; defaults to 0 bytes when not yet set. [RFC 4034 §3.1.8, RFC 6605 §5, RFC 8080 §4]"
+          - kind: bounded
+            id: rrsigVarData
+            name: Signer's Name + Signature
+            bytes: { kind: op, op: "-", a: { kind: ref, field: rrRdLength }, b: { kind: lit, value: 18 } }
+            doc: "The variable-length tail of the RRSIG RDATA — the uncompressed Signer's Name followed by the algorithm-specific Signature — bounded to RDLENGTH minus the 18 bytes of fixed fields (Type Covered 2 + Algorithm 1 + Labels 1 + Original TTL 4 + Signature Expiration 4 + Signature Inception 4 + Key Tag 2). [RFC 4034 §3.1]"
+            fields:
+              - kind: repeat
+                id: rrsigSignerName
+                name: Signer's Name (labels)
+                category: addressing
+                count:
+                  until:
+                    kind: op
+                    op: "=="
+                    a: { kind: ref, field: rrsigSignerLabelLen }
+                    b: { kind: lit, value: 0 }
+                doc: "The fully-qualified owner name of the DNSKEY RR that contains the public key used to verify this signature, encoded as uncompressed DNS wire-format labels terminated by a zero-length (root) label — the zone apex name for a zone signing key. The repeat stops once a label of length 0 has been read. RRSIG names are never compressed. [RFC 4034 §3.1.7]"
+                element:
+                  id: rrsigSignerLabel
+                  fields:
+                    - id: rrsigSignerLabelLen
+                      name: Label Length
+                      type: { kind: bits, n: 8 }
+                      category: length
+                      doc: "Length of the Signer's Name label that follows, in octets (1..63); 0 terminates the name and ends the label repeat. [RFC 1035 §3.1, RFC 4034 §3.1.7]"
+                    - id: rrsigSignerLabel
+                      name: Label
+                      type: { kind: bytes, n: { kind: ref, field: rrsigSignerLabelLen } }
+                      category: addressing
+                      display: ascii
+                      doc: "One label of the Signer's Name, exactly `rrsigSignerLabelLen` bytes (zero bytes for the terminating root label). [RFC 1035 §3.1]"
+              - id: rrsigSignature
+                name: Signature
+                type: { kind: bytes, n: { kind: remaining } }
+                category: variable
+                doc: "The cryptographic signature over the covered RRset, encoded in the algorithm-specific wire format — all bytes remaining in the RDATA after the Signer's Name. For RSA, this is the big-endian signature integer. For ECDSA/EdDSA, this is the concatenated (r, s) integers or the raw signature bytes per the relevant RFC. [RFC 4034 §3.1.8, RFC 6605 §5, RFC 8080 §4]"
 
       # ---- DS (TYPE 43, RFC 4034 §5) ---------------------------------------------
       "43":
@@ -217,16 +243,42 @@ body:
       "47":
         id: rdataNsec
         fields:
-          - id: nsecNextDomainName
-            name: Next Domain Name
-            type: { kind: bytes, n: { kind: ref, field: nsecNextDomainNameLen } }
-            category: addressing
-            doc: "The owner name of the next authoritative node in the canonical DNS name ordering for this zone, encoded as uncompressed DNS wire-format labels. Together with the NSEC owner name it defines a range; any queried name within that range provably does not exist. The last NSEC in a zone wraps back to the zone apex. Byte length given by the auxiliary counter nsecNextDomainNameLen; defaults to 0 bytes when not yet set. [RFC 4034 §4.1.1]"
-          - id: nsecTypeBitMaps
-            name: Type Bit Maps
-            type: { kind: bytes, n: { kind: ref, field: nsecTypeBitMapsLen } }
-            category: variable
-            doc: "Encodes the set of RR types present at the NSEC owner name as a sequence of Window Blocks. Each window block starts with a 1-byte window number (bits 8..15 of the type value), a 1-byte bitmap length (1..32), and then that many bytes of bitmask where bit N is set if type (window*256 + N) exists. Validators use this to prove that a queried type does not exist at a name that does exist. Byte length given by nsecTypeBitMapsLen; defaults to 0 bytes when not yet set. [RFC 4034 §4.1.2]"
+          - kind: bounded
+            id: nsecRdata
+            name: Next Domain Name + Type Bit Maps
+            bytes: { kind: ref, field: rrRdLength }
+            doc: "The NSEC RDATA — the uncompressed Next Domain Name followed by the Type Bit Maps — bounded to RDLENGTH so the Type Bit Maps consume exactly the bytes remaining after the name. [RFC 4034 §4.1]"
+            fields:
+              - kind: repeat
+                id: nsecNextDomainName
+                name: Next Domain Name (labels)
+                category: addressing
+                count:
+                  until:
+                    kind: op
+                    op: "=="
+                    a: { kind: ref, field: nsecNextLabelLen }
+                    b: { kind: lit, value: 0 }
+                doc: "The owner name of the next authoritative node in the canonical DNS name ordering for this zone, encoded as uncompressed DNS wire-format labels terminated by a zero-length (root) label. Together with the NSEC owner name it defines a range; any queried name within that range provably does not exist. The last NSEC in a zone wraps back to the zone apex. The repeat stops once a label of length 0 has been read. NSEC names are not compressed. [RFC 4034 §4.1.1]"
+                element:
+                  id: nsecNextLabel
+                  fields:
+                    - id: nsecNextLabelLen
+                      name: Label Length
+                      type: { kind: bits, n: 8 }
+                      category: length
+                      doc: "Length of the Next Domain Name label that follows, in octets (1..63); 0 terminates the name and ends the label repeat. [RFC 1035 §3.1, RFC 4034 §4.1.1]"
+                    - id: nsecNextLabel
+                      name: Label
+                      type: { kind: bytes, n: { kind: ref, field: nsecNextLabelLen } }
+                      category: addressing
+                      display: ascii
+                      doc: "One label of the Next Domain Name, exactly `nsecNextLabelLen` bytes (zero bytes for the terminating root label). [RFC 1035 §3.1]"
+              - id: nsecTypeBitMaps
+                name: Type Bit Maps
+                type: { kind: bytes, n: { kind: remaining } }
+                category: variable
+                doc: "Encodes the set of RR types present at the NSEC owner name as a sequence of Window Blocks, consuming all bytes remaining in the RDATA after the Next Domain Name. Each window block starts with a 1-byte window number (bits 8..15 of the type value), a 1-byte bitmap length (1..32), and then that many bytes of bitmask where bit N is set if type (window*256 + N) exists. Validators use this to prove that a queried type does not exist at a name that does exist. [RFC 4034 §4.1.2]"
 
       # ---- Default: opaque RDATA ---------------------------------------------------
       "_":

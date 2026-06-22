@@ -40,6 +40,13 @@ body:
       n: 1
     category: flags
     doc: Identifies which set of packet-protection keys is in use; flips on key update. [RFC 9000 §6]
+  - id: pnLen
+    name: Packet Number Length
+    type:
+      kind: bits
+      n: 2
+    category: length
+    doc: "Trailing 2 bits of byte 0 (bits 6-7) — encoded length of the Packet Number field minus 1 (1–4 bytes). Header-protected on the wire together with the Packet Number bytes; the two protected regions are non-contiguous, separated by the Destination Connection ID. [RFC 9000 §17.3.1, §5.4]"
   - id: dcid
     name: Destination Connection ID
     type:
@@ -49,29 +56,21 @@ body:
     doc: Receiver-chosen Connection ID — length is negotiated out-of-band (0–20 bytes); shown here as 8 bytes.
   - kind: encrypted
     id: pnArea
-    name: Header-protected PN area
-    contextNote: Header protection mask (XOR) derived from the AEAD sample using the hp key — required before reading these bits.
+    name: Header-protected PN
+    contextNote: Header protection mask (XOR) derived from the AEAD sample using the hp key — required before reading these bits. The same mask also protects the low bits of byte 0 (Reserved + Key Phase + Packet Number Length), which sit before the DCID.
     headerProtected:
-      - pnLen
       - packetNumber
     category: identifier
     plaintext:
       id: pnAreaPlaintext
       fields:
-        - id: pnLen
-          name: Packet Number Length
-          type:
-            kind: bits
-            n: 2
-          category: length
-          doc: Encoded length of the Packet Number field minus 1 (1–4 bytes). Header-protected. [RFC 9000 §17.3.1]
         - id: packetNumber
           name: Packet Number
           type:
             kind: bits
             n: 8
           category: identifier
-          doc: Truncated packet number — header-protected on the wire. 1–4 bytes wide. [RFC 9000 §17.1]
+          doc: Truncated packet number — header-protected on the wire. 1–4 bytes wide (count given by pnLen in byte 0). [RFC 9000 §17.1]
   - kind: encrypted
     id: payload
     name: Encrypted Payload

@@ -4,6 +4,10 @@ name: Portmap / RPCBIND Mapping Entry
 rowBits: 32
 byteOrder: BE
 description: "ONC RPC Portmapper (RFC 1833) mapping structure used in PMAPPROC_GETPORT requests and responses. The portmapper runs on well-known UDP/TCP port 111 and maps (program, version, protocol) tuples to the port number on which that RPC program is currently listening. Each mapping record is four 32-bit fields: Program number, Version, Protocol (IPPROTO_TCP=6 or IPPROTO_UDP=17), and the assigned Port. Total fixed length: 128 bits (16 bytes)."
+meta:
+  rfc: 1833
+  section: "3.2"
+  aliases: [portmapper, pmap, rpcbind]
 
 body:
   - id: program

@@ -15,14 +15,14 @@ body:
         type: { kind: int, bits: 1 }
         category: reserved
         defaultValue: 0
-        doc: "Reserved bit at position 0 (MSB) of the first byte. MUST be zero on transmission; receivers SHOULD ignore. [RFC 7143 §10.2.1]"
+        doc: "Reserved bit — the most significant bit (bit 7) of the first byte. MUST be zero on transmission; receivers SHOULD ignore. [RFC 7143 §11.2.1]"
 
       - id: iscsiImmediate
         name: I (Immediate)
         type: { kind: int, bits: 1 }
         category: flags
         defaultValue: 0
-        doc: "Immediate delivery bit (bit 1 of the first byte). When set to 1, the PDU bypasses the send queue and is delivered to the target immediately regardless of the current command window. Only meaningful on initiator-to-target PDUs; reserved in all target-to-initiator PDUs. [RFC 7143 §10.2.1]"
+        doc: "Immediate delivery bit — bit 6 of the first byte (the second bit from the MSB). When set to 1, the PDU bypasses the send queue and is delivered to the target immediately regardless of the current command window. Only meaningful on initiator-to-target PDUs; reserved in all target-to-initiator PDUs. [RFC 7143 §11.2.1]"
 
       - id: iscsiOpcode
         name: Opcode
@@ -30,12 +30,15 @@ body:
           kind: enum
           bits: 6
           variants:
+            0: "NOP-Out"
             1: "SCSI Command"
             2: "SCSI Task Management Function Request"
             3: "Login Request"
             4: "Text Request"
             5: "SCSI Data-Out"
             6: "Logout Request"
+            16: "SNACK Request"
+            32: "NOP-In"
             33: "SCSI Response"
             34: "SCSI Task Management Function Response"
             35: "Login Response"
@@ -46,7 +49,7 @@ body:
             50: "Asynchronous Message"
             63: "Reject"
         category: type
-        doc: "PDU function code (6 bits, bits 2–7 of the opcode byte). Initiator opcodes 0x01–0x1F; target opcodes 0x20–0x3F. Key values: 0x01 SCSI Command (initiator sends SCSI CDB), 0x21 (33 dec) SCSI Response (target returns status), 0x06 Logout Request (initiator terminates session or connection). Unknown opcodes MUST be rejected with a Reject PDU (reason 0x04). [RFC 7143 §10.2.1, Table 10.1]"
+        doc: "PDU function code — the low 6 bits (bits 5..0) of the opcode byte. Initiator opcodes 0x00–0x1F; target opcodes 0x20–0x3F. Key values: 0x00 NOP-Out, 0x01 SCSI Command (initiator sends SCSI CDB), 0x06 Logout Request, 0x10 SNACK Request; target side 0x20 NOP-In, 0x21 (33 dec) SCSI Response (target returns status), 0x31 (49 dec) R2T, 0x3F (63 dec) Reject. Unknown opcodes MUST be rejected with a Reject PDU (reason 0x05, Command not supported). [RFC 7143 §11.2.1, §11.1]"
 
   - kind: group
     id: iscsiFlagsWord

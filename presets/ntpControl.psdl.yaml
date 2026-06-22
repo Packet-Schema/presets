@@ -115,29 +115,26 @@ body:
       category: payload-marker
       doc: "Variable-length payload. In requests it carries a comma-separated list of variable names or name=value assignments (ASCII). In responses it carries the queried variable values or, when E=1, an ASCII error message. Length given by the Count field; present only when Count > 0. [RFC 1305 Appendix B]"
 
-  - kind: optional
-    when: { kind: ref, field: ntpCtrlDataBytes }
-    container:
-      id: ntpCtrlPadding
-      name: Padding
-      type: { kind: bits, n: 24 }
-      category: reserved
-      doc: "Zero-fill padding appended after the Data field to align the total message to a 32-bit (4-byte) boundary. The number of padding bytes is ((4 - (Count mod 4)) mod 4), i.e. 0 to 3 bytes; shown here at its maximum width of 24 bits. Not counted in the Count field. Present only when a Data field is present and Count is not a multiple of 4. [RFC 1305 Appendix B]"
+  - kind: align
+    to: 32
+    fill: 0
+    id: ntpCtrlPadding
+    doc: "Zero-fill padding appended after the Data field to align the total message to a 32-bit (4-byte) boundary. The number of padding bytes is ((4 - (Count mod 4)) mod 4), i.e. 0 to 3 bytes; not counted in the Count field. The 12-byte fixed header is already 4-byte aligned, so only a non-multiple-of-4 Data length produces padding here. [RFC 1305 Appendix B]"
 
   - kind: optional
-    when: { kind: ref, field: ntpCtrlAuthKeyID }
+    when: { kind: remaining }
     container:
-      id: ntpCtrlAuthKeyID
-      name: Key ID
-      type: { kind: int, bits: 32 }
-      category: identifier
-      doc: "Authenticator Key Identifier. Present only when the control message is authenticated. Identifies the symmetric key shared between the NTP management client and server that was used to compute the Message Digest. A value of 0 indicates no authentication. [RFC 1305 Appendix B]"
-
-  - kind: optional
-    when: { kind: ref, field: ntpCtrlAuthKeyID }
-    container:
-      id: ntpCtrlAuthDigest
-      name: Message Digest
-      type: { kind: bits, n: 64 }
-      category: checksum
-      doc: "Message Digest (64 bits / 8 bytes). A cryptographic MAC computed over the entire NTP Control Message (header + data + padding) using the key identified by Key ID. Provides data integrity and peer authentication for management operations. [RFC 1305 Appendix B]"
+      kind: group
+      id: ntpCtrlAuthenticator
+      name: Authenticator
+      children:
+        - id: ntpCtrlAuthKeyID
+          name: Key ID
+          type: { kind: int, bits: 32 }
+          category: identifier
+          doc: "Authenticator Key Identifier. Present only when the control message is authenticated. Identifies the symmetric key shared between the NTP management client and server that was used to compute the Message Digest. A value of 0 indicates no authentication. [RFC 1305 Appendix B]"
+        - id: ntpCtrlAuthDigest
+          name: Message Digest
+          type: { kind: bits, n: 64 }
+          category: checksum
+          doc: "Message Digest (64 bits / 8 bytes). A cryptographic MAC computed over the entire NTP Control Message (header + data + padding) using the key identified by Key ID. Provides data integrity and peer authentication for management operations. [RFC 1305 Appendix B]"

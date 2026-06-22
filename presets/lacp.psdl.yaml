@@ -4,7 +4,7 @@ name: LACP (IEEE 802.3ad)
 rowBits: 32
 byteOrder: BE
 description: >-
-  Link Aggregation Control Protocol PDU (IEEE 802.3ad / IEEE 802.1AX-2014). Carried directly inside a Slow Protocol frame (EtherType 0x8809, Subtype 0x01) as the payload of an Ethernet frame addressed to the Slow Protocols multicast MAC 01:80:C2:00:00:02. The PDU begins with a 1-byte Subtype (always 0x01) and 1-byte Version (0x01), followed by four fixed TLVs in order: Actor Information (Type=0x01, 20 bytes), Partner Information (Type=0x02, 20 bytes), Collector Information (Type=0x03, 16 bytes), and Terminator (Type=0x00, 0 bytes). Total wire length is 60 bytes (480 bits). [IEEE 802.3ad-2000 §43, IEEE 802.1AX-2014 §6.4.2]
+  Link Aggregation Control Protocol PDU (IEEE 802.3ad / IEEE 802.1AX-2014). Carried directly inside a Slow Protocol frame (EtherType 0x8809, Subtype 0x01) as the payload of an Ethernet frame addressed to the Slow Protocols multicast MAC 01:80:C2:00:00:02. The PDU begins with a 1-byte Subtype (always 0x01) and 1-byte Version (0x01), followed by four fixed TLVs in order: Actor Information (Type=0x01, 20 bytes), Partner Information (Type=0x02, 20 bytes), Collector Information (Type=0x03, 16 bytes), and Terminator (Type=0x00, length 0, followed by a 50-byte Reserved field). Total wire length is 110 bytes (880 bits): Subtype(1) + Version(1) + Actor TLV(20) + Partner TLV(20) + Collector TLV(16) + Terminator TLV(2) + Terminator Reserved(50). [IEEE 802.3ad-2000 §43, IEEE 802.1AX-2014 §6.4.2]
 body:
   - id: subtype
     name: Subtype
@@ -268,4 +268,10 @@ body:
         name: Terminator TLV Length
         type: { kind: int, bits: 8 }
         category: length
-        doc: Length of the Terminator TLV. Always 0x00, indicating that no additional bytes follow this TLV. After the Terminator the remainder of the Ethernet payload (up to byte 60) is reserved and MUST be transmitted as zero. [IEEE 802.3ad §43.4.2.2 / IEEE 802.1AX-2014 §6.4.2]
+        doc: Length of the Terminator TLV. Always 0x00, indicating that no additional bytes follow within the TLV itself. The Terminator is followed by a defined 50-octet Reserved field that completes the 110-octet LACPDU. [IEEE 802.3ad §43.4.2.2 / IEEE 802.1AX-2014 §6.4.2]
+
+      - id: terminatorReserved
+        name: Terminator Reserved
+        type: { kind: bits, n: 400 }
+        category: reserved
+        doc: Reserved 50-octet field following the Terminator TLV, defined as part of the LACPDU structure (not Ethernet padding). MUST be transmitted as zero and MUST be ignored on receipt. Brings the LACPDU to its full 110-octet length. [IEEE 802.3ad §43.4.2.2 / IEEE 802.1AX-2014 §6.4.2]

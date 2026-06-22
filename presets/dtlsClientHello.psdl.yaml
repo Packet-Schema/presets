@@ -63,9 +63,10 @@ body:
 
   - id: dtlsChRandom
     name: Random
-    type: { kind: int, bits: 256 }
+    type: { kind: bytes, n: { kind: lit, value: 32 } }
+    display: hex
     category: identifier
-    doc: "32 bytes of client randomness: a 4-byte Unix timestamp followed by 28 cryptographically random bytes. Mixed into the handshake key derivation to prevent replay attacks and ensure forward secrecy per session. [RFC 6347 §4.2.1, RFC 5246 §7.4.1.2]"
+    doc: "32 bytes of client randomness: a 4-byte Unix timestamp followed by 28 cryptographically random bytes. Opaque on the wire (not a 256-bit integer). Mixed into the handshake key derivation to prevent replay attacks and ensure forward secrecy per session. [RFC 6347 §4.2.1, RFC 5246 §7.4.1.2]"
 
   - id: dtlsSidLen
     name: Session ID Length

@@ -63,9 +63,10 @@ body:
         fields:
           - id: dstAddrIPv6
             name: DST.ADDR
-            type: { kind: bits, n: 128 }
+            type: { kind: bytes, n: { kind: lit, value: 16 } }
+            display: addr
             category: addressing
-            doc: "128-bit IPv6 destination address in network (big-endian) byte order. Present only when ATYP=0x04. [RFC 1928 §4]"
+            doc: "128-bit (16-octet) IPv6 destination address in network (big-endian) byte order. Present only when ATYP=0x04. [RFC 1928 §4]"
           - id: dstPortIPv6
             name: DST.PORT
             type: { kind: int, bits: 16 }
@@ -84,6 +85,7 @@ body:
           - id: dstAddrDomain
             name: DST.ADDR
             type: { kind: bytes, n: { kind: ref, field: socksDomainLen } }
+            display: ascii
             category: addressing
             doc: "Fully-qualified domain name (FQDN) of the target host, exactly socksDomainLen octets, in ASCII (no trailing dot, no NUL). The SOCKS server resolves this name to an address on behalf of the client. Present only when ATYP=0x03. [RFC 1928 §4]"
           - id: dstPortDomain
@@ -97,10 +99,10 @@ body:
         fields:
         - id: dstAddrIPv4
           name: DST.ADDR
-          type: { kind: bits, n: 32 }
+          type: { kind: bytes, n: { kind: lit, value: 4 } }
+          display: addr
           category: addressing
-          defaultValue: 0
-          doc: "32-bit IPv4 destination address in network (big-endian) byte order. Present when ATYP=0x01 (the default and most common case). [RFC 1928 §4]"
+          doc: "32-bit (4-octet) IPv4 destination address in network (big-endian) byte order. Present when ATYP=0x01 (the default and most common case). [RFC 1928 §4]"
         - id: dstPortIPv4
           name: DST.PORT
           type: { kind: int, bits: 16 }

@@ -8,10 +8,29 @@ body:
   - id: type
     name: Type
     type:
-      kind: bits
-      n: 8
+      kind: enum
+      bits: 8
+      variants:
+        1:
+          label: Destination Unreachable
+          doc: Datagram could not be delivered; Code refines the reason. [RFC 4443 §3.1]
+        3:
+          label: Time Exceeded
+          doc: Hop Limit reached 0 or fragment reassembly timed out. [RFC 4443 §3.3]
+        128:
+          label: Echo Request
+          doc: Echo Request (ping); elicits an Echo Reply. [RFC 4443 §4.1]
+        129:
+          label: Echo Reply
+          doc: Reply to an Echo Request (ping reply). [RFC 4443 §4.2]
+        135:
+          label: Neighbor Solicitation
+          doc: NDP Neighbor Solicitation — IPv6 equivalent of ARP request. [RFC 4861]
+        136:
+          label: Neighbor Advertisement
+          doc: NDP Neighbor Advertisement — IPv6 equivalent of ARP reply. [RFC 4861]
     category: type
-    doc: ICMPv6 message type. e.g. 128=Echo Request, 129=Echo Reply, 1=Destination Unreachable, 3=Time Exceeded, 135/136=NDP Neighbor Solicitation/Advertisement (the IPv6 equivalent of ARP). [RFC 4443]
+    doc: ICMPv6 message type. Values 0-127 are error messages, 128-255 are informational. This preset describes the Echo Request/Reply layout (Type 128 / Type 129). [RFC 4443]
   - id: code
     name: Code
     type:

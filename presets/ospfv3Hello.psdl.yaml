@@ -65,9 +65,9 @@ body:
     children:
       - id: opt_reserved_hi
         name: "*"
-        type: { kind: bits, n: 14 }
+        type: { kind: bits, n: 13 }
         category: reserved
-        doc: High-order 14 reserved bits of the 24-bit Options field. Transmitted as zero and ignored on receipt. [RFC 5340 §A.2]
+        doc: High-order 13 reserved bits of the 24-bit Options field. Transmitted as zero and ignored on receipt. [RFC 5340 §A.2]
       - id: opt_at
         name: AT
         type: { kind: bits, n: 1 }
@@ -83,6 +83,11 @@ body:
         type: { kind: bits, n: 1 }
         category: flags
         doc: Address Family support — router supports OSPFv3 Address Family extensions to carry non-IPv6 prefixes (e.g. IPv4). [RFC 5838]
+      - id: opt_reserved_mid
+        name: "*"
+        type: { kind: bits, n: 2 }
+        category: reserved
+        doc: Two reserved bits between the AF and DC bits of the 24-bit Options field. Transmitted as zero and ignored on receipt. [RFC 5340 §A.2]
       - id: opt_dc
         name: DC
         type: { kind: bits, n: 1 }

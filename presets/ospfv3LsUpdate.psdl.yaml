@@ -71,6 +71,15 @@ body:
           type: { kind: int, bits: 16 }
           category: type
           doc: "16-bit LSA type encoding flooding scope and function code. U-bit (bit 15) — if set, an unknown type is stored and flooded like a known type; if clear, it is discarded. Bits 14-13 encode scope: 00=link-local, 01=area, 10=AS. Lower 13 bits are the function code: 0x01=Router-LSA (0x2001), 0x02=Network-LSA (0x2002), 0x03=Inter-Area-Prefix-LSA (0x2003), 0x09=Intra-Area-Prefix-LSA (0x2009). [RFC 5340 §A.4.1]"
+          values:
+            - { value: 0x2001, name: RouterLSA, label: "Router-LSA", meta: { rfc: 5340 } }
+            - { value: 0x2002, name: NetworkLSA, label: "Network-LSA", meta: { rfc: 5340 } }
+            - { value: 0x2003, name: InterAreaPrefixLSA, label: "Inter-Area-Prefix-LSA", meta: { rfc: 5340 } }
+            - { value: 0x2004, name: InterAreaRouterLSA, label: "Inter-Area-Router-LSA", meta: { rfc: 5340 } }
+            - { value: 0x4005, name: ASExternalLSA, label: "AS-External-LSA", meta: { rfc: 5340 } }
+            - { value: 0x2007, name: NSSALSA, label: "NSSA-LSA (Type-7)", meta: { rfc: 5340 } }
+            - { value: 0x0008, name: LinkLSA, label: "Link-LSA", meta: { rfc: 5340 } }
+            - { value: 0x2009, name: IntraAreaPrefixLSA, label: "Intra-Area-Prefix-LSA", meta: { rfc: 5340 } }
         - id: linkStateId
           name: Link State ID
           type: { kind: int, bits: 32 }

@@ -27,9 +27,11 @@ _sctp_chunk_variants: &sctp_chunk_variants
       - { id: data_ppid, name: Payload Protocol Identifier, type: { kind: int, bits: 32 }, category: type, doc: "Application-level payload protocol identifier (IANA-registered, e.g. 18 = M2PA, 46 = DTLS). 0 means 'not specified by the sender'. [RFC 9260 §3.3.1 / IANA]" }
       - id: data_userData
         name: User Data
-        type: { kind: bytes, n: { kind: ref, field: sctpDataUserBytes } }
+        type:
+          kind: bytes
+          n: { kind: op, op: "-", a: { kind: ref, field: chunkLength }, b: { kind: lit, value: 16 } }
         category: variable
-        doc: Application payload. The end of this field is `chunkLength - 16` bytes; zero-length DATA is forbidden. Pad with zeros up to the next 4-byte boundary outside this field. [RFC 9260 §3.3.1]
+        doc: "Application payload. Its length is `chunkLength - 16` bytes (the 16-byte DATA header: Type/Flags/Length 4 + TSN 4 + Stream Identifier 2 + Stream Sequence Number 2 + PPID 4); zero-length DATA is forbidden. Trailing zero padding to the next 4-byte boundary is consumed by the chunk-level `align` outside this field, not counted in chunkLength. [RFC 9260 §3.3.1]"
   "1":
     id: initChunk
     doc: INIT (Type=1)
@@ -44,9 +46,11 @@ _sctp_chunk_variants: &sctp_chunk_variants
       - { id: init_initialTsn, name: Initial TSN, type: { kind: int, bits: 32 }, category: identifier, doc: "First TSN the sender will use for DATA chunks. Typically equal to Initiate Tag. [RFC 9260 §3.3.2.1]" }
       - id: init_parameters
         name: Optional/Variable-Length Parameters
-        type: { kind: bytes, n: { kind: ref, field: sctpInitParamBytes } }
+        type:
+          kind: bytes
+          n: { kind: op, op: "-", a: { kind: ref, field: chunkLength }, b: { kind: lit, value: 20 } }
         category: variable
-        doc: Chain of parameter TLVs — IPv4 Address (5), IPv6 Address (6), State Cookie (7, INIT-ACK only), Cookie Preservative (9), Host Name Address (11, deprecated), Supported Address Types (12), and the ECN-Capable / Forward-TSN / Supported Extensions parameters. Format is identical to a Chunk TLV. [RFC 9260 §3.3.2 / §3.3.3]
+        doc: "Chain of parameter TLVs occupying `chunkLength - 20` bytes (the 20-byte INIT fixed body: Type/Flags/Length 4 + Initiate Tag 4 + a_rwnd 4 + #Outbound 2 + #Inbound 2 + Initial TSN 4) — IPv4 Address (5), IPv6 Address (6), State Cookie (7, INIT-ACK only), Cookie Preservative (9), Host Name Address (11, deprecated), Supported Address Types (12), and the ECN-Capable / Forward-TSN / Supported Extensions parameters. Format is identical to a Chunk TLV. [RFC 9260 §3.3.2 / §3.3.3]"
   "3":
     id: sackChunk
     doc: SACK (Type=3)
@@ -60,9 +64,11 @@ _sctp_chunk_variants: &sctp_chunk_variants
       - { id: sack_numDuplicateTsns, name: "# Duplicate TSNs", type: { kind: int, bits: 16 }, category: length, doc: "Number of duplicate TSNs the receiver wants to report to the sender (each entry is 4 bytes). [RFC 9260 §3.3.4]" }
       - id: sack_blocks
         name: Gap Ack Blocks + Duplicate TSNs
-        type: { kind: bytes, n: { kind: ref, field: sctpSackBlockBytes } }
+        type:
+          kind: bytes
+          n: { kind: op, op: "-", a: { kind: ref, field: chunkLength }, b: { kind: lit, value: 16 } }
         category: variable
-        doc: Concatenation of the Gap Ack Blocks (4 bytes each) and Duplicate TSNs (4 bytes each). Total length = 4 × (numGapAckBlocks + numDuplicateTsns). [RFC 9260 §3.3.4]
+        doc: "Concatenation of the Gap Ack Blocks (4 bytes each) and Duplicate TSNs (4 bytes each), occupying `chunkLength - 16` bytes (the 16-byte SACK fixed body: Type/Flags/Length 4 + Cumulative TSN Ack 4 + a_rwnd 4 + #Gap 2 + #Dup 2). Equivalently 4 × (numGapAckBlocks + numDuplicateTsns). [RFC 9260 §3.3.4]"
   "4":
     id: heartbeatChunk
     doc: HEARTBEAT (Type=4)
@@ -72,9 +78,11 @@ _sctp_chunk_variants: &sctp_chunk_variants
       - { id: chunkLength, name: Length, type: { kind: int, bits: 16 }, category: length, doc: "Chunk Length — bytes in this HEARTBEAT chunk including the 4-byte header and the Heartbeat Info parameter. [RFC 9260 §3.3.5]" }
       - id: heartbeat_info
         name: Heartbeat Info Parameter (TLV)
-        type: { kind: bytes, n: { kind: ref, field: sctpHeartbeatInfoBytes } }
+        type:
+          kind: bytes
+          n: { kind: op, op: "-", a: { kind: ref, field: chunkLength }, b: { kind: lit, value: 4 } }
         category: variable
-        doc: Sender-Specific Heartbeat Info Parameter (Type=1) carrying a timestamp and address index the sender will need to validate the matching HEARTBEAT-ACK and compute path RTT. Mirrored verbatim by the responder. [RFC 9260 §3.3.5 / §3.3.5.1]
+        doc: Sender-Specific Heartbeat Info Parameter (Type=1), occupying `chunkLength - 4` bytes (after the 4-byte chunk header), carrying a timestamp and address index the sender will need to validate the matching HEARTBEAT-ACK and compute path RTT. Mirrored verbatim by the responder. [RFC 9260 §3.3.5 / §3.3.5.1]
   "6":
     id: abortChunk
     doc: ABORT (Type=6)
@@ -89,9 +97,11 @@ _sctp_chunk_variants: &sctp_chunk_variants
       - { id: chunkLength, name: Length, type: { kind: int, bits: 16 }, category: length, doc: "Chunk Length — bytes in this ABORT chunk including the 4-byte header and all Error Cause parameters. [RFC 9260 §3.3.7]" }
       - id: abort_errorCauses
         name: Error Causes
-        type: { kind: bytes, n: { kind: ref, field: sctpAbortErrorBytes } }
+        type:
+          kind: bytes
+          n: { kind: op, op: "-", a: { kind: ref, field: chunkLength }, b: { kind: lit, value: 4 } }
         category: variable
-        doc: Zero or more Error Cause parameters (TLVs) explaining why the association is being torn down. Cause codes are listed in RFC 9260 §3.3.10 (Invalid Stream Identifier, Stale Cookie, Unrecognized Chunk Type, etc.). [RFC 9260 §3.3.7]
+        doc: Zero or more Error Cause parameters (TLVs), occupying `chunkLength - 4` bytes (after the 4-byte chunk header), explaining why the association is being torn down. Cause codes are listed in RFC 9260 §3.3.10 (Invalid Stream Identifier, Stale Cookie, Unrecognized Chunk Type, etc.). [RFC 9260 §3.3.7]
   "7":
     id: shutdownChunk
     doc: SHUTDOWN (Type=7)
@@ -109,9 +119,11 @@ _sctp_chunk_variants: &sctp_chunk_variants
       - { id: chunkLength, name: Length, type: { kind: int, bits: 16 }, category: length, doc: "Chunk Length — bytes in this chunk including the 4-byte header and the Value, excluding trailing padding to a 4-byte boundary. [RFC 9260 §3.2]" }
       - id: chunkValue
         name: Value
-        type: { kind: bytes, n: { kind: ref, field: sctpChunkValueBytes } }
+        type:
+          kind: bytes
+          n: { kind: op, op: "-", a: { kind: ref, field: chunkLength }, b: { kind: lit, value: 4 } }
         category: variable
-        doc: Opaque payload of an SCTP chunk whose type is not catalogued in this preset. Common unmodelled types include 2 (INIT-ACK), 5 (HEARTBEAT-ACK), 8 (SHUTDOWN-ACK), 9 (ERROR), 10 (COOKIE-ECHO), 11 (COOKIE-ACK), 12 (ECNE), 13 (CWR), 14 (SHUTDOWN-COMPLETE).
+        doc: Opaque payload of an SCTP chunk whose type is not catalogued in this preset, occupying `chunkLength - 4` bytes (after the 4-byte chunk header). Common unmodelled types include 2 (INIT-ACK), 5 (HEARTBEAT-ACK), 8 (SHUTDOWN-ACK), 9 (ERROR), 10 (COOKIE-ECHO), 11 (COOKIE-ACK), 12 (ECNE), 13 (CWR), 14 (SHUTDOWN-COMPLETE).
 
 body:
   - id: srcPort
@@ -144,6 +156,10 @@ body:
       fields:
         - kind: switch
           id: byChunkType
-          on: { kind: ref, field: chunkType }
+          on: { kind: peek, bits: 8 }
           cases: *sctp_chunk_variants
-    count: { kind: ref, field: chunks_count }
+        - kind: align
+          to: 32
+          fill: 0
+          doc: "Each chunk is padded with zero bytes to the next 4-byte boundary; the padding is not counted in the chunk's Length. The last chunk of a packet MAY omit its trailing padding, in which case this align consumes only the bytes actually present (it caps at the packet end, §5). [RFC 9260 §3.2]"
+    count: eos

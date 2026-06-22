@@ -175,7 +175,7 @@ body:
           name: RDATA
           type: { kind: bytes, n: { kind: ref, field: rrDataLength } }
           category: variable
-          doc: "Resource Data payload. For NB records: one or more (NB_FLAGS[2 bytes] + NB_ADDRESS[4 bytes]) tuples. NB_FLAGS bits: G=group flag (bit 15), ONT=owner node type bits 14-13 (00=B-node, 01=P-node, 10=M-node, 11=H-node). NB_ADDRESS is the IPv4 address of the name owner. For NBSTAT records: the node status structure defined in RFC 1002 §4.2.18. [RFC 1002 §4.2.1.3]"
+          doc: "Resource Data payload. For NB records: one or more (NB_FLAGS[2 bytes] + NB_ADDRESS[4 bytes]) tuples. NB_FLAGS bits: G=group flag (bit 15), ONT=owner node type bits 14-13 (00=B-node, 01=P-node, 10=M-node, 11=Reserved for future use). NB_ADDRESS is the IPv4 address of the name owner. For NBSTAT records: the node status structure defined in RFC 1002 §4.2.18. [RFC 1002 §4.2.1.3]"
     count: { kind: ref, field: ancount }
 
   - kind: repeat

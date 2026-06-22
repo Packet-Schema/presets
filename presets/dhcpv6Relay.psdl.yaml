@@ -66,6 +66,4 @@ body:
               field: dhcpv6RelayOptDataLen
           category: payload-marker
           doc: "Variable-length option data whose interpretation depends on the option code. For option 9 (Relay-Message) this field contains the complete relayed DHCPv6 message, which may itself be a Relay-forw allowing relay chains up to HOP_COUNT_LIMIT deep. [RFC 8415 §21.10]"
-    count:
-      kind: ref
-      field: dhcpv6RelayOptCount
+    count: eos

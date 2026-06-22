@@ -50,4 +50,9 @@ body:
             n: { kind: ref, field: lldpTlvLen }
           category: variable
           doc: "TLV Value, lldpTlvLen bytes long. Interpretation is type-specific. Chassis ID (type 1): 1-byte subtype (1=chassisComponent, 4=macAddress, 5=networkAddress, 7=local) + subtype-encoded ID. Port ID (type 2): 1-byte subtype (1=interfaceAlias, 3=macAddress, 5=networkAddress, 7=local) + subtype-encoded ID. TTL (type 3): 2-byte big-endian seconds (0=LLDPDU should be deleted). Port Description (type 4): UTF-8 string. System Name (type 5): UTF-8 FQDN. System Description (type 6): UTF-8 sysDescr. System Capabilities (type 7): 2-byte capability bitmap + 2-byte enabled bitmap (bits: 0=Other, 1=Repeater, 2=Bridge, 3=WLAN, 4=Router, 5=Phone, 6=DOCSIS, 7=StationOnly). Management Address (type 8): 1-byte addr-string-len, 1-byte IANA AFN, addr bytes, 1-byte ifNumbering-subtype, 4-byte ifNumber, 1-byte OID len, OID bytes. Org Specific (type 127): 3-byte OUI + 1-byte subtype + org-defined info. [IEEE 802.1AB-2016 §8.5]"
-    count: { kind: ref, field: lldpTlvCount }
+    count:
+      until:
+        kind: op
+        op: "=="
+        a: { kind: ref, field: lldpTlvType }
+        b: { kind: lit, value: 0 }

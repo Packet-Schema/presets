@@ -136,35 +136,33 @@ body:
   - kind: optional
     when: { kind: ref, field: bfdAuthPresent }
     container:
-      id: bfdAuthType
-      name: Auth Type
-      type:
-        kind: enum
-        bits: 8
-        variants:
-          0: "Reserved"
-          1: "Simple Password"
-          2: "Keyed MD5"
-          3: "Meticulous Keyed MD5"
-          4: "Keyed SHA1"
-          5: "Meticulous Keyed SHA1"
-      category: type
-      doc: "Authentication type. Present only when the Auth Present (A) flag is set. 1=Simple Password (RFC 5880 §4.2), 2=Keyed MD5 (§4.3), 3=Meticulous Keyed MD5 (§4.4), 4=Keyed SHA1 (§4.5), 5=Meticulous Keyed SHA1 (§4.6). [RFC 5880 §4.1]"
+      kind: group
+      id: bfdAuthSection
+      name: Authentication Section
+      children:
+        - id: bfdAuthType
+          name: Auth Type
+          type:
+            kind: enum
+            bits: 8
+            variants:
+              0: "Reserved"
+              1: "Simple Password"
+              2: "Keyed MD5"
+              3: "Meticulous Keyed MD5"
+              4: "Keyed SHA1"
+              5: "Meticulous Keyed SHA1"
+          category: type
+          doc: "Authentication type. Present only when the Auth Present (A) flag is set. 1=Simple Password (RFC 5880 §4.2), 2=Keyed MD5 (§4.3), 3=Meticulous Keyed MD5 (§4.4), 4=Keyed SHA1 (§4.5), 5=Meticulous Keyed SHA1 (§4.6). [RFC 5880 §4.1]"
 
-  - kind: optional
-    when: { kind: ref, field: bfdAuthPresent }
-    container:
-      id: bfdAuthLen
-      name: Auth Len
-      type: { kind: int, bits: 8 }
-      category: length
-      doc: "Length in bytes of the Authentication Section, including the Auth Type and Auth Len fields themselves. For Simple Password: 3 + password length (max 25 bytes); for Keyed MD5: 24; for Keyed SHA1: 28. [RFC 5880 §4.1]"
+        - id: bfdAuthLen
+          name: Auth Len
+          type: { kind: int, bits: 8 }
+          category: length
+          doc: "Length in bytes of the Authentication Section, including the Auth Type and Auth Len fields themselves. For Simple Password: 3 + password length (max 25 bytes); for Keyed MD5: 24; for Keyed SHA1: 28. [RFC 5880 §4.1]"
 
-  - kind: optional
-    when: { kind: ref, field: bfdAuthPresent }
-    container:
-      id: bfdAuthData
-      name: Auth Data
-      type: { kind: bytes, n: { kind: ref, field: bfdAuthDataLen } }
-      category: variable
-      doc: "Authentication data whose format depends on Auth Type. Simple Password: 1-byte Key ID + password (1–16 bytes); Keyed MD5/SHA1: 1-byte Key ID + 3-byte reserved + 4-byte sequence number + 16-byte (MD5) or 20-byte (SHA1) digest. bfdAuthDataLen is an external reference supplying the byte count. [RFC 5880 §4.2–4.6]"
+        - id: bfdAuthData
+          name: Auth Data
+          type: { kind: bytes, n: { kind: op, op: "-", a: { kind: ref, field: bfdAuthLen }, b: { kind: lit, value: 2 } } }
+          category: variable
+          doc: "Authentication data whose format depends on Auth Type, occupying the Authentication Section after the Auth Type and Auth Len octets (byte count = Auth Len − 2). Simple Password: 1-byte Key ID + password (1–16 bytes); Keyed MD5/SHA1: 1-byte Key ID + 3-byte reserved + 4-byte sequence number + 16-byte (MD5) or 20-byte (SHA1) digest. [RFC 5880 §4.2–4.6]"

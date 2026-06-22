@@ -14,7 +14,7 @@ body:
         name: Version
         type: { kind: int, bits: 3 }
         category: type
-        defaultValue: 1
+        const: 1
         doc: "PCEP protocol version. MUST be set to 1; a message with any other version MUST be rejected with a PCErr. [RFC 5440 §6.1]"
       - id: pcepFlags
         name: Flags

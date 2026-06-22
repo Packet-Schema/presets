@@ -23,8 +23,12 @@ body:
         2: EAPOL-Logoff
         3: EAPOL-Key
         4: EAPOL-Encapsulated-ASF-Alert
+        5: EAPOL-MKA
+        6: EAPOL-Announcement (Generic)
+        7: EAPOL-Announcement (Specific)
+        8: EAPOL-Announcement-Req
     category: type
-    doc: "Identifies the content carried in the EAPOL body. 0=EAP-Packet (an EAP message per RFC 3748 transported transparently by the authenticator); 1=EAPOL-Start (supplicant requests authentication); 2=EAPOL-Logoff (supplicant terminates session); 3=EAPOL-Key (key material distribution); 4=EAPOL-Encapsulated-ASF-Alert (SNMP alert from ASF device). [IEEE 802.1X-2020 §11.3, RFC 3748 §3.1]"
+    doc: "Identifies the content carried in the EAPOL body. 0=EAP-Packet (an EAP message per RFC 3748 transported transparently by the authenticator); 1=EAPOL-Start (supplicant requests authentication); 2=EAPOL-Logoff (supplicant terminates session); 3=EAPOL-Key (key material distribution); 4=EAPOL-Encapsulated-ASF-Alert (SNMP alert from ASF device); 5=EAPOL-MKA (MACsec Key Agreement PDU); 6=EAPOL-Announcement (Generic); 7=EAPOL-Announcement (Specific); 8=EAPOL-Announcement-Req. Types 5–8 were added in IEEE 802.1X-2010 to support MACsec (MKA) and network announcements. [IEEE 802.1X-2020 §11.3, RFC 3748 §3.1]"
   - id: eapolBodyLen
     name: Packet Body Length
     type:

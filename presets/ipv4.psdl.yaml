@@ -234,24 +234,29 @@ body:
     type: { kind: int, bits: 32 }
     category: addressing
     doc: IPv4 address of the intended recipient. [RFC 791]
-  - kind: repeat
-    id: options
-    name: Options
-    category: variable
-    element:
-      id: optionRecord
-      fields:
-        - kind: switch
-          id: byType
-          on: { kind: ref, field: optType }
-          cases: *ipv4_option_variants
-    count: { kind: ref, field: ipv4OptionsCount }
-
-constraints:
-  - lhs:
+  - kind: bounded
+    id: optionsArea
+    name: Options Area
+    # Header bytes = IHL × 4; the fixed header is 20 bytes, so the option area
+    # spans IHL × 4 − 20 bytes. When IHL = 5 this is 0 and no options are parsed.
+    bytes:
       kind: op
-      op: "*"
-      a: { kind: ref, field: ihl }
-      b: { kind: lit, value: 4 }
-    rhs: { kind: ref, field: headerBytes }
-    doc: IHL counts 32-bit words; total header bytes = IHL × 4.
+      op: "-"
+      a: { kind: op, op: "*", a: { kind: ref, field: ihl }, b: { kind: lit, value: 4 } }
+      b: { kind: lit, value: 20 }
+    doc: "Length-delimited region holding the IPv4 options, bounded by the IHL field: IHL × 4 − 20 bytes. The option repeat runs to the end of this scope; trailing End-of-Option-List / padding bytes that no option describes are absorbed by the scope boundary. [RFC 791 §3.1]"
+    fields:
+      - kind: repeat
+        id: options
+        name: Options
+        category: variable
+        count: eos
+        doc: "Zero or more IPv4 options, each discriminated by its leading option-type byte. Present only when IHL > 5. [RFC 791 §3.1]"
+        element:
+          id: optionRecord
+          fields:
+            - kind: switch
+              id: byType
+              on: { kind: peek, bits: 8 }
+              doc: "Selects the option layout from the leading option-type byte, peeked without consuming it; each arm re-reads it as its first field. [RFC 791 §3.1]"
+              cases: *ipv4_option_variants

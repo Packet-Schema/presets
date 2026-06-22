@@ -45,6 +45,10 @@ body:
       bits: 8
     category: identifier
     doc: "Sender's priority for becoming Master. 255 (0xFF) is reserved for the router that owns the IPv4 address(es) and it MUST become Master. 0 (0x00) is sent by a Master that is releasing responsibility (e.g. shutting down gracefully), triggering an immediate election. Default is 100 for backup routers. Higher value wins. [RFC 5798 §5.2.4]"
+    values:
+      - { value: 0, name: RELEASE, label: "Master releasing (triggers election)", level: must, meta: { rfc: 5798, section: "5.2.4" } }
+      - { range: [1, 254], name: BACKUP, label: "Backup priority (default 100)", level: may, meta: { rfc: 5798, section: "5.2.4" } }
+      - { value: 255, name: OWNER, label: "Address owner — MUST become Master", level: must, meta: { rfc: 5798, section: "5.2.4" } }
   - id: vrrpAddrCount
     name: Count IPvX Addr
     type:
@@ -69,14 +73,14 @@ body:
           kind: int
           bits: 12
         category: variable
-        doc: "Maximum Advertisement Interval in centiseconds (1/100 s). The Master sends one Advertisement every MaxAdverInt centiseconds. Backup routers derive the Master_Down_Interval as (3 × MaxAdverInt) + Skew_Time. Default value is 100 (= 1 second). Range 1–4095 centiseconds. [RFC 5798 §5.2.7]"
+        doc: "Maximum Advertisement Interval in centiseconds (1/100 s). The Master sends one Advertisement every MaxAdverInt centiseconds. Backup routers derive the Master_Down_Interval as (3 × MaxAdverInt) + Skew_Time. Default value is 100 (= 1 second). 12-bit field, so values range 0–4095 centiseconds. [RFC 5798 §5.2.7]"
   - id: checksum
     name: Checksum
     type:
       kind: int
       bits: 16
     category: checksum
-    doc: "16-bit one's complement checksum of the VRRP message (starting from the Version/Type byte through the last IP address), with the checksum field itself set to zero during computation. For IPv4, the pseudo-header used in VRRPv3 includes Source IP, Destination IP (224.0.0.18), Protocol (112), and VRRP message length — matching the format used by TCP/UDP. [RFC 5798 §5.2.8 / RFC 1071]"
+    doc: "16-bit one's complement of the one's complement sum of the entire VRRP message (starting with the Version field through the last IP address), prepended by a pseudo-header as defined in Section 8.1 of RFC 2460 (the IPv6 pseudo-header: Source Address, Destination Address, Upper-Layer Packet Length, Next Header), with the Next Header field set to 112 (decimal) for VRRP. The checksum field itself is set to zero during computation. Note: this is the RFC 2460 (IPv6) pseudo-header, NOT the classic TCP/UDP IPv4 pseudo-header; per rfc5798bis the IPv4 checksum omits the pseudo-header entirely and covers only the VRRP message. [RFC 5798 §5.2.8 / RFC 2460 §8.1 / RFC 1071]"
   - kind: repeat
     id: ipAddresses
     name: IP Addresses

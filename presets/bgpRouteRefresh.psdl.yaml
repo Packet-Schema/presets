@@ -25,7 +25,7 @@ body:
         name: Type
         type: { kind: int, bits: 8 }
         category: type
-        defaultValue: 5
+        const: 5
         doc: BGP message type. 1 = OPEN, 2 = UPDATE, 3 = NOTIFICATION, 4 = KEEPALIVE, 5 = ROUTE-REFRESH (this preset). A BGP speaker MUST NOT send ROUTE-REFRESH unless the peer has advertised the Route Refresh capability (Capability Code 2) in its OPEN message. [RFC 2918 §3; RFC 4271 §4.1]
   - id: afi
     name: Address Family Identifier
@@ -36,8 +36,13 @@ body:
     name: Reserved
     type: { kind: int, bits: 8 }
     category: reserved
+    meta: { rfc: { defined: 2918, updates: [{ rfc: 7313, section: "3.2" }] }, section: "3" }
+    values:
+      - { value: 0, name: NORMAL, label: "Normal Route Refresh request (with/without ORF)", level: should, meta: { rfc: 2918, section: "3" } }
+      - { value: 1, name: BoRR, label: "Beginning of Route Refresh (BoRR)", level: may, meta: { rfc: 7313, section: "3.2" } }
+      - { value: 2, name: EoRR, label: "Ending of Route Refresh (EoRR)", level: may, meta: { rfc: 7313, section: "3.2" } }
     doc: >-
-      Reserved. Must be set to zero on transmission and ignored on receipt per RFC 2918. RFC 7313 (Enhanced Route Refresh) repurposes this byte as a subtype field to signal ORR markers: 0 = normal Route Refresh request, 1 = Demarcation of the beginning of a route refresh (BoRR), 2 = Demarcation of the ending of a route refresh (EoRR). [RFC 2918 §3; RFC 7313 §2]
+      Reserved. Must be set to zero on transmission and ignored on receipt per RFC 2918. RFC 7313 (Enhanced Route Refresh) repurposes this byte as a Message Subtype field to signal RIB markers: 0 = normal Route Refresh request, 1 = Demarcation of the beginning of a route refresh (BoRR), 2 = Demarcation of the ending of a route refresh (EoRR). [RFC 2918 §3; RFC 7313 §3.2]
   - id: safi
     name: Subsequent Address Family Identifier
     type: { kind: int, bits: 8 }

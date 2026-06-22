@@ -4,6 +4,10 @@ name: TACACS+ Packet
 rowBits: 32
 byteOrder: BE
 description: "TACACS+ (Terminal Access Controller Access-Control System Plus) packet (RFC 8907). An AAA protocol for network device administration — Authentication, Authorization, and Accounting — operating over TCP port 49. The fixed 12-byte header carries Version (Major 0xc, Minor 0 or 1), Type (Authentication/Authorization/Accounting), Sequence Number, Flags, Session ID, and Body Length. The variable-length Body immediately follows; it is XOR-obfuscated (not encrypted) using a pseudo-random pad derived from a shared secret, the Session ID, and a sequence number (RFC 8907 §4.5). The Unencrypted flag (TAC_PLUS_UNENCRYPTED_FLAG 0x01) in the Flags byte disables obfuscation when set. RFC 8907 obsoletes the earlier Cisco draft; the term 'encryption' is retained in field names for historical compatibility but the mechanism is XOR obfuscation."
+meta:
+  rfc: 8907
+  section: "4.1"
+  aliases: [tacacsPlus, tacacs]
 
 body:
   - kind: group
@@ -14,7 +18,7 @@ body:
         name: Major Version
         type: { kind: int, bits: 4 }
         category: type
-        defaultValue: 12
+        const: 12
         doc: "TACACS+ major version number. MUST be 0xc (binary 1100) for all TACACS+ packets. A receiver MUST discard any packet whose major version is not 0xc. [RFC 8907 §4.1]"
       - id: tacacsMinorVersion
         name: Minor Version
@@ -26,7 +30,7 @@ body:
             1: "One (1)"
         category: type
         defaultValue: 0
-        doc: "TACACS+ minor version. 0 = the default version; 1 = used for CHAP and MS-CHAP authentication subtypes. A receiver that does not support the minor version MUST respond with a minor version it does support. [RFC 8907 §4.1]"
+        doc: "TACACS+ minor version. 0 = the default version (used by all authorization, accounting, and ASCII authentication); 1 = used only for PAP, CHAP, and MS-CHAPv1/v2 login authentication — the minor-version changes apply solely to the authentication process. A receiver that does not support the minor version MUST respond with a minor version it does support. [RFC 8907 §4.1]"
 
   - id: tacacsType
     name: Type

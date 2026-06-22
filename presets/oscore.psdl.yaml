@@ -12,10 +12,10 @@ body:
     children:
       - id: oscoreFlagsReserved
         name: Reserved
-        type: { kind: int, bits: 5 }
+        type: { kind: int, bits: 3 }
         category: reserved
         defaultValue: 0
-        doc: "Upper 5 bits of the Flags byte. MUST be set to zero by senders and MUST be ignored by receivers. Reserved for future extensions to the OSCORE option format. [RFC 8613 §6.1]"
+        doc: "Upper 3 bits of the Flags byte (the 6th-to-8th least significant bits). These SHALL be set to zero by senders; if any is set to 1 the message is malformed and decompression fails. Reserved for future extensions to the OSCORE option format. [RFC 8613 §6.1]"
       - id: oscoreH
         name: h (KID Context)
         type: { kind: int, bits: 1 }

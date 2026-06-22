@@ -52,6 +52,16 @@ body:
         defaultValue: 0
         doc: "N-PDU Number flag. Set to 1 when the N-PDU Number field in the optional block carries a meaningful value. Even when PN=0 the optional 4-byte block is present if E=1 or S=1. [3GPP TS 29.281 §5.1]"
 
+  - kind: virtual
+    id: gtpOptPresent
+    name: (optional block present)
+    expr:
+      kind: op
+      op: "|"
+      a: { kind: op, op: "|", a: { kind: ref, field: gtpE }, b: { kind: ref, field: gtpS } }
+      b: { kind: ref, field: gtpPN }
+    doc: "Decode-time predicate (0 wire bytes): non-zero when any of the E, S, or PN flag bits is set, in which case the 4-byte optional block (Sequence Number, N-PDU Number, Next Extension Header Type) is present. Derived from the real flag bits already read above; it is not itself a wire field. [3GPP TS 29.281 §5.1]"
+
   - id: gtpMessageType
     name: Message Type
     type:
@@ -62,10 +72,11 @@ body:
         2: "Echo Response"
         26: "Error Indication"
         31: "Supported Extension Headers Notification"
+        254: "End Marker"
         255: "G-PDU (T-PDU)"
     category: type
     defaultValue: 255
-    doc: "Message Type octet identifying the GTP-U message. 0xFF (255) = G-PDU, which carries an encapsulated T-PDU (user data packet, typically IPv4 or IPv6). Other values — Echo Request (1), Echo Response (2), Error Indication (26), Supported Extension Headers Notification (31) — are used for path management. [3GPP TS 29.281 §5.1 / Table 5.2.1-3]"
+    doc: "Message Type octet identifying the GTP-U message. 0xFF (255) = G-PDU, which carries an encapsulated T-PDU (user data packet, typically IPv4 or IPv6). Other values — Echo Request (1), Echo Response (2), Error Indication (26), Supported Extension Headers Notification (31), End Marker (254) — are used for path management. [3GPP TS 29.281 §5.1 / Table 5.2.1-3]"
 
   - id: gtpLength
     name: Length
@@ -109,11 +120,13 @@ body:
         bits: 8
         variants:
           0: "No More Extension Headers"
-          1: "Reserved"
-          32: "UDP Port"
+          32: "Service Class Indicator"
+          64: "UDP Port"
+          129: "RAN Container"
+          130: "Long PDCP PDU Number"
+          131: "Xw RAN Container"
+          132: "NR RAN Container"
           133: "PDU Session Container"
-          192: "Long PDCP PDU Number (DL)"
-          193: "Long PDCP PDU Number (UL)"
-          194: "NR RAN Container"
+          192: "PDCP PDU Number"
       category: type
-      doc: "Next Extension Header Type. Present when any of E, S, or PN flags is set (gtpOptPresent). 0x00 = no extension header follows. Non-zero values indicate the type of the first GTP Extension Header that immediately follows this field; each extension header in turn carries its own Next Extension Header Type. Common values: 0x85=PDU Session Container (5G UP, TS 38.415), 0xC0/0xC1=Long PDCP PDU Number, 0x20=UDP Port. [3GPP TS 29.281 §5.2]"
+      doc: "Next Extension Header Type. Present when any of E, S, or PN flags is set (gtpOptPresent). 0x00 = no extension header follows. Non-zero values indicate the type of the first GTP Extension Header that immediately follows this field; each extension header in turn carries its own Next Extension Header Type. Canonical values: 0x20=Service Class Indicator, 0x40=UDP Port, 0x81=RAN Container, 0x82=Long PDCP PDU Number, 0x83=Xw RAN Container, 0x84=NR RAN Container, 0x85=PDU Session Container (5G UP, TS 38.415), 0xC0=PDCP PDU Number. [3GPP TS 29.281 §5.2 / Table 5.2.1-1]"

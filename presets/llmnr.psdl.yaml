@@ -30,7 +30,7 @@ body:
         name: C
         type: { kind: bits, n: 1 }
         category: flags
-        doc: "Conflict (C) bit — set to 1 in a response to indicate that the responder has detected a conflict for the name being queried (i.e. another host on the link also claims ownership of that name). Absent in queries (MUST be 0). [RFC 4795 §2.1.1]"
+        doc: "Conflict (C) bit — meaningful in both directions. In a query, C=1 indicates the sender has received multiple LLMNR responses to this query (a conflict); a responder receiving such a query MUST NOT respond, and for a UNIQUE name MUST itself send a query with C clear. In a response, the C bit is clear if the name is considered UNIQUE and set otherwise. [RFC 4795 §2.1.1]"
       - id: llmnrTc
         name: TC
         type: { kind: bits, n: 1 }

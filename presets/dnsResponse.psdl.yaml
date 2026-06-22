@@ -3,7 +3,7 @@ version: "0.5"
 name: DNS Message
 rowBits: 16
 byteOrder: BE
-description: "Full Domain Name System message (RFC 1035) — the 12-byte header followed by Question and Answer (Resource Record) sections expanded label-by-label. Counts in the header (QDCOUNT/ANCOUNT/...) drive the Repeat containers, and the RR RDATA is unpacked per record TYPE with a Switch (A/AAAA/CNAME/NS/PTR/MX/SOA/TXT/SRV). PSDL 0.4 has no comparison operator and does not model DNS name compression, so each domain name is rendered as an explicit chain of length-prefixed labels (uncompressed); compressed names (0xC0 pointers) are represented as opaque RDATA where they would otherwise appear. All multi-byte integers (ID, counts, TYPE/CLASS/TTL/RDLENGTH and the type-specific fixed fields) are big-endian. Domain names are encoded as a sequence of length-prefixed labels terminated by a zero-length label; this preset assumes uncompressed names and does not model the 0xC0 compression pointer except where noted."
+description: "Full Domain Name System message (RFC 1035) — the 12-byte header followed by Question and Answer (Resource Record) sections expanded label-by-label. Header counts (QDCOUNT/ANCOUNT/...) drive the section Repeat containers, and the RR RDATA is unpacked per record TYPE with a Switch (A/AAAA/CNAME/NS/PTR/MX/SOA/TXT/SRV). DNS name compression is not modeled, so each domain name is rendered as an explicit chain of length-prefixed labels terminated by a zero-length label (uncompressed), expressed as a Repeat whose count.until fires on a Label Length of 0; compressed names (0xC0 pointers) are represented as opaque RDATA where they would otherwise appear. All multi-byte integers (ID, counts, TYPE/CLASS/TTL/RDLENGTH and the type-specific fixed fields) are big-endian. Domain names are encoded as a sequence of length-prefixed labels terminated by a zero-length label; this preset assumes uncompressed names and does not model the 0xC0 compression pointer except where noted."
 
 # Shared QTYPE / TYPE catalog. QTYPE (Question) is a superset of TYPE (RR), so the
 # same enum variant set is reused for both via this YAML anchor. [RFC 1035 §3.2.2/§3.2.3]
@@ -106,8 +106,13 @@ body:
           id: dnsQNameLabels
           name: QNAME (labels)
           category: variable
-          count: { kind: ref, field: dnsQNameLabelCount }
-          doc: "QNAME as a sequence of length-prefixed labels (uncompressed). Each label is a 1-byte length followed by that many octets; the name ends with a zero-length label which is not modeled as a repeat element. Compression pointers (0xC0) are not supported here — names are assumed uncompressed. [RFC 1035 §3.1, §4.1.2]"
+          count:
+            until:
+              kind: op
+              op: "=="
+              a: { kind: ref, field: dnsLabelLen }
+              b: { kind: lit, value: 0 }
+          doc: "QNAME as a sequence of length-prefixed labels (uncompressed). Each label is a 1-byte length followed by that many octets; the name is terminated by a zero-length label (Label Length = 0), which is the final iteration of this repeat (with an empty Label). The repeat stops once a label of length 0 has been read. Compression pointers (0xC0) are not supported here — names are assumed uncompressed. [RFC 1035 §3.1, §4.1.2]"
           element:
             id: dnsQNameLabel
             fields:
@@ -115,12 +120,13 @@ body:
                 name: Label Length
                 type: { kind: bits, n: 8 }
                 category: length
-                doc: "Length of the label that follows, in octets (1..63). The top two bits being 00 indicates a normal label; 11 (0xC0) would indicate a compression pointer, which this preset does not model. A length of 0 terminates the name. [RFC 1035 §3.1]"
+                doc: "Length of the label that follows, in octets (1..63). The top two bits being 00 indicates a normal label; 11 (0xC0) would indicate a compression pointer, which this preset does not model. A length of 0 terminates the name and ends the label repeat. [RFC 1035 §3.1]"
               - id: dnsLabel
                 name: Label
                 type: { kind: bytes, n: { kind: ref, field: dnsLabelLen } }
                 category: variable
-                doc: "The label octets — one component of the domain name (e.g. \"www\"), exactly `dnsLabelLen` bytes long. Conventionally restricted to letters, digits and hyphen. [RFC 1035 §3.1]"
+                display: ascii
+                doc: "The label octets — one component of the domain name (e.g. \"www\"), exactly `dnsLabelLen` bytes long (zero bytes for the terminating root label). Conventionally restricted to letters, digits and hyphen. [RFC 1035 §3.1]"
         - id: dnsQType
           name: QTYPE
           type:
@@ -249,16 +255,56 @@ body:
             "6":
               id: dnsRdataSoa
               fields:
-                - id: dnsRdataSoaMname
-                  name: MNAME
-                  type: { kind: bytes, n: { kind: ref, field: dnsSoaMnameLen } }
+                - kind: repeat
+                  id: dnsRdataSoaMname
+                  name: MNAME (labels)
                   category: variable
-                  doc: "<domain-name> of the primary (master) name server for this zone. Carried as an opaque label sequence; its byte length is given by the auxiliary count dnsSoaMnameLen. [RFC 1035 §3.3.13]"
-                - id: dnsRdataSoaRname
-                  name: RNAME
-                  type: { kind: bytes, n: { kind: ref, field: dnsSoaRnameLen } }
+                  count:
+                    until:
+                      kind: op
+                      op: "=="
+                      a: { kind: ref, field: dnsSoaMnameLabelLen }
+                      b: { kind: lit, value: 0 }
+                  doc: "<domain-name> of the primary (master) name server for this zone, encoded as uncompressed length-prefixed labels terminated by a zero-length label. The repeat stops once a label of length 0 has been read. (Compression pointers are not modeled.) [RFC 1035 §3.3.13]"
+                  element:
+                    id: dnsRdataSoaMnameLabel
+                    fields:
+                      - id: dnsSoaMnameLabelLen
+                        name: Label Length
+                        type: { kind: bits, n: 8 }
+                        category: length
+                        doc: "Length of the MNAME label that follows, in octets (1..63); 0 terminates the name and ends the label repeat. [RFC 1035 §3.1]"
+                      - id: dnsSoaMnameLabel
+                        name: Label
+                        type: { kind: bytes, n: { kind: ref, field: dnsSoaMnameLabelLen } }
+                        category: variable
+                        display: ascii
+                        doc: "One label of the MNAME domain name, exactly `dnsSoaMnameLabelLen` bytes (zero bytes for the terminating root label). [RFC 1035 §3.1]"
+                - kind: repeat
+                  id: dnsRdataSoaRname
+                  name: RNAME (labels)
                   category: variable
-                  doc: "<domain-name> encoding the mailbox of the zone administrator (first label is the local-part, e.g. hostmaster.example.com = hostmaster@example.com). Byte length given by dnsSoaRnameLen. [RFC 1035 §3.3.13]"
+                  count:
+                    until:
+                      kind: op
+                      op: "=="
+                      a: { kind: ref, field: dnsSoaRnameLabelLen }
+                      b: { kind: lit, value: 0 }
+                  doc: "<domain-name> encoding the mailbox of the zone administrator (first label is the local-part, e.g. hostmaster.example.com = hostmaster@example.com), encoded as uncompressed length-prefixed labels terminated by a zero-length label. The repeat stops once a label of length 0 has been read. [RFC 1035 §3.3.13]"
+                  element:
+                    id: dnsRdataSoaRnameLabel
+                    fields:
+                      - id: dnsSoaRnameLabelLen
+                        name: Label Length
+                        type: { kind: bits, n: 8 }
+                        category: length
+                        doc: "Length of the RNAME label that follows, in octets (1..63); 0 terminates the name and ends the label repeat. [RFC 1035 §3.1]"
+                      - id: dnsSoaRnameLabel
+                        name: Label
+                        type: { kind: bytes, n: { kind: ref, field: dnsSoaRnameLabelLen } }
+                        category: variable
+                        display: ascii
+                        doc: "One label of the RNAME domain name, exactly `dnsSoaRnameLabelLen` bytes (zero bytes for the terminating root label). [RFC 1035 §3.1]"
                 - id: dnsRdataSoaSerial
                   name: SERIAL
                   type: { kind: bits, n: 32 }

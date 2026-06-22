@@ -57,6 +57,7 @@ body:
         type: { kind: int, bits: 4 }
         category: type
         defaultValue: 2
+        meta: { rfc: { defined: 5201, updates: [{ rfc: 7401, section: "5.1" }] }, section: "5.1" }
         doc: "HIP protocol version. MUST be 2 for packets compliant with RFC 7401; a receiver SHOULD ignore packets with an unknown version. Version 1 was defined by RFC 5201 (now obsoleted). [RFC 7401 §5.1]"
       - id: hipReserved3
         name: Reserved

@@ -15,12 +15,12 @@ body:
     name: Code
     type: { kind: int, bits: 8 }
     category: type
-    doc: ICMPv6 Code. MUST be zero on transmission; ignored on receipt for MLD messages. [RFC 3810 §5.1]
+    doc: ICMPv6 Code. MUST be zero on transmission; ignored on receipt for MLD messages. [RFC 3810 §5.1.1]
   - id: checksum
     name: Checksum
     type: { kind: int, bits: 16 }
     category: checksum
-    doc: 16-bit one's-complement checksum over the MLD message plus an IPv6 pseudo-header (source address, destination address, upper-layer packet length, next header = 58). MUST be verified by receivers; messages with invalid checksums MUST be silently discarded. [RFC 3810 §5.1][RFC 4443 §2.3]
+    doc: 16-bit one's-complement checksum over the MLD message plus an IPv6 pseudo-header (source address, destination address, upper-layer packet length, next header = 58). MUST be verified by receivers; messages with invalid checksums MUST be silently discarded. [RFC 3810 §5.1.2][RFC 4443 §2.3]
   - id: maxRespCode
     name: Max Resp Code
     type: { kind: int, bits: 16 }
@@ -30,46 +30,46 @@ body:
     name: Reserved
     type: { kind: bits, n: 16 }
     category: reserved
-    doc: Reserved field. MUST be zero on transmission; ignored on receipt. [RFC 3810 §5.1]
+    doc: Reserved field. MUST be zero on transmission; ignored on receipt. [RFC 3810 §5.1.4]
   - id: multicastAddress
     name: Multicast Address
     type: { kind: bits, n: 128 }
     category: addressing
-    doc: "IPv6 multicast address being queried. Set to :: (all zeros) in a General Query (queries all multicast groups). Set to the specific multicast address in a Multicast-Address-Specific or Multicast-Address-and-Source-Specific Query. MUST be a valid IPv6 multicast address (prefix ff00::/8) in non-General Queries. [RFC 3810 §5.1.4]"
+    doc: "IPv6 multicast address being queried. Set to :: (all zeros) in a General Query (queries all multicast groups). Set to the specific multicast address in a Multicast-Address-Specific or Multicast-Address-and-Source-Specific Query. MUST be a valid IPv6 multicast address (prefix ff00::/8) in non-General Queries. [RFC 3810 §5.1.5]"
   - kind: group
     id: flagsByte
-    name: Flags / QRV / QQIC
+    name: Resv / S / QRV
     children:
       - id: resv
         name: Resv
         type: { kind: bits, n: 4 }
         category: reserved
-        doc: Reserved. MUST be zero on transmission; ignored on receipt. [RFC 3810 §5.1.5]
+        doc: Reserved. MUST be zero on transmission; ignored on receipt. [RFC 3810 §5.1]
       - id: s
         name: S
         type: { kind: bits, n: 1 }
         category: flags
-        doc: Suppress Router-Side Processing flag. When set to 1, multicast routers receiving this Query MUST NOT update their timers upon processing the Query, even if the querier's parameters differ from the router's current settings — prevents a low-value query from prematurely aging out multicast listener state. [RFC 3810 §5.1.5]
+        doc: Suppress Router-Side Processing flag. When set to 1, multicast routers receiving this Query MUST NOT update their timers upon processing the Query, even if the querier's parameters differ from the router's current settings — prevents a low-value query from prematurely aging out multicast listener state. [RFC 3810 §5.1.7]
       - id: qrv
         name: QRV
         type: { kind: bits, n: 3 }
         category: identifier
-        doc: Querier's Robustness Variable. Encodes the robustness variable used by the querier, which controls how many times protocol messages are retransmitted to compensate for packet loss. If non-zero, receivers update their Robustness Variable to this value. Zero means the querier uses the default (typically 2). [RFC 3810 §5.1.6]
+        doc: Querier's Robustness Variable. Encodes the robustness variable used by the querier, which controls how many times protocol messages are retransmitted to compensate for packet loss. If non-zero, receivers update their Robustness Variable to this value. Zero means the querier uses the default (typically 2). [RFC 3810 §5.1.8]
   - id: qqic
     name: QQIC
     type: { kind: int, bits: 8 }
     category: identifier
-    doc: "Querier's Query Interval Code. Encodes the Query Interval (in seconds) used by the querier. If QQIC < 128 the interval is QQIC seconds; otherwise it is floating-point (same Exp/Mant encoding as Max Resp Code but 8-bit). Receivers update their Other Querier Present Interval based on this value. Typical default: 125 seconds. [RFC 3810 §5.1.7]"
+    doc: "Querier's Query Interval Code. Encodes the Query Interval (in seconds) used by the querier. If QQIC < 128 the interval (QQI) is the QQIC value in seconds; otherwise QQIC is a 1-bit flag, 3-bit exp, 4-bit mant float and QQI = (mant | 0x10) << (exp+3). Receivers update their Other Querier Present Interval based on this value. Typical default: 125 seconds. [RFC 3810 §5.1.9]"
   - id: mldv2SrcCount
     name: Number of Sources
     type: { kind: int, bits: 16 }
     category: length
-    doc: The number of unicast IPv6 source addresses present in a Multicast-Address-and-Source-Specific Query. 0 for General Queries and Multicast-Address-Specific Queries. The source list that follows contains exactly this many 16-byte IPv6 unicast addresses. [RFC 3810 §5.1.8]
+    doc: The number of unicast IPv6 source addresses present in a Multicast-Address-and-Source-Specific Query. 0 for General Queries and Multicast-Address-Specific Queries. The source list that follows contains exactly this many 16-byte IPv6 unicast addresses. [RFC 3810 §5.1.10]
   - kind: repeat
     id: sourceList
     name: Source List
     category: variable
-    doc: List of unicast IPv6 source addresses for a Multicast-Address-and-Source-Specific Query. Empty (zero entries) for General Queries and Multicast-Address-Specific Queries. Each address is 16 bytes in network byte order. [RFC 3810 §5.1.9]
+    doc: List of unicast IPv6 source addresses for a Multicast-Address-and-Source-Specific Query. Empty (zero entries) for General Queries and Multicast-Address-Specific Queries. Each address is 16 bytes in network byte order. [RFC 3810 §5.1.11]
     element:
       id: sourceRecord
       fields:
@@ -77,5 +77,5 @@ body:
           name: Source Address
           type: { kind: bits, n: 128 }
           category: addressing
-          doc: A unicast IPv6 source address in the source list. The receiving node MUST send a Multicast Listener Report if it is listening to traffic from this source for the specified multicast address. [RFC 3810 §5.1.9]
+          doc: A unicast IPv6 source address in the source list. The receiving node MUST send a Multicast Listener Report if it is listening to traffic from this source for the specified multicast address. [RFC 3810 §5.1.11]
     count: { kind: ref, field: mldv2SrcCount }

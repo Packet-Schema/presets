@@ -19,6 +19,8 @@ body:
       bits: 16
     category: length
     doc: Size of the SMB2 header structure in bytes. MUST be set to 64 by the sender and MUST be validated to be 64 by the receiver. [MS-SMB2 §2.2.1]
+    values:
+      - { value: 64, label: "SMB2 header size", level: must }
   - id: creditCharge
     name: Credit Charge
     type:

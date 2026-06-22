@@ -201,6 +201,6 @@ body:
         fields:
           - id: natpmpUnknownBody
             name: Body
-            type: { kind: bytes, n: { kind: ref, field: natpmpBodyBytes } }
+            type: { kind: bytes, n: { kind: remaining } }
             category: variable
-            doc: "Raw body bytes for unrecognised NAT-PMP opcodes. The byte count natpmpBodyBytes is supplied externally from the enclosing UDP payload length minus the 2-byte version+opcode header. [RFC 6886 §3.2]"
+            doc: "Raw body bytes for unrecognised NAT-PMP opcodes. Consumes the remainder of the UDP payload after the 2-byte version+opcode header, since NAT-PMP carries no length field and each message occupies its own UDP datagram. [RFC 6886 §3.2]"

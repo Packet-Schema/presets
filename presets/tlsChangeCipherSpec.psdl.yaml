@@ -12,5 +12,6 @@ body:
       bits: 8
       variants:
         1: "change_cipher_spec"
+    const: 1
     category: type
     doc: Identifies the ChangeCipherSpec message; the only valid value is 1 (change_cipher_spec). In TLS 1.2 and earlier this signals the receiver to copy the pending cipher state into the active state. In TLS 1.3 the field is sent for compatibility with middleboxes but is ignored by the record-layer state machine. [RFC 5246 §7.1, RFC 8446 §D.4]

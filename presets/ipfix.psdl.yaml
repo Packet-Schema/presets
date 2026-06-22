@@ -41,46 +41,55 @@ body:
         category: identifier
         doc: "A 32-bit identifier of the Observation Domain that is locally unique to the Exporting Process. The Exporting Process uses this field to uniquely identify to the Collecting Process the Observation Domain that metered the flows. An Observation Domain is a set of Observation Points for which flows are metered and exported by a single Metering Process. [RFC 7011 §3.1]"
 
-  - kind: repeat
-    id: ipfixSets
+  - kind: bounded
+    id: ipfixSetsRegion
     name: Sets
-    category: variable
-    doc: "One or more Sets that follow the 16-byte Message Header and fill the remainder of the IPFIX Message up to ipfixLength bytes. Each Set contains a Set Header (Set ID + Set Length) and a variable-length Records field. Set ID 2 carries Template Records (RFC 7011 §3.4.1), Set ID 3 carries Options Template Records (RFC 7011 §3.4.2), and Set IDs 256–65535 carry Data Records whose field layout is described by a previously transmitted Template. Set IDs 0, 1, and 4–255 are reserved. [RFC 7011 §3.3]"
-    element:
-      id: ipfixSetRecord
-      fields:
-        - id: ipfixSetId
-          name: Set ID
-          type:
-            kind: enum
-            bits: 16
-            variants:
-              2: "Template Set"
-              3: "Options Template Set"
-              256: "Data Set (Template ID 256)"
-          category: type
-          doc: "Identifies the type of records in this Set. 2=Template Set (defines field layouts for future Data Sets), 3=Options Template Set (defines metadata/scope field layouts), 256–65535=Data Set whose fields are described by the Template with that ID. Set IDs 0, 1, and 4–255 are reserved and MUST NOT be used by an Exporter. [RFC 7011 §3.3.2]"
+    doc: "Length-delimited region holding all Sets that follow the 16-byte Message Header. Its byte budget is (Length − 16): the total IPFIX Message length carried in the header minus the fixed 16-byte Message Header, so the contained repeat terminates exactly at the end of the message rather than at end-of-packet. [RFC 7011 §3.1 / §3.3]"
+    bytes:
+      kind: op
+      op: "-"
+      a: { kind: ref, field: ipfixLength }
+      b: { kind: lit, value: 16 }
+    fields:
+      - kind: repeat
+        id: ipfixSets
+        name: Sets
+        category: variable
+        doc: "One or more Sets that follow the 16-byte Message Header and fill the remainder of the IPFIX Message up to ipfixLength bytes. Each Set contains a Set Header (Set ID + Set Length) and a variable-length Records field. Set ID 2 carries Template Records (RFC 7011 §3.4.1), Set ID 3 carries Options Template Records (RFC 7011 §3.4.2), and Set IDs 256–65535 carry Data Records whose field layout is described by a previously transmitted Template. Set IDs 0, 1, and 4–255 are reserved. The list runs to the end of the enclosing length-delimited region (count: eos). [RFC 7011 §3.3]"
+        count: eos
+        element:
+          id: ipfixSetRecord
+          fields:
+            - id: ipfixSetId
+              name: Set ID
+              type:
+                kind: enum
+                bits: 16
+                variants:
+                  2: "Template Set"
+                  3: "Options Template Set"
+                  256: "Data Set (Template ID 256)"
+              category: type
+              doc: "Identifies the type of records in this Set. 2=Template Set (defines field layouts for future Data Sets), 3=Options Template Set (defines metadata/scope field layouts), 256–65535=Data Set whose fields are described by the Template with that ID. Set IDs 0, 1, and 4–255 are reserved and MUST NOT be used by an Exporter. [RFC 7011 §3.3.2]"
 
-        - id: ipfixSetLength
-          name: Set Length
-          type: { kind: int, bits: 16 }
-          category: length
-          doc: "Length of this Set in bytes, including the 4-byte Set Header (Set ID + Set Length) and all Records. The Records field is therefore (Set Length − 4) bytes. Padding bytes (value 0x00) MAY be added at the end of a Set to align the next Set on a 4-byte boundary; they MUST be included in the Set Length. [RFC 7011 §3.3.2]"
+            - id: ipfixSetLength
+              name: Set Length
+              type: { kind: int, bits: 16 }
+              category: length
+              doc: "Length of this Set in bytes, including the 4-byte Set Header (Set ID + Set Length) and all Records. The Records field is therefore (Set Length − 4) bytes. Padding bytes (value 0x00) MAY be added at the end of a Set to align the next Set on a 4-byte boundary; they MUST be included in the Set Length. [RFC 7011 §3.3.2]"
 
-        - id: ipfixSetRecords
-          name: Records
-          type:
-            kind: bytes
-            n:
-              kind: cond
-              test: { kind: ref, field: ipfixSetLength }
-              t:
-                kind: op
-                op: "-"
-                a: { kind: ref, field: ipfixSetLength }
-                b: { kind: lit, value: 4 }
-              f: { kind: lit, value: 0 }
-          category: variable
-          doc: "Raw bytes of all records within this Set, immediately following the Set Header. For a Template Set the bytes encode one or more Template Records (RFC 7011 §3.4.1); for an Options Template Set they encode Options Template Records (RFC 7011 §3.4.2); for a Data Set they encode zero or more Data Records whose field layout is given by the referenced Template ID. Padding bytes at the end (value 0x00) ensure 4-byte alignment; they are counted in Set Length. [RFC 7011 §3.3.2 / §3.4]"
-
-    count: { kind: ref, field: ipfixSetCount }
+            - id: ipfixSetRecords
+              name: Records
+              type:
+                kind: bytes
+                n:
+                  kind: cond
+                  test: { kind: ref, field: ipfixSetLength }
+                  t:
+                    kind: op
+                    op: "-"
+                    a: { kind: ref, field: ipfixSetLength }
+                    b: { kind: lit, value: 4 }
+                  f: { kind: lit, value: 0 }
+              category: variable
+              doc: "Raw bytes of all records within this Set, immediately following the Set Header. For a Template Set the bytes encode one or more Template Records (RFC 7011 §3.4.1); for an Options Template Set they encode Options Template Records (RFC 7011 §3.4.2); for a Data Set they encode zero or more Data Records whose field layout is given by the referenced Template ID. Padding bytes at the end (value 0x00) ensure 4-byte alignment; they are counted in Set Length. [RFC 7011 §3.3.2 / §3.4]"

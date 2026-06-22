@@ -3,6 +3,9 @@ version: "0.5"
 name: Babel Routing Protocol
 rowBits: 32
 byteOrder: BE
+meta:
+  rfc: 8966
+  aliases: [babel]
 description: "Babel distance-vector routing protocol packet (RFC 8966). Every Babel packet starts with a 4-byte fixed header — Magic (0x42), Version (2), Body Length — followed by a sequence of Type-Length-Value (TLV) records that carry all routing information. Common TLV types: 0=Pad1, 1=PadN, 2=Acknowledgement Request, 3=Acknowledgement, 4=Hello, 5=IHU (I Heard You), 6=Router-Id, 7=Next-Hop, 8=Update, 9=Route Request, 10=Seqno Request. Babel operates over UDP (port 6696) and supports both IPv4 and IPv6. The PSDL model shows the fixed header plus a bounded body of TLV records that runs for exactly Body Length octets. Pad1 (Type=0) is a single octet with no Length or Value; every other TLV is Type + Length + Value, where the Value field is an opaque byte string whose length is given by the TLV Length field."
 
 body:
@@ -49,8 +52,8 @@ body:
                 variants:
                   0: "Pad1"
                   1: "PadN"
-                  2: "Acknowledgement Request"
-                  3: "Acknowledgement"
+                  2: "Acknowledgment Request"
+                  3: "Acknowledgment"
                   4: "Hello"
                   5: "IHU (I Heard You)"
                   6: "Router-Id"
@@ -59,7 +62,7 @@ body:
                   9: "Route Request"
                   10: "Seqno Request"
               category: type
-              doc: "TLV type code. 0=Pad1 (single-byte, no Length/Value fields), 1=PadN (padding), 2=Acknowledgement Request, 3=Acknowledgement, 4=Hello (link liveness), 5=IHU (reception report toward a neighbour), 6=Router-Id (64-bit router identifier), 7=Next-Hop (next-hop address for subsequent Updates), 8=Update (route announcement), 9=Route Request (request for a specific or full table dump), 10=Seqno Request (request for a specific sequence number). Values 11–255 are reserved or defined by extensions. [RFC 8966 §4.3 / §4.4 / §4.5 / §4.6]"
+              doc: "TLV type code. 0=Pad1 (single-byte, no Length/Value fields), 1=PadN (padding), 2=Acknowledgment Request, 3=Acknowledgment, 4=Hello (link liveness), 5=IHU (reception report toward a neighbour), 6=Router-Id (64-bit router identifier), 7=Next-Hop (next-hop address for subsequent Updates), 8=Update (route announcement), 9=Route Request (request for a specific or full table dump), 10=Seqno Request (request for a specific sequence number). Values 11–255 are reserved or defined by extensions. [RFC 8966 §4.3 / §4.4 / §4.5 / §4.6]"
             - kind: switch
               id: babelTlvBody
               name: TLV Body
@@ -82,5 +85,5 @@ body:
                       name: Value
                       type: { kind: bytes, n: { kind: ref, field: babelTlvLen } }
                       category: variable
-                      doc: "TLV Value, exactly babelTlvLen bytes. Interpretation depends on Type. Hello (4): 2-byte flags + 2-byte Seqno + 4-byte Interval (centiseconds). IHU (5): 2-byte flags + 2-byte Rxcost + 4-byte Interval + variable-length address. Router-Id (6): 2-byte reserved + 8-byte router identifier. Next-Hop (7): 2-byte reserved + variable-length next-hop address. Update (8): 1-byte AE + 1-byte flags + 1-byte Plen + 1-byte Omitted + 2-byte Interval + 2-byte Seqno + 2-byte Metric + variable-length Prefix. Route Request (9): 1-byte AE + 1-byte Plen + variable-length Prefix. Seqno Request (10): 1-byte AE + 1-byte Plen + 2-byte Seqno + 1-byte HopCount + 1-byte reserved + 8-byte Router-Id + variable-length Prefix. [RFC 8966 §4.4 / §4.5 / §4.6]"
+                      doc: "TLV Value, exactly babelTlvLen bytes. Interpretation depends on Type. Hello (4): 2-byte flags + 2-byte Seqno + 2-byte Interval (centiseconds). IHU (5): 1-byte AE + 1-byte reserved + 2-byte Rxcost + 2-byte Interval + variable-length address. Router-Id (6): 2-byte reserved + 8-byte router identifier. Next-Hop (7): 1-byte AE + 1-byte reserved + variable-length next-hop address. Update (8): 1-byte AE + 1-byte flags + 1-byte Plen + 1-byte Omitted + 2-byte Interval + 2-byte Seqno + 2-byte Metric + variable-length Prefix. Route Request (9): 1-byte AE + 1-byte Plen + variable-length Prefix. Seqno Request (10): 1-byte AE + 1-byte Plen + 2-byte Seqno + 1-byte HopCount + 1-byte reserved + 8-byte Router-Id + variable-length Prefix. [RFC 8966 §4.4 / §4.5 / §4.6]"
         count: eos

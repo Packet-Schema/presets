@@ -23,7 +23,10 @@ body:
       kind: enum
       bits: 8
       variants:
-        4: "SRH (Segment Routing Header)"
+        4:
+          label: "SRH (Segment Routing Header)"
+          level: must
+          doc: "Routing Type 4 identifies the IPv6 Segment Routing Header; RFC 8754 §2 mandates this value."
     category: type
     defaultValue: 4
     doc: "Routing Type identifying this as a Segment Routing Header. MUST be set to 4. Other Routing Type values are defined elsewhere (0 deprecated, 2 Mobile IPv6, 3 RPL). [RFC 8754 §2, RFC 8200 §4.4]"
@@ -65,15 +68,24 @@ body:
           type: { kind: bits, n: 128 }
           category: addressing
           doc: "One 128-bit IPv6 Segment Identifier (SID) in the Segment List. Stored as a standard IPv6 address (e.g. 2001:db8:1::1). The SRv6 SID encodes a locator, a function, and optionally arguments within the 128 bits (RFC 8986). The list is ordered in reverse path order so index 0 is the last node visited. [RFC 8754 §2, RFC 8986 §3]"
-    count: { kind: ref, field: srhSegmentCount }
+    count:
+      kind: op
+      op: "+"
+      a: { kind: ref, field: srhLastEntry }
+      b: { kind: lit, value: 1 }
 
-  - kind: optional
-    when: { kind: ref, field: srhTlvPresent }
-    container:
-      id: srhTlvs
-      name: TLV Objects
-      type:
-        kind: bytes
-        n: { kind: ref, field: srhTlvBytes }
-      category: variable
-      doc: "Variable-length block of Type-Length-Value (TLV) objects occupying the bytes between the end of the Segment List and the end of the SRH. Each TLV has a 1-byte Type, a 1-byte Length (value bytes following), and a variable-length Value, padded to an even octet boundary. Defined TLV types include Pad1 (0), PadN (1), HMAC (5) for cryptographic path authentication, and NSH Carrier (TBD). [RFC 8754 §2.1, RFC 8754 §9.1]"
+  - id: srhTlvs
+    name: TLV Objects
+    type:
+      kind: bytes
+      n:
+        kind: op
+        op: "-"
+        a: { kind: op, op: "*", a: { kind: ref, field: srhHdrExtLen }, b: { kind: lit, value: 8 } }
+        b:
+          kind: op
+          op: "*"
+          a: { kind: op, op: "+", a: { kind: ref, field: srhLastEntry }, b: { kind: lit, value: 1 } }
+          b: { kind: lit, value: 16 }
+    category: variable
+    doc: "Variable-length block of Type-Length-Value (TLV) objects occupying the bytes between the end of the Segment List and the end of the SRH. The block size in bytes = total header length − base − Segment List = Hdr Ext Len × 8 − (Last Entry + 1) × 16; it is zero when no TLVs are present. Each TLV has a 1-byte Type, a 1-byte Length (value bytes following), and a variable-length Value, padded to an even octet boundary. Defined TLV types include Pad1 (0), PadN (1), HMAC (5) for cryptographic path authentication, and NSH Carrier (TBD). [RFC 8754 §2.1, RFC 8754 §9.1]"

@@ -3,61 +3,166 @@ version: "0.5"
 name: ROHC Uncompressed
 rowBits: 32
 byteOrder: BE
-description: "Robust Header Compression (ROHC) Uncompressed profile packet (RFC 5795). ROHC is a framework for compressing headers of IP and upper-layer protocols over links with limited bandwidth. Profile 0x0000 (Uncompressed) passes packets through without compression, making it a baseline and fallback profile. A ROHC packet stream may begin with optional Padding octets (0xE0), an optional Add-CID octet for small CIDs (prefix nibble 0xE (1110b), octets 0xE1–0xEF), followed by a Packet Type Indicator byte, a Profile byte identifying the compression profile, a CRC byte for integrity, and the uncompressed headers payload. The rohcPaddingPresent and rohcAddCidPresent control flags must be provided externally to enable the optional leading fields."
+description: "Robust Header Compression (ROHC) Uncompressed profile packet (RFC 5795). ROHC is a framework for compressing headers of IP and upper-layer protocols over links with limited bandwidth. Profile 0x0000 (Uncompressed) passes packets through without compression, making it a baseline and fallback profile. Per RFC 5795 §5.2.1 the on-wire field order is Padding -> Feedback -> Header -> Payload: zero or more Padding octets (each 0xE0), zero or more Feedback elements (each prefixed by the 5-bit pattern 11110), an optional Add-CID octet for small CIDs (prefix nibble 0xE (1110b), octets 0xE1–0xEF), then the header. The Uncompressed profile defines two header formats (§5.4): an IR packet (type 0xFC/0xFD + Profile + CRC + uncompressed IP datagram) and a Normal packet (the verbatim IP datagram with no type/profile/CRC octets, identified by the IP version nibble 0100/0110). The leading regions are detected by peeking the next octet without consuming it: 0xE0 indicates a Padding octet, the 5-bit prefix 11110 indicates a Feedback element, the 7-bit prefix 1111110 indicates an IR packet, and the nibble 0xE (with a non-zero low nibble) indicates an Add-CID octet."
 
 body:
   - kind: optional
-    when: { kind: ref, field: rohcPaddingPresent }
+    when:
+      kind: op
+      op: "=="
+      a: { kind: peek, bits: 8 }
+      b: { kind: lit, value: 224 }
     container:
-      id: rohcPaddingOctets
-      name: Padding Octets
-      type: { kind: bytes, n: { kind: ref, field: rohcPaddingLen } }
-      category: reserved
-      doc: "Zero or more Padding octets, each with value 0xE0, prepended to the ROHC packet to satisfy alignment requirements of the underlying link layer. The number of padding octets is conveyed externally via rohcPaddingLen. Padding MUST be stripped before parsing the remainder of the packet. [RFC 5795 §5.2.6]"
+      kind: group
+      id: rohcPaddingRegion
+      name: Padding
+      children:
+        - kind: repeat
+          id: rohcPadding
+          count:
+            until:
+              kind: op
+              op: "!="
+              a: { kind: peek, bits: 8 }
+              b: { kind: lit, value: 224 }
+          element:
+            id: rohcPaddingOctet
+            fields:
+              - id: paddingByte
+                name: Padding Octet
+                type: { kind: int, bits: 8 }
+                const: 224
+                category: reserved
+                doc: "A Padding octet with value 0xE0 (224), prepended to the ROHC packet to satisfy alignment requirements of the underlying link layer. Zero or more such octets may appear. The whole padding region is gated by an enclosing optional that peeks for 0xE0, so the run is entered only when at least one padding octet is present (avoiding the do-while pitfall of count.until, which always consumes one element before testing its after-iteration predicate). The run ends when the next octet on the wire is not 0xE0 (detected by a peek in the repeat's until predicate). Padding is stripped before parsing the remainder of the packet. [RFC 5795 §5.2.1.1]"
 
   - kind: optional
-    when: { kind: ref, field: rohcAddCidPresent }
+    when:
+      kind: op
+      op: "=="
+      a: { kind: peek, bits: 5 }
+      b: { kind: lit, value: 30 }
+    container:
+      kind: group
+      id: rohcFeedbackRegion
+      name: Feedback
+      doc: "Zero or more piggybacked feedback elements carried before the header (RFC 5795 §5.2.1, §5.2.2). Each feedback element is identified by the 5-bit prefix 11110. This region is gated by an enclosing optional that peeks the top 5 bits for that prefix, so the run is entered only when at least one feedback element is present (avoiding the count.until do-while pitfall). [RFC 5795 §5.2.2.1]"
+      children:
+        - kind: repeat
+          id: rohcFeedback
+          count:
+            until:
+              kind: op
+              op: "!="
+              a: { kind: peek, bits: 5 }
+              b: { kind: lit, value: 30 }
+          element:
+            id: rohcFeedbackElement
+            fields:
+              - id: feedbackPrefix
+                name: Feedback Prefix
+                type: { kind: int, bits: 5 }
+                const: 30
+                category: type
+                doc: "The 5-bit reserved packet-type prefix 11110 (30) that identifies this octet as the start of a feedback element. [RFC 5795 §5.2.2.1]"
+              - id: feedbackCode
+                name: Code
+                type: { kind: int, bits: 3 }
+                category: length
+                doc: "Feedback length code. 0 indicates that a separate Size octet follows giving the length of the FEEDBACK data field (plus any CID field) in octets; 1–7 directly give that total length in octets. [RFC 5795 §5.2.2.1]"
+              - kind: optional
+                when:
+                  kind: op
+                  op: "=="
+                  a: { kind: ref, field: feedbackCode }
+                  b: { kind: lit, value: 0 }
+                container:
+                  id: feedbackSize
+                  name: Size
+                  type: { kind: int, bits: 8 }
+                  category: length
+                  doc: "Size octet, present only when Code = 0, giving the total length in octets of the FEEDBACK data field and the CID field (if any). [RFC 5795 §5.2.2.1]"
+              - id: feedbackData
+                name: FEEDBACK Data
+                type:
+                  kind: bytes
+                  n:
+                    kind: cond
+                    test:
+                      kind: op
+                      op: "=="
+                      a: { kind: ref, field: feedbackCode }
+                      b: { kind: lit, value: 0 }
+                    t: { kind: ref, field: feedbackSize }
+                    f: { kind: ref, field: feedbackCode }
+                category: payload-marker
+                doc: "Variable-length feedback payload, including any small-CID Add-CID octet or large-CID field, as defined by the chosen ROHC profile. Its length in octets is the Size octet when Code = 0, otherwise the Code value itself. [RFC 5795 §5.2.2.1]"
+
+  - kind: optional
+    when:
+      kind: op
+      op: "=="
+      a: { kind: peek, bits: 4 }
+      b: { kind: lit, value: 14 }
     container:
       id: rohcAddCid
       name: Add-CID Octet
       type: { kind: int, bits: 8 }
       category: identifier
-      doc: "Add-CID octet encoding a small CID (1–15) for the channel on which this packet is sent. The upper nibble is 0xE (1110b) and the lower nibble carries the CID value (0x1–0xF), so the octet ranges over 0xE1–0xEF. CID 0 is never carried by an Add-CID octet (it is the implicit/absent case), since 0xE0 is the Padding octet. Used only when the ROHC channel is configured for small CIDs (1 byte); for large CIDs the CID is carried inside the packet header instead. [RFC 5795 §5.2.1]"
+      doc: "Add-CID octet encoding a small CID (1–15) for the channel on which this packet is sent. The upper nibble is 0xE (1110b) and the lower nibble carries the CID value (0x1–0xF), so the octet ranges over 0xE1–0xEF. Detected on the wire by peeking the high nibble of the next octet (0xE); present only when that nibble equals 0xE. CID 0 is never carried by an Add-CID octet (it is the implicit/absent case), since 0xE0 is the Padding octet (already consumed as padding above). Used only when the ROHC channel is configured for small CIDs (1 byte); for large CIDs the CID is carried inside the packet header instead. [RFC 5795 §5.2.1]"
 
-  - id: rohcPacketType
-    name: Packet Type Indicator
-    type:
-      kind: enum
-      bits: 8
-      variants:
-        253: "IR (Initialisation and Refresh)"
-        252: "IR (Initialisation and Refresh)"
-        248: "IR-DYN (Dynamic Chain Refresh)"
-    category: type
-    doc: "ROHC packet type byte indicating the packet's role in the compression context lifecycle. The IR packet uses the 7-bit prefix 1111110, so both 0xFC (252) and 0xFD (253) are IR packets carrying full static and dynamic header chains; 0xF8 (248)=IR-DYN packet carrying only the dynamic chain. A Normal packet under the Uncompressed profile (0x0000) has no type-indicator octet: it is the verbatim IP datagram, detected by the IP version nibble in its first octet (0100=IPv4, 0110=IPv6) rather than by a 0x00 byte. [RFC 5795 §5.2 §5.4.2 §5.7.1]"
+  - kind: switch
+    id: rohcHeader
+    name: Header
+    on: { kind: peek, bits: 7 }
+    doc: "The Uncompressed profile (0x0000) defines two header formats (RFC 5795 §5.4). An IR packet begins with the 7-bit type prefix 1111110 (peeked value 126, i.e. octet 0xFC/0xFD) and carries an explicit Profile and CRC octet followed by the uncompressed IP datagram. Any other leading octet is a Normal packet: the verbatim IP datagram with no type/profile/CRC octets, identified by its IP version nibble (0100=IPv4, 0110=IPv6). [RFC 5795 §5.4]"
+    cases:
+      "126":
+        id: rohcIrPacket
+        doc: "IR (Initialisation and Refresh) packet under the Uncompressed profile. [RFC 5795 §5.4.1]"
+        fields:
+          - id: rohcPacketType
+            name: Packet Type Indicator
+            type:
+              kind: enum
+              bits: 8
+              variants:
+                253: "IR (Initialisation and Refresh)"
+                252: "IR (Initialisation and Refresh)"
+            category: type
+            doc: "ROHC packet type byte for the IR packet. The IR packet uses the 7-bit prefix 1111110, so both 0xFC (252) and 0xFD (253) are IR packets carrying full static and dynamic header chains; the low bit (the D bit) signals whether a dynamic chain is present. [RFC 5795 §5.4.1]"
 
-  - id: rohcProfile
-    name: Profile
-    type:
-      kind: enum
-      bits: 8
-      variants:
-        0: "Uncompressed (0x0000)"
-        1: "RTP/UDP/IP"
-        2: "UDP/IP"
-        3: "ESP/IP"
-        4: "IP"
-    category: identifier
-    doc: "ROHC compression profile identifier (low byte of the 16-bit profile number). Profile 0x00 corresponds to the Uncompressed profile (0x0000), which transfers packets without header compression and serves as a universal fallback. Other profiles indicate the type of header chain being compressed. [RFC 5795 §8 Table 1]"
+          - id: rohcProfile
+            name: Profile
+            type:
+              kind: enum
+              bits: 8
+              variants:
+                0: "Uncompressed (0x0000)"
+                1: "RTP/UDP/IP"
+                2: "UDP/IP"
+                3: "ESP/IP"
+                4: "IP"
+            category: identifier
+            doc: "ROHC compression profile identifier (low byte of the 16-bit profile number). Profile 0x00 corresponds to the Uncompressed profile (0x0000), which transfers packets without header compression and serves as a universal fallback. Other profiles indicate the type of header chain being compressed. [RFC 5795 §8 Table 1]"
 
-  - id: rohcCrc
-    name: CRC
-    type: { kind: int, bits: 8 }
-    category: checksum
-    doc: "8-bit CRC computed over the ROHC packet header fields (Packet Type, Profile, and context-dependent fields) using the CRC-8 polynomial 0x07 (x^8 + x^2 + x + 1). Protects the header chain against transmission errors that could corrupt decompressor state. [RFC 5795 §5.9]"
+          - id: rohcCrc
+            name: CRC
+            type: { kind: int, bits: 8 }
+            category: checksum
+            doc: "8-bit CRC computed over the ROHC packet header fields (Packet Type, Profile, and context-dependent fields) using the CRC-8 polynomial 0x07 (x^8 + x^2 + x + 1). Protects the header chain against transmission errors that could corrupt decompressor state. [RFC 5795 §5.9.1]"
 
-  - id: rohcUncompressedHeaders
-    name: Uncompressed Headers
-    type: { kind: bytes, n: { kind: ref, field: rohcHeaderBytes } }
-    category: payload-marker
-    doc: "Verbatim uncompressed protocol headers (e.g., IP + UDP + RTP) passed through without modification under the Uncompressed profile (0x0000). The byte count is provided externally via rohcHeaderBytes and represents all header octets up to but not including the payload. [RFC 5795 §5.7.1]"
+          - id: rohcUncompressedHeaders
+            name: Uncompressed Headers
+            type: { kind: bytes, n: { kind: remaining } }
+            category: payload-marker
+            doc: "Verbatim uncompressed protocol headers and payload (e.g., IP + UDP + RTP) passed through without modification under the Uncompressed profile (0x0000). Consumes all remaining octets of the ROHC packet after the CRC byte. [RFC 5795 §5.4.1]"
+
+      _:
+        id: rohcNormalPacket
+        doc: "Normal packet under the Uncompressed profile: the verbatim IP datagram carried with no ROHC type/profile/CRC octets, identified by its leading IP version nibble (0100=IPv4, 0110=IPv6). [RFC 5795 §5.4.2]"
+        fields:
+          - id: rohcNormalDatagram
+            name: IP Datagram
+            type: { kind: bytes, n: { kind: remaining } }
+            category: payload-marker
+            doc: "The complete, unmodified IP datagram sent in a Normal packet. The Uncompressed profile emits this form once the context is established; there is no packet-type, profile, or CRC octet, so the datagram begins directly with the IP version nibble. Consumes all remaining octets of the ROHC packet. [RFC 5795 §5.4.2]"

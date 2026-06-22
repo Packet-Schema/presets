@@ -43,6 +43,7 @@ body:
     name: Protocol Type
     type: { kind: int, bits: 16 }
     category: type
+    const: 0x6558
     doc: EtherType of the encapsulated payload. MUST be 0x6558 (Transparent Ethernet Bridging) for NVGRE, indicating that the GRE payload is a complete Ethernet frame including the inner MAC header. [RFC 7637 §3, RFC 1701 §2.3]
   - kind: group
     id: greKey

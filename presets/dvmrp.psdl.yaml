@@ -3,7 +3,10 @@ version: "0.5"
 name: DVMRP
 rowBits: 32
 byteOrder: BE
-description: "Distance Vector Multicast Routing Protocol (DVMRP) message (RFC 1075). DVMRP is carried inside IGMP as type 0x13 and uses a shared header — Type (1 byte, always 0x13), Code (1 byte, 1=Probe, 2=Report, 7=Prune, 8=Graft, 9=Graft-Ack), Checksum (2 bytes), Reserved (2 bytes), MinorVersion (1 byte), MajorVersion (1 byte) — followed by a variable-length body whose byte count is supplied externally via dvmrpBodyBytes. The Probe message is used for neighbor discovery; the Report message carries routing table entries; Graft and Graft-Ack support explicit joining of pruned branches. Checksum covers the entire DVMRP message."
+description: "Distance Vector Multicast Routing Protocol (DVMRP) message (RFC 1075). DVMRP is carried inside IGMP as type 0x13 and uses a shared header — Type (1 byte, always 0x13), Code (1 byte, 1=Probe, 2=Report, 7=Prune, 8=Graft, 9=Graft-Ack), Checksum (2 bytes), Reserved (2 bytes), MinorVersion (1 byte), MajorVersion (1 byte) — followed by a variable-length body that runs to the end of the enclosing IGMP payload. The Probe message is used for neighbor discovery; the Report message carries routing table entries; Graft and Graft-Ack support explicit joining of pruned branches. Checksum covers the entire DVMRP message."
+meta:
+  rfc: 1075
+  section: "3.1"
 
 body:
   - id: dvmrpType
@@ -70,6 +73,6 @@ body:
     name: Body
     type:
       kind: bytes
-      n: { kind: ref, field: dvmrpBodyBytes }
+      n: { kind: remaining }
     category: variable
-    doc: "Variable-length DVMRP message body. Content depends on the Code field: for Probe (1) it contains the router's neighbor list and capabilities; for Report (2) it contains (source-network, metric) distance-vector entries; for Prune (7) it contains the (source, group) and prune lifetime; for Graft (8) and Graft-Ack (9) it contains the multicast group and source address being grafted. The byte count dvmrpBodyBytes is supplied externally from the enclosing IP/IGMP payload length minus the 8-byte fixed DVMRP header. [RFC 1075 §3.2–§3.5]"
+    doc: "Variable-length DVMRP message body. Content depends on the Code field: for Probe (1) it contains the router's neighbor list and capabilities; for Report (2) it contains (source-network, metric) distance-vector entries; for Prune (7) it contains the (source, group) and prune lifetime; for Graft (8) and Graft-Ack (9) it contains the multicast group and source address being grafted. The body runs to the end of the enclosing IGMP payload (the DVMRP message has no internal length field; its boundary is the IP/IGMP payload length minus the 8-byte fixed DVMRP header). [RFC 1075 §3.2–§3.5]"

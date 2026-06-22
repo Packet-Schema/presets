@@ -3,7 +3,11 @@ version: "0.5"
 name: Mobile IPv6 Mobility Header
 rowBits: 32
 byteOrder: BE
-description: "Mobile IPv6 Mobility Header (RFC 6275, IPv6 Next Header 135). A variable-length header carried directly in an IPv6 packet or as the final extension header before the upper-layer payload. The named fixed fields — Payload Proto (8 b), Header Len (8 b), MH Type (8 b), Reserved (8 b), and Checksum (16 b) — total 6 octets, and Message Data begins immediately after the Checksum (occupying the right half of the Checksum row). Message Data is selected by MH Type: Binding Update (type 5) carries Sequence, four flags (A/H/L/K), a 12-bit reserved field, and Lifetime; all other types carry raw Message Data bytes. The total header length is a multiple of 8 octets per the Header Len semantics, consistent with other IPv6 extension headers."
+description: "Mobile IPv6 Mobility Header (RFC 6275, which obsoletes RFC 3775; IPv6 Next Header 135). A variable-length header carried directly in an IPv6 packet or as the final extension header before the upper-layer payload. The named fixed fields — Payload Proto (8 b), Header Len (8 b), MH Type (8 b), Reserved (8 b), and Checksum (16 b) — total 6 octets, and Message Data begins immediately after the Checksum (occupying the right half of the Checksum row). Message Data is selected by MH Type: Binding Update (type 5) carries Sequence, four flags (A/H/L/K), a 12-bit reserved field, and Lifetime; all other types carry raw Message Data bytes. The total header length is a multiple of 8 octets per the Header Len semantics, consistent with other IPv6 extension headers."
+meta:
+  rfc: { defined: 6275 }
+  section: "6.1.1"
+  aliases: [mh, mobilityHeader, mip6]
 
 body:
   - id: mh6PayloadProto
@@ -98,7 +102,6 @@ body:
           - id: buLifetime
             name: Lifetime
             type: { kind: int, bits: 16 }
-            category: variable
             doc: "Requested lifetime of the binding in units of 4 seconds. A value of zero requests deletion of the binding cache entry (deregistration). The home agent or correspondent node may return a shorter lifetime in the Binding Acknowledgement. Maximum representable value is 262140 seconds (approximately 3 days). [RFC 6275 §6.1.7]"
 
       "_":

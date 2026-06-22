@@ -39,6 +39,10 @@ body:
     category: variable
     defaultValue: 100
     doc: "Priority used in the Master election process. Higher value wins. 255 is reserved for the router that owns the IP address(es) associated with the virtual router; 0 is reserved for the current Master to indicate it is releasing the virtual router; the default is 100 for backup routers. [RFC 3768 §5.1]"
+    values:
+      - { value: 0, name: RELEASE, label: "Master releasing the virtual router", level: must, meta: { rfc: 3768, section: "5.1" } }
+      - { range: [1, 254], name: BACKUP, label: "Backup priority (default 100)", level: may, meta: { rfc: 3768, section: "5.1" } }
+      - { value: 255, name: OWNER, label: "Address owner — MUST become Master", level: must, meta: { rfc: 3768, section: "5.1" } }
 
   - id: vrrpCountIPAddrs
     name: Count IP Addrs
@@ -57,6 +61,7 @@ body:
         2: "Reserved"
     category: type
     defaultValue: 0
+    meta: { rfc: { defined: 2338, updates: [{ rfc: 3768, section: "5.3.6" }, { rfc: 5798 }] }, section: "5.3.6" }
     doc: "Authentication type in use. Per RFC 3768 §5.3.6 the only defined method is 0=No Authentication; values 1 and 2 are both Reserved. RFC 3768 §13 removed the RFC 2338 password (was 1=Simple Text Password) and IPSEC/AH (was 2=IP Authentication Header) authentication values, retaining the fields and values only for backwards compatibility with RFC 2338. RFC 5798 (VRRPv3) removed authentication entirely. [RFC 3768 §5.3.6 / §13]"
 
   - id: vrrpAdverInt

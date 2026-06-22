@@ -3,7 +3,7 @@ version: "0.5"
 name: PCIe TLP Fragment (Illustrative)
 rowBits: 32
 byteOrder: BE
-description: Illustrative — not a real PCIe TLP. Demonstrates PSDL 0.4 per-field byteOrder by mixing a BE 32-bit address with an LE 16-bit length field in the same packet. Use this preset only as a fixture for the byteOrder badge.
+description: Illustrative — not a real PCIe TLP. Demonstrates PSDL per-field byteOrder by mixing a BE 32-bit address with an LE 16-bit length field in the same packet. Use this preset only as a fixture for the byteOrder badge.
 body:
   - id: fmtType
     name: Fmt/Type

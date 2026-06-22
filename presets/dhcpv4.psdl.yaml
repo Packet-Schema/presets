@@ -226,6 +226,6 @@ body:
       fields:
         - kind: switch
           id: byOptionCode
-          on: { kind: ref, field: optionCode }
+          on: { kind: peek, bits: 8, offset: { kind: lit, value: 0 } }
           cases: *dhcpv4_option_variants
-    count: { kind: ref, field: options_count }
+    count: eos

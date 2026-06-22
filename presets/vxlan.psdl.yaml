@@ -1,9 +1,13 @@
 # yaml-language-server: $schema=../node_modules/@packet-schema/core/schemas/psdl-0.5.yaml
 version: "0.5"
 name: VXLAN Header
-rowBits: 32
 byteOrder: BE
 description: VXLAN header (RFC 7348) — fixed 8 bytes. Encapsulates Layer 2 frames within UDP datagrams for overlay network communication.
+rendererHints:
+  rowBits: 32
+meta:
+  rfc: 7348
+  section: "5"
 body:
   - kind: group
     id: flags
@@ -13,7 +17,14 @@ body:
       - { id: r2, name: Reserved 2, type: { kind: int, bits: 1 }, category: reserved, doc: "Reserved bit, must be zero." }
       - { id: r3, name: Reserved 3, type: { kind: int, bits: 1 }, category: reserved, doc: "Reserved bit, must be zero." }
       - { id: r4, name: Reserved 4, type: { kind: int, bits: 1 }, category: reserved, doc: "Reserved bit, must be zero." }
-      - { id: i, name: VXLAN Network ID Flag, type: { kind: int, bits: 1 }, category: flags, doc: "VNI valid flag. When set to 1, the VXLAN Network Identifier (VNI) field contains a valid value." }
+      - id: i
+        name: VXLAN Network ID Flag
+        type: { kind: int, bits: 1 }
+        category: flags
+        doc: "VNI valid flag (I). MUST be set to 1 for a valid VXLAN Network Identifier (VNI)."
+        values:
+          - { value: 1, name: VNI_VALID, label: "VNI is valid", level: must, doc: "RFC 7348 §5: the I flag MUST be set to 1 for a valid VNI." }
+          - { value: 0, name: VNI_INVALID, label: "VNI not valid", doc: "A packet with the I flag clear has an undefined VNI." }
       - { id: r5, name: Reserved 5, type: { kind: int, bits: 1 }, category: reserved, doc: "Reserved bit, must be zero." }
       - { id: r6, name: Reserved 6, type: { kind: int, bits: 1 }, category: reserved, doc: "Reserved bit, must be zero." }
       - { id: r7, name: Reserved 7, type: { kind: int, bits: 1 }, category: reserved, doc: "Reserved bit, must be zero." }

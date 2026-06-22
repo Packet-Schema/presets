@@ -32,6 +32,19 @@ body:
     doc: "Monotonically increasing unsigned counter. Initialized to 0 when a new SA is established; the first packet sent gets SN=1. Used for anti-replay: a receiver maintains a sliding window and discards packets with duplicate or too-old sequence numbers. The counter MUST NOT wrap (the SA must be renegotiated or manually reset before wrapping). [RFC 4302 §2.5]"
   - id: icv
     name: Integrity Check Value (ICV)
-    type: { kind: bytes, n: { kind: ref, field: ahIcvLen } }
+    type:
+      kind: bytes
+      n:
+        # Total AH length = (Payload Len + 2) * 4 bytes; the fixed header
+        # (Next Header 1 + Payload Len 1 + Reserved 2 + SPI 4 + Sequence Number 4)
+        # is 12 bytes, so ICV bytes = (Payload Len + 2)*4 - 12 = (Payload Len - 1)*4.
+        kind: op
+        op: "*"
+        a:
+          kind: op
+          op: "-"
+          a: { kind: ref, field: payloadLen }
+          b: { kind: lit, value: 1 }
+        b: { kind: lit, value: 4 }
     category: checksum
-    doc: "Authentication data — the ICV output of the negotiated integrity algorithm, e.g. 12 bytes for HMAC-SHA-1-96 (RFC 2404) or AES-128-XCBC-MAC-96 (RFC 3566), 16 bytes for AES-256-GMAC (RFC 4543). Computed over the immutable and predictable fields of the outer IP header, the AH header (ICV field zeroed), and the payload. The receiving end recomputes the ICV and discards the packet if it does not match. [RFC 4302 §2.6]"
+    doc: "Authentication data — the ICV output of the negotiated integrity algorithm, e.g. 12 bytes for HMAC-SHA-1-96 (RFC 2404) or AES-128-XCBC-MAC-96 (RFC 3566), 16 bytes for AES-256-GMAC (RFC 4543). Computed over the immutable and predictable fields of the outer IP header, the AH header (ICV field zeroed), and the payload. The receiving end recomputes the ICV and discards the packet if it does not match. Its length is not carried explicitly: it is derived from Payload Len — total AH length is (Payload Len + 2) × 4 bytes, minus the 12-byte fixed header. [RFC 4302 §2.6]"

@@ -91,6 +91,16 @@ body:
 
   - id: nshContextHeaders
     name: Context Headers
-    type: { kind: bytes, n: { kind: ref, field: nshContextBytes } }
+    type:
+      kind: bytes
+      n:
+        kind: op
+        op: "*"
+        a:
+          kind: op
+          op: "-"
+          a: { kind: ref, field: nshLength }
+          b: { kind: lit, value: 2 }
+        b: { kind: lit, value: 4 }
     category: variable
-    doc: "Context Headers carrying metadata for Service Functions within the Service Function Chain. For MDType=1 this is always 16 bytes (four fixed 32-bit context words defined by the control plane). For MDType=2 this contains zero or more variable-length TLV (Type-Length-Value) context items. The byte count nshContextBytes is derived externally as (Length - 2) * 4. [RFC 8300 §2.5, §2.6]"
+    doc: "Context Headers carrying metadata for Service Functions within the Service Function Chain. For MDType=1 this is always 16 bytes (four fixed 32-bit context words defined by the control plane). For MDType=2 this contains zero or more variable-length TLV (Type-Length-Value) context items. The byte count is derived from the on-the-wire Length field as (Length - 2) * 4, where Length counts the whole NSH header in 4-byte words and 2 words (8 bytes) are the fixed Base Header plus Service Path Header. [RFC 8300 §2.2, §2.5, §2.6]"

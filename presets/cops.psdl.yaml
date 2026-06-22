@@ -3,7 +3,7 @@ version: "0.5"
 name: COPS (Common Open Policy Service)
 rowBits: 32
 byteOrder: BE
-description: "Common Open Policy Service (COPS) protocol (RFC 2748). A simple query-and-response protocol used for policy-based admission control between a Policy Enforcement Point (PEP) and a remote Policy Decision Point (PDP). All COPS messages share a fixed 8-byte header: a 4-bit Version (always 1), a 4-bit Flags field, an 8-bit Op-Code identifying the message type (1=Request, 2=Decision, 3=Report State, 4=Delete Request State, 5=Synchronize State Request, 6=Client-Open (OPN), 7=Client-Accept (CAT), 8=Client-Close (CC), 9=Keep-Alive (KA), 10=Synchronize Complete (SSC)), a 16-bit Client-Type identifying the policy client, and a 32-bit Message Length giving the total byte count of the message including the header. Following the header, zero or more typed objects are carried; each object begins with a 2-byte Length, a 1-byte C-Num (object class), and a 1-byte C-Type (class sub-type), followed by the object's data payload. The number of objects to decode is supplied externally via copsObjCount; the byte length of each object's contents is derived from the object's own Length field minus the 4-byte object header."
+description: "Common Open Policy Service (COPS) protocol (RFC 2748). A simple query-and-response protocol used for policy-based admission control between a Policy Enforcement Point (PEP) and a remote Policy Decision Point (PDP). All COPS messages share a fixed 8-byte header: a 4-bit Version (always 1), a 4-bit Flags field, an 8-bit Op-Code identifying the message type (1=Request, 2=Decision, 3=Report State, 4=Delete Request State, 5=Synchronize State Request, 6=Client-Open (OPN), 7=Client-Accept (CAT), 8=Client-Close (CC), 9=Keep-Alive (KA), 10=Synchronize Complete (SSC)), a 16-bit Client-Type identifying the policy client, and a 32-bit Message Length giving the total byte count of the message including the header. Following the header, zero or more typed objects are carried; each object begins with a 2-byte Length, a 1-byte C-Num (object class), and a 1-byte C-Type (class sub-type), followed by the object's data payload. Objects are framed by a bounded scope spanning (Message Length - 8) bytes; the byte length of each object's contents is derived from the object's own Length field minus the 4-byte object header."
 
 body:
   - kind: group
@@ -63,74 +63,70 @@ body:
     defaultValue: 8
     doc: "Total length of the COPS message in bytes, including this 8-byte header and all following objects. A Keep-Alive with no objects has Message Length 8. Used by receivers to frame individual COPS messages within a TCP byte stream. [RFC 2748 §2.1]"
 
-  - id: copsObjCount
-    name: Object Count
-    type: { kind: int, bits: 16 }
-    category: length
-    defaultValue: 0
-    doc: "Number of COPS objects following the fixed header. This field is a framing aid used by this decoder to bound the object repeat loop; it is not transmitted as part of the wire format defined by RFC 2748. The actual number of objects is inferred by the receiver from Message Length. Set to 0 when no objects are present. [RFC 2748 §2.1]"
+  - kind: bounded
+    id: copsObjectsRegion
+    name: Objects Region
+    doc: "All COPS objects following the fixed 8-byte header. Its byte budget is (Message Length - 8); the contained objects are parsed with an end-of-scope repeat so the object count is derived from the wire rather than carried in a separate field (RFC 2748 transmits no object count). [RFC 2748 §2.1]"
+    bytes:
+      kind: op
+      op: "-"
+      a: { kind: ref, field: copsMessageLength }
+      b: { kind: lit, value: 8 }
+    fields:
+      - kind: repeat
+        id: copsObjects
+        name: Objects
+        category: variable
+        count: eos
+        element:
+          id: copsObject
+          fields:
+            - id: copsObjLength
+              name: Length
+              type: { kind: int, bits: 16 }
+              category: length
+              doc: "Total length of this COPS object in bytes, including this 4-byte object header (Length + C-Num + C-Type) and the following object contents. MUST be a multiple of 4; if the contents are not a multiple of 4 bytes, the object is padded to the next 4-byte boundary and Length reflects the padded size. [RFC 2748 §2.2]"
 
-  - id: copsObjCountPad
-    name: Reserved
-    type: { kind: int, bits: 16 }
-    category: reserved
-    defaultValue: 0
-    doc: "Reserved padding to keep the object repeat loop alignment on a 32-bit boundary within this decoder representation. MUST be set to zero. Not part of the RFC 2748 wire format. [RFC 2748 §2.1]"
+            - id: copsObjCNum
+              name: C-Num
+              type:
+                kind: enum
+                bits: 8
+                variants:
+                  1: "Handle (EPD)"
+                  2: "Context (CTX)"
+                  3: "In-Interface (IN-IF)"
+                  4: "Out-Interface (OUT-IF)"
+                  5: "Reason Code (RSN)"
+                  6: "Decision (DEC)"
+                  7: "LPDP Decision (LPDP)"
+                  8: "Error (ERR)"
+                  9: "Client Specific Info (CSI)"
+                  10: "Keep-Alive Timer (KAT)"
+                  11: "PEP Identification (PEPID)"
+                  12: "Report Type (RPT)"
+                  13: "PDP Redirect Address (PDP-RED)"
+                  14: "Last PDP Address (PDPLAST)"
+                  15: "Accounting Timer (ACCT)"
+                  16: "Message Integrity (INTEGRITY)"
+              category: type
+              doc: "COPS object class number (C-Num). Identifies the class of policy object: 1=Handle (identifies a request state), 2=Context (message type and IP protocol), 3=In-Interface, 4=Out-Interface, 5=Reason Code, 6=Decision (install/remove), 7=LPDP Decision, 8=Error, 9=Client Specific Info, 10=Keep-Alive Timer, 11=PEP Identification, 12=Report Type, 13=PDP Redirect Address, 14=Last PDP Address, 15=Accounting Timer, 16=Message Integrity (HMAC). [RFC 2748 §2.2]"
 
-  - kind: repeat
-    id: copsObjects
-    name: Objects
-    category: variable
-    count: { kind: ref, field: copsObjCount }
-    element:
-      id: copsObject
-      fields:
-        - id: copsObjLength
-          name: Length
-          type: { kind: int, bits: 16 }
-          category: length
-          doc: "Total length of this COPS object in bytes, including this 4-byte object header (Length + C-Num + C-Type) and the following object contents. MUST be a multiple of 4; if the contents are not a multiple of 4 bytes, the object is padded to the next 4-byte boundary and Length reflects the padded size. [RFC 2748 §2.2]"
+            - id: copsObjCType
+              name: C-Type
+              type: { kind: int, bits: 8 }
+              category: type
+              defaultValue: 1
+              doc: "COPS object sub-type (C-Type) within the class identified by C-Num. Sub-type 1 is the standard encoding for most object classes; additional sub-types provide alternate encodings (e.g. IPv4 vs. IPv6 addresses for Interface objects). Unknown C-Type values within a known C-Num MUST be ignored by the receiver. [RFC 2748 §2.2]"
 
-        - id: copsObjCNum
-          name: C-Num
-          type:
-            kind: enum
-            bits: 8
-            variants:
-              1: "Handle (EPD)"
-              2: "Context (CTX)"
-              3: "In-Interface (IN-IF)"
-              4: "Out-Interface (OUT-IF)"
-              5: "Reason Code (RSN)"
-              6: "Decision (DEC)"
-              7: "LPDP Decision (LPDP)"
-              8: "Error (ERR)"
-              9: "Client Specific Info (CSI)"
-              10: "Keep-Alive Timer (KAT)"
-              11: "PEP Identification (PEPID)"
-              12: "Report Type (RPT)"
-              13: "PDP Redirect Address (PDP-RED)"
-              14: "Last PDP Address (PDPLAST)"
-              15: "Accounting Timer (ACCT)"
-              16: "Message Integrity (INTEGRITY)"
-          category: type
-          doc: "COPS object class number (C-Num). Identifies the class of policy object: 1=Handle (identifies a request state), 2=Context (message type and IP protocol), 3=In-Interface, 4=Out-Interface, 5=Reason Code, 6=Decision (install/remove), 7=LPDP Decision, 8=Error, 9=Client Specific Info, 10=Keep-Alive Timer, 11=PEP Identification, 12=Report Type, 13=PDP Redirect Address, 14=Last PDP Address, 15=Accounting Timer, 16=Message Integrity (HMAC). [RFC 2748 §2.2]"
-
-        - id: copsObjCType
-          name: C-Type
-          type: { kind: int, bits: 8 }
-          category: type
-          defaultValue: 1
-          doc: "COPS object sub-type (C-Type) within the class identified by C-Num. Sub-type 1 is the standard encoding for most object classes; additional sub-types provide alternate encodings (e.g. IPv4 vs. IPv6 addresses for Interface objects). Unknown C-Type values within a known C-Num MUST be ignored by the receiver. [RFC 2748 §2.2]"
-
-        - id: copsObjContents
-          name: Object Contents
-          type:
-            kind: bytes
-            n:
-              kind: op
-              op: "-"
-              a: { kind: ref, field: copsObjLength }
-              b: { kind: lit, value: 4 }
-          category: variable
-          doc: "Object data payload whose interpretation depends on C-Num and C-Type. Length is (copsObjLength - 4) bytes. Examples: Handle (C-Num 1, C-Type 1) carries a 4-byte opaque client handle identifying a request state; Context (C-Num 2, C-Type 1) carries a 2-byte R-Type and 2-byte M-Type; Decision (C-Num 6, C-Type 1) carries a 2-byte Command-Code and 2-byte Flags; Client Specific Info (C-Num 9) carries application-defined policy data. [RFC 2748 §2.2, §4]"
+            - id: copsObjContents
+              name: Object Contents
+              type:
+                kind: bytes
+                n:
+                  kind: op
+                  op: "-"
+                  a: { kind: ref, field: copsObjLength }
+                  b: { kind: lit, value: 4 }
+              category: variable
+              doc: "Object data payload whose interpretation depends on C-Num and C-Type. Length is (copsObjLength - 4) bytes. Examples: Handle (C-Num 1, C-Type 1) carries a 4-byte opaque client handle identifying a request state; Context (C-Num 2, C-Type 1) carries a 2-byte R-Type and 2-byte M-Type; Decision (C-Num 6, C-Type 1) carries a 2-byte Command-Code and 2-byte Flags; Client Specific Info (C-Num 9) carries application-defined policy data. [RFC 2748 §2.2, §4]"

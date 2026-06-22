@@ -23,19 +23,27 @@ body:
         name: Type
         type: { kind: int, bits: 8 }
         category: type
-        defaultValue: 1
+        const: 1
+        meta: { rfc: 4271, section: "4.1" }
         doc: BGP message type. 1 = OPEN (this preset), 2 = UPDATE, 3 = NOTIFICATION, 4 = KEEPALIVE. Always set to 1 for OPEN messages. [RFC 4271 §4.1]
+        values:
+          - { value: 1, name: OPEN, label: OPEN, level: must, meta: { rfc: 4271, section: "4.2" } }
+          - { value: 2, name: UPDATE, label: UPDATE, meta: { rfc: 4271, section: "4.3" } }
+          - { value: 3, name: NOTIFICATION, label: NOTIFICATION, meta: { rfc: 4271, section: "4.5" } }
+          - { value: 4, name: KEEPALIVE, label: KEEPALIVE, meta: { rfc: 4271, section: "4.4" } }
   - id: version
     name: Version
     type: { kind: int, bits: 8 }
-    category: type
+    category: identifier
     defaultValue: 4
+    meta: { rfc: 4271, section: "4.2" }
     doc: BGP version number. MUST be 4 for BGP-4. If the receiver does not support the version, it sends a NOTIFICATION with Error Code 2 (OPEN Message Error) and Error Subcode 1 (Unsupported Version Number). [RFC 4271 §4.2]
   - id: myAS
     name: My Autonomous System
     type: { kind: int, bits: 16 }
     category: addressing
-    doc: The 2-octet Autonomous System number of the sender. When 4-octet AS numbers are used (RFC 6793), this field is set to AS_TRANS (23456) and the real 4-octet ASN is carried in the BGP Capabilities Optional Parameter (Capability Code 65). [RFC 4271 §4.2]
+    meta: { rfc: { defined: 4271, updates: [{ rfc: 6793, section: "2" }] }, section: "4.2" }
+    doc: The 2-octet Autonomous System number of the sender. When 4-octet AS numbers are used (RFC 6793), this field is set to AS_TRANS (23456) and the real 4-octet ASN is carried in the BGP Capabilities Optional Parameter (Capability Code 65). [RFC 4271 §4.2; RFC 6793 §2]
   - id: holdTime
     name: Hold Time
     type: { kind: int, bits: 16 }

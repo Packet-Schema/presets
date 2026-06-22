@@ -75,7 +75,7 @@ body:
     id: diameterAvps
     name: AVPs
     category: variable
-    doc: "Sequence of Attribute-Value Pairs (AVPs) carrying all application-level data. Each AVP starts with a 32-bit AVP Code, 8-bit Flags, and 24-bit AVP Length (including the AVP header itself but not any trailing pad bytes). If the V (Vendor-Specific) flag is set, a 32-bit Vendor-ID follows the Flags/Length before the Data. AVPs MUST be padded to a 32-bit boundary; pad bytes (not included in AVP Length) MUST be set to zero. Common AVP codes: 258=Auth-Application-Id, 263=Session-Id, 264=Origin-Host, 268=Result-Code, 269=Product-Name, 277=Auth-Request-Type, 296=Origin-Realm. [RFC 6733 §4]"
+    doc: "Sequence of Attribute-Value Pairs (AVPs) carrying all application-level data. Each AVP starts with a 32-bit AVP Code, 8-bit Flags, and 24-bit AVP Length (including the AVP header itself but not any trailing pad bytes). If the V (Vendor-Specific) flag is set, a 32-bit Vendor-ID follows the Flags/Length before the Data. AVPs MUST be padded to a 32-bit boundary; pad bytes (not included in AVP Length) MUST be set to zero. Common AVP codes: 258=Auth-Application-Id, 263=Session-Id, 264=Origin-Host, 268=Result-Code, 269=Product-Name, 274=Auth-Request-Type, 277=Auth-Session-State, 296=Origin-Realm. [RFC 6733 §4]"
     element:
       id: avpRecord
       fields:
@@ -97,7 +97,7 @@ body:
               name: M (Mandatory)
               type: { kind: int, bits: 1 }
               category: flags
-              doc: "Mandatory bit. When set to 1, the receiver MUST understand the AVP semantics; if it does not, it MUST return an error (Result-Code 5001 AVP_UNSUPPORTED or 5004 INVALID_AVP_VALUE as appropriate). [RFC 6733 §4.1]"
+              doc: "Mandatory bit. When set to 1, the receiver MUST understand the AVP semantics; if it does not understand the AVP, it MUST return Result-Code 5001 DIAMETER_AVP_UNSUPPORTED (5004 DIAMETER_INVALID_AVP_VALUE is the distinct case of an understood AVP carrying an invalid value). [RFC 6733 §4.1]"
             - id: avpFlagP
               name: P (Protected)
               type: { kind: int, bits: 1 }
@@ -132,4 +132,8 @@ body:
               f: { kind: op, op: "-", a: { kind: ref, field: avpLength }, b: { kind: lit, value: 8 } }
           category: variable
           doc: "The AVP value. Format depends on AVP Code: OctetString, Integer32, Integer64, Unsigned32, Unsigned64, Float32, Float64, Grouped, Enumerated, UTF8String, DiameterIdentity, DiameterURI, Address, Time, or IPFilterRule as specified per-AVP in the Diameter application RFCs. [RFC 6733 §4.2]"
+        - kind: align
+          to: 32
+          fill: 0
+          doc: "Each AVP is padded with zero bytes to the next 32-bit boundary. These pad bytes follow the Data field and are NOT counted in AVP Length; they must be present (except possibly after the last AVP) so that the next AVP begins on a 4-byte boundary. [RFC 6733 §4 / §4.4]"
     count: eos

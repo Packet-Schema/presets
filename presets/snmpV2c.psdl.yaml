@@ -3,7 +3,7 @@ version: "0.5"
 name: SNMPv2c Message
 rowBits: 32
 byteOrder: BE
-description: "SNMPv2c message (RFC 3416 / RFC 1901) — ASN.1 BER/DER encoded over UDP (port 161/162). Outer wrapper is a SEQUENCE TLV; contains version INTEGER (value=1 for SNMPv2c), community OCTET STRING, and a PDU selected by a context-specific tag (0xA0=GetRequest, 0xA1=GetNextRequest, 0xA2=GetResponse, 0xA3=SetRequest, 0xA5=GetBulkRequest, 0xA7=InformRequest, 0xA8=SNMPv2-Trap). Each PDU holds request-id, error-status (or non-repeaters for GetBulk), error-index (or max-repetitions for GetBulk), and a VarBindList SEQUENCE. All lengths use BER short/long form (kind: berLength). [RFC 3416 §3 / RFC 1901 §3]"
+description: "SNMPv2c message (RFC 3416 / RFC 1901) — ASN.1 BER/DER encoded over UDP (port 161/162). Outer wrapper is a SEQUENCE TLV; contains version INTEGER (value=1 for SNMPv2c), community OCTET STRING, and a PDU selected by a context-specific constructed tag 0xA0|tagnum (0xA0=GetRequest [0], 0xA1=GetNextRequest [1], 0xA2=Response/GetResponse [2], 0xA3=SetRequest [3], 0xA5=GetBulkRequest [5], 0xA6=InformRequest [6], 0xA7=SNMPv2-Trap [7], 0xA8=Report [8]; tag [4] is obsolete). Each PDU holds request-id, error-status (or non-repeaters for GetBulk), error-index (or max-repetitions for GetBulk), and a VarBindList SEQUENCE. All lengths use BER short/long form (kind: berLength). [RFC 3416 §3 / RFC 1901 §3]"
 body:
   - kind: group
     id: snmpSequenceWrapper
@@ -462,16 +462,16 @@ body:
             type: { kind: bytes, n: { kind: ref, field: varBindsLengthGB } }
             category: variable
             doc: "Encoded VarBindList for GetBulkRequest. Value fields should be Null for non-repeaters; the agent fills in values in the Response-PDU. [RFC 3416 §4.4]"
-      "167":
+      "166":
         id: informRequestPdu
-        doc: InformRequest-PDU (0xA7)
+        doc: InformRequest-PDU (0xA6)
         fields:
           - id: pduTagInform
             name: InformRequest Tag
             type: { kind: int, bits: 8 }
             category: type
-            defaultValue: 167
-            doc: "Context-specific constructed tag 0xA7 for InformRequest-PDU. Manager-to-manager notification requiring acknowledgement via a Response-PDU; unlike Trap, the originator retransmits until acknowledged. [RFC 3416 §4.6]"
+            defaultValue: 166
+            doc: "Context-specific constructed tag 0xA6 (context-specific [6], constructed) for InformRequest-PDU. Manager-to-manager notification requiring acknowledgement via a Response-PDU; unlike Trap, the originator retransmits until acknowledged. [RFC 3416 §3 / §4.6]"
           - id: pduLengthInform
             name: PDU Length
             type: { kind: berLength }
@@ -541,16 +541,16 @@ body:
             type: { kind: bytes, n: { kind: ref, field: varBindsLengthIF } }
             category: variable
             doc: "Encoded VarBindList for InformRequest. Must include sysUpTime.0 (1.3.6.1.2.1.1.3.0) and snmpTrapOID.0 (1.3.6.1.6.3.1.1.4.1.0) as the first two bindings, plus optional enterprise-specific VarBinds. [RFC 3416 §4.6]"
-      "168":
+      "167":
         id: snmpV2TrapPdu
-        doc: SNMPv2-Trap-PDU (0xA8)
+        doc: SNMPv2-Trap-PDU (0xA7)
         fields:
           - id: pduTagTrap
             name: SNMPv2-Trap Tag
             type: { kind: int, bits: 8 }
             category: type
-            defaultValue: 168
-            doc: "Context-specific constructed tag 0xA8 for SNMPv2-Trap-PDU. Unacknowledged agent-to-manager notification; the manager does not reply. Replaces SNMPv1 Trap-PDU (type 4) with a uniform PDU structure. [RFC 3416 §4.3]"
+            defaultValue: 167
+            doc: "Context-specific constructed tag 0xA7 (context-specific [7], constructed) for SNMPv2-Trap-PDU. Unacknowledged agent-to-manager notification; the manager does not reply. Replaces SNMPv1 Trap-PDU (type 4) with a uniform PDU structure. [RFC 3416 §3 / §4.3]"
           - id: pduLengthTrap
             name: PDU Length
             type: { kind: berLength }
@@ -620,6 +620,85 @@ body:
             type: { kind: bytes, n: { kind: ref, field: varBindsLengthTP } }
             category: variable
             doc: "Encoded VarBindList for SNMPv2-Trap-PDU. Must include sysUpTime.0 (1.3.6.1.2.1.1.3.0) and snmpTrapOID.0 (1.3.6.1.6.3.1.1.4.1.0) as first two bindings; additional enterprise-specific VarBinds follow. [RFC 3416 §4.3]"
+      "168":
+        id: reportPdu
+        doc: Report-PDU (0xA8)
+        fields:
+          - id: pduTagReport
+            name: Report Tag
+            type: { kind: int, bits: 8 }
+            category: type
+            defaultValue: 168
+            doc: "Context-specific constructed tag 0xA8 (context-specific [8], constructed) for Report-PDU. Used by the SNMPv3 engine for internal error reporting and engine-ID/time discovery; structurally identical to a Response-PDU. Defined in RFC 3416 but used operationally by RFC 3412. [RFC 3416 §3 / RFC 3412 §6]"
+          - id: pduLengthReport
+            name: PDU Length
+            type: { kind: berLength }
+            category: length
+            doc: "BER/DER length of Report-PDU contents (request-id + error-status + error-index + variable-bindings). [RFC 3416 §3 / ITU-T X.690 §8.1.3]"
+          - id: requestIdTagRP
+            name: request-id Tag
+            type: { kind: int, bits: 8 }
+            category: type
+            defaultValue: 2
+            doc: "ASN.1 INTEGER tag 0x02 for the request-id field of Report-PDU. [RFC 3416 §3]"
+          - id: requestIdLengthRP
+            name: request-id Length
+            type: { kind: berLength }
+            category: length
+            doc: "BER length of the request-id value bytes. [RFC 3416 §3]"
+          - id: requestIdValueRP
+            name: request-id Value
+            type: { kind: bytes, n: { kind: ref, field: requestIdLengthRP } }
+            category: identifier
+            doc: "Correlation identifier echoed from the message that triggered the report. [RFC 3416 §3 / RFC 3412 §6]"
+          - id: errorStatusTagRP
+            name: error-status Tag
+            type: { kind: int, bits: 8 }
+            category: type
+            defaultValue: 2
+            doc: "ASN.1 INTEGER tag 0x02 for the error-status field of Report-PDU. [RFC 3416 §3]"
+          - id: errorStatusLengthRP
+            name: error-status Length
+            type: { kind: berLength }
+            category: length
+            doc: "BER length of error-status value bytes. [RFC 3416 §3]"
+          - id: errorStatusValueRP
+            name: error-status Value
+            type: { kind: bytes, n: { kind: ref, field: errorStatusLengthRP } }
+            category: identifier
+            doc: "Error status integer (see error-status enumeration in the GetResponse-PDU description). [RFC 3416 §3]"
+          - id: errorIndexTagRP
+            name: error-index Tag
+            type: { kind: int, bits: 8 }
+            category: type
+            defaultValue: 2
+            doc: "ASN.1 INTEGER tag 0x02 for the error-index field of Report-PDU. [RFC 3416 §3]"
+          - id: errorIndexLengthRP
+            name: error-index Length
+            type: { kind: berLength }
+            category: length
+            doc: "BER length of error-index value bytes. [RFC 3416 §3]"
+          - id: errorIndexValueRP
+            name: error-index Value
+            type: { kind: bytes, n: { kind: ref, field: errorIndexLengthRP } }
+            category: identifier
+            doc: "1-based index into the VarBindList associated with the error, when applicable. [RFC 3416 §3]"
+          - id: varBindsTagRP
+            name: VarBindList Tag
+            type: { kind: int, bits: 8 }
+            category: type
+            defaultValue: 48
+            doc: "ASN.1 SEQUENCE tag 0x30 for the VarBindList. Report-PDU VarBinds typically carry usmStats counters (e.g. usmStatsUnknownEngineIDs, usmStatsNotInTimeWindows). [RFC 3416 §3 / RFC 3414 §5]"
+          - id: varBindsLengthRP
+            name: VarBindList Length
+            type: { kind: berLength }
+            category: length
+            doc: "BER length of the VarBindList contents. [RFC 3416 §3]"
+          - id: varBindsDataRP
+            name: VarBindList Data
+            type: { kind: bytes, n: { kind: ref, field: varBindsLengthRP } }
+            category: variable
+            doc: "Encoded VarBindList: SEQUENCE OF VarBind reporting engine statistics or discovery information. [RFC 3416 §3 / RFC 3414 §5]"
       "_":
         id: unknownPdu
         doc: Unknown PDU
@@ -628,7 +707,7 @@ body:
             name: PDU Tag
             type: { kind: int, bits: 8 }
             category: type
-            doc: "Unrecognised context-specific PDU tag. SNMPv2c defines 0xA0, 0xA1, 0xA2, 0xA3, 0xA5, 0xA7, 0xA8; any other value indicates a malformed or future-extension PDU. [RFC 3416 §3]"
+            doc: "Unrecognised context-specific PDU tag. SNMPv2c defines 0xA0, 0xA1, 0xA2, 0xA3, 0xA5, 0xA6, 0xA7, 0xA8 (tag [4] is obsolete); any other value indicates a malformed or future-extension PDU. [RFC 3416 §3]"
           - id: pduLengthUnknown
             name: PDU Length
             type: { kind: berLength }
