@@ -1,0 +1,35 @@
+# yaml-language-server: $schema=../node_modules/@packet-schema/core/schemas/psdl-0.5.yaml
+version: "0.5"
+name: Syslog over TLS (RFC 5425)
+rowBits: 32
+byteOrder: BE
+meta:
+  rfc: 5425
+  section: "4.3"
+  family: syslog
+  tags: [application, tcp-based, management, monitoring]
+description: "Syslog over TLS transport framing (RFC 5425). RFC 5425 §4.3 mandates octet-counting framing: SYSLOG-FRAME = MSG-LEN SP SYSLOG-MSG, where MSG-LEN = NONZERO-DIGIT *DIGIT is an ASCII decimal octet count (no leading zeros), SP is a single 0x20 space, and SYSLOG-MSG is exactly MSG-LEN octets of the RFC 5424 message. MSG-LEN counts only the SYSLOG-MSG octets (not MSG-LEN itself or the SP). TLS provides confidentiality, integrity, and mutual authentication of the underlying TCP stream; this framing layer sits on top of TLS and is responsible solely for record-boundary detection. This PSDL models MSG-LEN as an SP-terminated ASCII byte run (the SP delimiter is consumed as part of the field). Because MSG-LEN is ASCII text rather than a binary integer, the numeric value it encodes is carried in the syslogTlsMsgBytes hint field (a PSDL-level annotation not on the wire, supplied by the parser after decoding MSG-LEN) so the bytes() type can reference it. [RFC 5425 §4.3, RFC 6587 §3.4.1, RFC 5424]"
+
+body:
+  - id: syslogTlsMsgLen
+    name: MSG-LEN
+    display: ascii
+    type: { kind: bytes, n: { delimiter: [32] } }
+    category: length
+    meta: { rfc: 5425, section: "4.3" }
+    doc: "ASCII decimal octet count of the SYSLOG-MSG that follows, terminated by and including the single SP (0x20) separator (MSG-LEN = NONZERO-DIGIT *DIGIT, no leading zeros). MSG-LEN counts only the SYSLOG-MSG octets, excluding MSG-LEN itself and the SP. The numeric value tells the receiver exactly how many octets constitute the next syslog message, enabling exact record-boundary reconstruction without scanning for a newline. RFC 6587 §3.4.1 expresses the same octet-counting scheme. [RFC 5425 §4.3]"
+
+  - id: syslogTlsMsgBytes
+    name: SYSLOG-MSG Byte Count
+    type: { kind: int, bits: 16 }
+    category: length
+    defaultValue: 0
+    meta: { rfc: 5425, section: "4.3" }
+    doc: "PSDL length-hint: byte count of the SYSLOG-MSG payload that follows. This value MUST equal the numeric integer encoded in the preceding ASCII MSG-LEN field. It is provided as a separate integer field so the bytes() type can reference it via {kind:ref}, since MSG-LEN on the wire is ASCII text. Not a wire field; supplied by the parser after decoding MSG-LEN. [RFC 5425 §4.3]"
+
+  - id: syslogTlsMsg
+    name: SYSLOG-MSG
+    type: { kind: bytes, n: { kind: ref, field: syslogTlsMsgBytes } }
+    category: payload-marker
+    meta: { rfc: 5424, section: "6" }
+    doc: "The RFC 5424 syslog message payload, exactly MSG-LEN octets long: PRI '<PRIVAL>', VERSION, SP, TIMESTAMP, SP, HOSTNAME, SP, APP-NAME, SP, PROCID, SP, MSGID, SP, STRUCTURED-DATA, and optional MSG. Transmitted in full inside the TLS record stream; the TLS layer provides confidentiality and integrity so no additional checksum is required at this framing layer. [RFC 5425 §4.3, RFC 5424 §6]"

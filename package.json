@@ -13,18 +13,20 @@
   },
   "files": [
     "dist",
-    "presets",
-    "schemas"
+    "presets"
   ],
   "scripts": {
     "build:presets": "tsx scripts/build.ts",
     "build": "npm run build:presets && tsc",
     "prebuild": "npm run build:presets",
-    "pretest": "npm run build:presets",
+    "check": "tsx scripts/check.ts && tsx scripts/semcheck.ts && tsx scripts/taxcheck.ts",
+    "check:schema": "tsx scripts/check.ts",
+    "check:semantic": "tsx scripts/semcheck.ts",
+    "check:taxonomy": "tsx scripts/taxcheck.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@packet-schema/core": "^0.1.0"
+    "@packet-schema/core": "file:../core"
   },
   "devDependencies": {
     "ajv": "^8.17.1",

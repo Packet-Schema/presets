@@ -1,0 +1,84 @@
+# yaml-language-server: $schema=../node_modules/@packet-schema/core/schemas/psdl-0.5.yaml
+version: "0.5"
+name: Syslog Message
+rowBits: 32
+byteOrder: BE
+meta:
+  rfc: 5424
+  section: "6"
+  family: syslog
+  tags: [application, udp-based, management, monitoring]
+description: "Syslog protocol message (RFC 5424). On the wire the message is an ASCII/UTF-8 text stream with the ABNF structure SYSLOG-MSG = HEADER SP STRUCTURED-DATA [SP MSG], where HEADER = PRI VERSION SP TIMESTAMP SP HOSTNAME SP APP-NAME SP PROCID SP MSGID. PRI is '<' PRIVAL '>' with PRIVAL = Facility * 8 + Severity (0–191); note there is NO space between PRI and VERSION. The header fields after VERSION are single-SP-separated, STRUCTURED-DATA follows MSGID after an SP, and the optional MSG follows STRUCTURED-DATA after an SP. This PSDL models each text field as a byte run terminated by its actual wire delimiter ('>' for PRI, SP for the SP-separated fields), and MSG as the remainder of the frame. The transport (UDP per RFC 5426, or octet-counted/newline-delimited TCP per RFC 6587 / RFC 5425) supplies the overall frame length that bounds the final MSG."
+
+body:
+  - id: pri
+    name: PRI
+    display: ascii
+    type: { kind: bytes, n: { delimiter: [62] } }
+    category: type
+    meta: { rfc: 5424, section: "6.2.1" }
+    doc: "PRI part '<PRIVAL>' as ASCII text, terminated by and including the '>' (0x3E) delimiter. PRIVAL = Facility * 8 + Severity. Facility identifies the message source: 0=kern, 1=user, 2=mail, 3=daemon, 4=auth, 5=syslog, 6=lpr, 7=news, 8=uucp, 9=clock daemon, 10=authpriv, 11=ftp, 12=ntp, 13=audit, 14=alert, 15=clock daemon, 16–23=local0–local7. Severity: 0=Emergency, 1=Alert, 2=Critical, 3=Error, 4=Warning, 5=Notice, 6=Informational, 7=Debug. Valid PRIVAL range 0–191. VERSION immediately follows the '>' with NO separating space. [RFC 5424 §6.2.1]"
+
+  - id: version
+    name: VERSION
+    display: ascii
+    type: { kind: bytes, n: { delimiter: [32] } }
+    category: type
+    meta: { rfc: 5424, section: "6.2.2" }
+    doc: "Syslog protocol version as ASCII digits (VERSION = NONZERO-DIGIT 0*2DIGIT), terminated by and including the SP (0x20) that separates it from TIMESTAMP. For RFC 5424 this is always '1'. A version other than 1 MUST cause the message to be treated as an unknown version. Unlike the later fields, VERSION abuts PRI with no leading space. [RFC 5424 §6.2.2]"
+
+  - id: timestamp
+    name: TIMESTAMP
+    display: ascii
+    type: { kind: bytes, n: { delimiter: [32] } }
+    category: variable
+    meta: { rfc: 5424, section: "6.2.3" }
+    doc: "RFC 3339 full-date 'T' full-time string (e.g. '2003-10-11T22:14:15.003Z') or '-' (NILVALUE), terminated by and including the SP separator before HOSTNAME. The time offset MUST be 'Z' or ±HH:MM; fractional seconds SHOULD be included. RFC 5424 §6.2.3 states no explicit maximum length; the longest value permitted by the ABNF (YYYY-MM-DDTHH:MM:SS.ffffff±HH:MM, with TIME-SECFRAC capped at 6 digits) is 32 characters, so 32 is a derived upper bound rather than a stated limit. [RFC 5424 §6.2.3]"
+
+  - id: hostname
+    name: HOSTNAME
+    display: ascii
+    type: { kind: bytes, n: { delimiter: [32] } }
+    category: addressing
+    meta: { rfc: 5424, section: "6.2.4" }
+    doc: "Identifies the machine that originally sent the message, terminated by and including the SP before APP-NAME. SHOULD be a fully qualified domain name (FQDN); may be a static IP address, a hostname without domain, or '-' (NILVALUE). Printable US-ASCII, no spaces, value maximum 255 characters. [RFC 5424 §6.2.4]"
+
+  - id: appName
+    name: APP-NAME
+    display: ascii
+    type: { kind: bytes, n: { delimiter: [32] } }
+    category: identifier
+    meta: { rfc: 5424, section: "6.2.5" }
+    doc: "Device or application that generated the message (e.g. 'sshd', 'kernel', 'nginx') or '-' (NILVALUE), terminated by and including the SP before PROCID. Printable US-ASCII, no spaces, value maximum 48 characters. [RFC 5424 §6.2.5]"
+
+  - id: procId
+    name: PROCID
+    display: ascii
+    type: { kind: bytes, n: { delimiter: [32] } }
+    category: identifier
+    meta: { rfc: 5424, section: "6.2.6" }
+    doc: "Process or connection identifier for the application, typically the numeric PID (e.g. '1234') but any printable US-ASCII token, or '-' (NILVALUE). Terminated by and including the SP before MSGID. Value maximum 128 characters. [RFC 5424 §6.2.6]"
+
+  - id: msgId
+    name: MSGID
+    display: ascii
+    type: { kind: bytes, n: { delimiter: [32] } }
+    category: identifier
+    meta: { rfc: 5424, section: "6.2.7" }
+    doc: "Message type identifier used to filter or classify log messages (e.g. 'ID47', 'TCPIN') or '-' (NILVALUE). Terminated by and including the SP before STRUCTURED-DATA. Printable US-ASCII, no spaces, value maximum 32 characters. [RFC 5424 §6.2.7]"
+
+  - id: structData
+    name: STRUCTURED-DATA
+    display: ascii
+    type: { kind: bytes, n: { delimiter: [32] } }
+    category: variable
+    meta: { rfc: 5424, section: "6.3" }
+    doc: "Structured metadata: one or more SD-ELEMENTs '[SD-ID param=\"value\" …]' or the single character '-' (NILVALUE). SD-ID is either a registered IANA name or a private-enterprise SD-ID of the form 'name@PEN'. PARAM-VALUE is a UTF-8 string with '\\', '\"', and ']' escaped as '\\\\', '\\\"', '\\]'. Per the ABNF SYSLOG-MSG = HEADER SP STRUCTURED-DATA [SP MSG], the correct boundary is the SP that follows the closing ']' of the last SD-ELEMENT (or, for NILVALUE '-', the SP after that single character). LIMITATION: this model uses a single-byte SP delimiter, so it stops at the FIRST SP. Because a quoted PARAM-VALUE may legally contain SP characters (SD-PARAM = PARAM-NAME '=' %d34 PARAM-VALUE %d34, e.g. [exampleSDID@32473 eventSource=\"Application One\"]), this field can be truncated at the first interior space and the remainder misparsed into MSG; a correct decoder requires a bracket/quote-aware scan that a single-byte delimiter cannot express. [RFC 5424 §6.3]"
+
+  - id: msg
+    name: MSG
+    display: utf8
+    type: { kind: bytes, n: { kind: remaining } }
+    category: payload-marker
+    meta: { rfc: 5424, section: "6.4" }
+    doc: "Optional free-form log message payload (the '[SP MSG]' tail). UTF-8 encoded; if the first three bytes are the UTF-8 BOM (0xEF 0xBB 0xBF), the remainder MUST be valid UTF-8; without a BOM the encoding is unspecified (commonly ASCII). Consumes the remainder of the syslog frame, whose end is established by the transport framing (octet-counting per RFC 6587 §3.4.1 / RFC 5425, or newline-delimited). [RFC 5424 §6.4]"

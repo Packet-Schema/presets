@@ -1,0 +1,35 @@
+# yaml-language-server: $schema=../node_modules/@packet-schema/core/schemas/psdl-0.5.yaml
+version: "0.5"
+name: VXLAN Header
+byteOrder: BE
+description: VXLAN header (RFC 7348) — fixed 8 bytes. Encapsulates Layer 2 frames within UDP datagrams for overlay network communication.
+rendererHints:
+  rowBits: 32
+meta:
+  rfc: 7348
+  section: "5"
+  family: vxlan
+  tags: [internet-layer, udp-based, tunnel, encapsulation]
+body:
+  - kind: group
+    id: flags
+    name: Flags
+    children:
+      - { id: r1, name: Reserved 1, type: { kind: int, bits: 1 }, category: reserved, doc: "Reserved bit, must be zero." }
+      - { id: r2, name: Reserved 2, type: { kind: int, bits: 1 }, category: reserved, doc: "Reserved bit, must be zero." }
+      - { id: r3, name: Reserved 3, type: { kind: int, bits: 1 }, category: reserved, doc: "Reserved bit, must be zero." }
+      - { id: r4, name: Reserved 4, type: { kind: int, bits: 1 }, category: reserved, doc: "Reserved bit, must be zero." }
+      - id: i
+        name: VXLAN Network ID Flag
+        type: { kind: int, bits: 1 }
+        category: flags
+        doc: "VNI valid flag (I). MUST be set to 1 for a valid VXLAN Network Identifier (VNI)."
+        values:
+          - { value: 1, name: VNI_VALID, label: "VNI is valid", level: must, doc: "RFC 7348 §5: the I flag MUST be set to 1 for a valid VNI." }
+          - { value: 0, name: VNI_INVALID, label: "VNI not valid", doc: "A packet with the I flag clear has an undefined VNI." }
+      - { id: r5, name: Reserved 5, type: { kind: int, bits: 1 }, category: reserved, doc: "Reserved bit, must be zero." }
+      - { id: r6, name: Reserved 6, type: { kind: int, bits: 1 }, category: reserved, doc: "Reserved bit, must be zero." }
+      - { id: r7, name: Reserved 7, type: { kind: int, bits: 1 }, category: reserved, doc: "Reserved bit, must be zero." }
+  - { id: reserved1, name: Reserved, type: { kind: int, bits: 24 }, category: reserved, doc: "Reserved 24-bit field, must be zero." }
+  - { id: vni, name: VXLAN Network Identifier, type: { kind: int, bits: 24 }, category: identifier, doc: "24-bit VXLAN Network Identifier (VNI) that designates the individual VXLAN overlay network segment." }
+  - { id: reserved2, name: Reserved, type: { kind: int, bits: 8 }, category: reserved, doc: "Reserved 8-bit field, must be zero." }

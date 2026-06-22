@@ -1,0 +1,45 @@
+# yaml-language-server: $schema=../node_modules/@packet-schema/core/schemas/psdl-0.5.yaml
+version: "0.5"
+name: MPLS Label Stack Entry
+rowBits: 32
+byteOrder: BE
+description: MPLS label stack entry (RFC 3032). Each 4-byte entry carries a 20-bit label, a 3-bit Traffic Class field (originally called Exp/Experimental), a Bottom-of-Stack indicator, and a TTL. Multiple entries can be stacked between the Layer 2 and Layer 3 headers; the forwarding decision is driven by the topmost label. When S=1 the encapsulated IP (or other) header follows directly.
+meta:
+  family: mpls
+  tags: [link-layer, encapsulation, routing, framing]
+body:
+  - id: label
+    name: Label
+    type: { kind: int, bits: 20 }
+    category: addressing
+    meta: { rfc: { defined: 3032, updates: [{ rfc: 7274, section: "2" }] }, section: "2.1" }
+    doc: 20-bit label value. Locally significant between two adjacent Label Switched Routers (LSRs). Values 0–15 are Special-Purpose Labels assigned by IANA — 0 IPv4 Explicit NULL (the LSR pops the stack and forwards on the IPv4 header), 1 Router Alert (legal anywhere except the bottom of stack), 2 IPv6 Explicit NULL, 3 Implicit NULL (never appears on the wire; signals Penultimate Hop Popping so the previous-hop LSR removes the label before delivery), 7 Entropy Label Indicator (RFC 6790), 13 Generic Associated Channel Label / GAL (RFC 5586), 14 OAM Alert (RFC 3429), 15 Extension Label (RFC 7274, opens the 16+ Extended Special-Purpose range). Value 4 is MPLS Network Actions (MNA); values 5–6 and 8–12 are unassigned. Values 16 and above are ordinary labels. [RFC 3032 §2.1 / RFC 7274]
+    values:
+      - { value: 0,  name: IPv4_EXPLICIT_NULL, label: "IPv4 Explicit NULL", meta: { rfc: 3032 } }
+      - { value: 1,  name: ROUTER_ALERT,       label: "Router Alert", meta: { rfc: 3032 } }
+      - { value: 2,  name: IPv6_EXPLICIT_NULL, label: "IPv6 Explicit NULL", meta: { rfc: 3032 } }
+      - { value: 3,  name: IMPLICIT_NULL,      label: "Implicit NULL (PHP)", meta: { rfc: 3032 } }
+      - { value: 7,  name: ELI,                label: "Entropy Label Indicator", meta: { rfc: 6790 } }
+      - { value: 13, name: GAL,                label: "Generic Associated Channel Label", meta: { rfc: 5586 } }
+      - { value: 14, name: OAM_ALERT,          label: "OAM Alert", meta: { rfc: 3429 } }
+      - { value: 15, name: XL,                 label: "Extension Label", meta: { rfc: 7274 } }
+  - kind: group
+    id: tcSGroup
+    name: TC / S
+    children:
+      - id: tc
+        name: TC
+        type: { kind: bits, n: 3 }
+        category: flags
+        meta: { rfc: { defined: 3032, updates: [5462] }, section: "2.1" }
+        doc: Traffic Class (renamed from Exp by RFC 5462). Used for QoS differentiation (per-hop behaviour selection) and ECN signalling between LSRs. The actual mapping of TC values to scheduling classes is local policy; the IETF recommends DSCP-to-TC inheritance on ingress. [RFC 3032 §2.1 / RFC 5462]
+      - id: s
+        name: S
+        type: { kind: bits, n: 1 }
+        category: flags
+        doc: Bottom-of-Stack indicator. 1 = this entry is the innermost (lowest) label in the stack; the IP or other encapsulated header follows immediately after this entry. 0 = at least one more label stack entry follows. Allows LSRs to detect PHP (the penultimate LSR pops the bottom label so the egress LSR receives an unlabelled IP packet). [RFC 3032 §2.1]
+  - id: ttl
+    name: TTL
+    type: { kind: int, bits: 8 }
+    category: identifier
+    doc: Time-to-Live. Decremented by 1 at each LSR. An LSR MUST discard any packet whose TTL reaches 0, optionally sending an ICMP Time Exceeded back toward the source. On ingress the IP TTL is typically copied into this field (Pipe or Uniform mode); on egress it may be copied back to the restored IP TTL. [RFC 3032 §2.1 / RFC 3443]

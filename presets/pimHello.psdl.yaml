@@ -1,0 +1,35 @@
+# yaml-language-server: $schema=../node_modules/@packet-schema/core/schemas/psdl-0.5.yaml
+version: "0.5"
+name: PIM Hello
+rowBits: 32
+byteOrder: BE
+description: PIM Hello message (RFC 7761). Sent periodically by PIM routers to discover and maintain neighbor relationships; carries a variable number of TLV options.
+meta:
+  family: pim
+  tags: [internet-layer, multicast, control-plane, neighbor-discovery]
+body:
+  - { id: pimVersion, name: Version, type: { kind: int, bits: 4 }, category: type, doc: "PIM version number; must be 2." }
+  - { id: pimType, name: Type, type: { kind: int, bits: 4 }, category: type, doc: "PIM message type; 0 for Hello." }
+  - { id: pimReserved, name: Reserved, type: { kind: int, bits: 8 }, category: reserved, doc: "Reserved bits; must be set to zero on transmit and ignored on receipt." }
+  - { id: pimChecksum, name: Checksum, type: { kind: int, bits: 16 }, category: checksum, doc: "Standard IP checksum computed over the entire PIM message." }
+  - kind: repeat
+    id: pimHelloOptions
+    count: eos
+    element:
+      id: pimHelloOption
+      fields:
+        - id: pimOptType
+          name: Option Type
+          type: { kind: int, bits: 16 }
+          category: type
+          doc: "TLV option type code; values assigned by the IANA PIM-Hello Options registry."
+          values:
+            - { value: 1,  name: Holdtime,            label: "Hold Time",             level: should, meta: { rfc: 7761 } }
+            - { value: 2,  name: LANPruneDelay,        label: "LAN Prune Delay",       meta: { rfc: 3973 } }
+            - { value: 19, name: DRPriority,           label: "DR Priority",           level: should, meta: { rfc: 7761 } }
+            - { value: 20, name: GenerationID,         label: "Generation ID",         level: should, meta: { rfc: 3973 } }
+            - { value: 21, name: StateRefresh,         label: "State-Refresh",         meta: { rfc: 3973 } }
+            - { value: 22, name: BidirectionalCapable, label: "Bidirectional Capable", meta: { rfc: 5015 } }
+            - { value: 24, name: AddressList,          label: "Address List",          meta: { rfc: 7761 } }
+        - { id: pimOptLen, name: Option Length, type: { kind: int, bits: 16 }, category: length, doc: "Length in bytes of the Option Value field that follows." }
+        - { id: pimOptValue, name: Option Value, type: { kind: bytes, n: { kind: ref, field: pimOptLen } }, category: variable, doc: "Variable-length option value; interpretation depends on Option Type." }

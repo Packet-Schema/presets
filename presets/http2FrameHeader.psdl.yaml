@@ -1,8 +1,15 @@
-# yaml-language-server: $schema=../../schemas/psdl.schema.json
+# yaml-language-server: $schema=../node_modules/@packet-schema/core/schemas/psdl-0.5.yaml
+version: "0.5"
 name: HTTP/2 Frame Header
 rowBits: 32
 byteOrder: BE
 description: HTTP/2 frame header (RFC 9113 §4.1). 9-byte fixed prefix (Length:24 + Type:8 + Flags:8 + R:1 + Stream Identifier:31) followed by a length-prefixed payload.
+meta:
+  rfc: 9113
+  section: "4.1"
+  aliases: [http2, h2]
+  family: http
+  tags: [application, tcp-based, data-transfer, framing]
 body:
   - id: length
     name: Length
@@ -48,18 +55,4 @@ body:
         kind: ref
         field: length
     category: payload-marker
-    doc: Frame payload — length bytes. [RFC 9113 §4.1]
-constraints:
-  - lhs:
-      kind: op
-      op: "*"
-      a:
-        kind: ref
-        field: length
-      b:
-        kind: lit
-        value: 8
-    rhs:
-      kind: ref
-      field: payloadBits
-    doc: Length counts bytes; payloadBits = length × 8.
+    doc: Frame payload — exactly Length bytes; the payload layout is determined by the Type field. [RFC 9113 §4.1]

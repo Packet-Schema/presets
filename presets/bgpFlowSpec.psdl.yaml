@@ -1,0 +1,112 @@
+# yaml-language-server: $schema=../node_modules/@packet-schema/core/schemas/psdl-0.5.yaml
+version: "0.5"
+name: BGP Flow Specification NLRI
+rowBits: 32
+byteOrder: BE
+meta:
+  rfc: { defined: 8955, updates: [8956] }
+  section: "4"
+  aliases: [flowspec, bgpFlowSpec]
+  family: bgp
+  tags: [internet-layer, tcp-based, routing, control-plane]
+description: "BGP Flow Specification NLRI (RFC 8955). Carried inside a BGP UPDATE message as MP_REACH_NLRI / MP_UNREACH_NLRI (AFI=1 IPv4, SAFI=133) to distribute traffic filter rules to routers — primary use cases are DDoS mitigation and traffic-engineering policy enforcement without manual per-device ACL configuration. Each NLRI begins with a variable-length Length field: if the value is less than 240 (0xf0) the length is encoded in a single octet; if 240 (0xf0) or greater a two-octet extended-length encoding is used, in which the most significant nibble of the first octet has hex value 0xf (0xF0 mask). Following the Length field is a sequence of Flow Specification Components, each consisting of a one-octet Component Type followed by a type-specific value, that together fill exactly the Length-delimited region. Component Types: 1=Destination Prefix, 2=Source Prefix, 3=IP Protocol, 4=Port, 5=Destination Port, 6=Source Port, 7=ICMP Type, 8=ICMP Code, 9=TCP Flags, 10=Packet Length, 11=DSCP, 12=Fragment. Components MUST be ordered by ascending Type value. The PSDL model exposes the single-octet Length field, then a bounded scope (sized from that Length) holding a count:eos repeat of Components; each component selects, by Type, either the prefix form (length octet + prefix bytes) for Types 1–2 or the operator+value pair list (terminated by the operator end-of-list bit) for Types 3–12. [RFC 8955]"
+
+body:
+  - id: flowSpecLength
+    name: Length
+    type: { kind: int, bits: 8 }
+    category: length
+    meta: { rfc: 8955, section: "4" }
+    doc: "NLRI length in octets, not including the Length field itself. Values 0–239 are encoded in this single octet. When the value is 240 (0xf0) or greater, a two-octet extended-length encoding is used instead, in which the most significant nibble of the first octet has hex value 0xf (0xF0 mask), and the actual length is reconstructed from both octets. This preset models the common single-octet form; the extended form can be represented by treating this field as the first byte and adding a second via optional. [RFC 8955 §4]"
+
+  - kind: bounded
+    id: flowSpecComponentsScope
+    name: Flow Specification Components
+    bytes: { kind: ref, field: flowSpecLength }
+    meta: { rfc: 8955, section: "4" }
+    doc: "Byte-bounded region holding the sequence of Flow Specification Components, sized by the preceding Length field. The component list has no explicit terminator: a decoder parses components until this Length-delimited region is exhausted, which is why the inner repeat uses count:eos against this bounded scope rather than an externally injected component count. [RFC 8955 §4]"
+    fields:
+      - kind: repeat
+        id: flowSpecComponents
+        count: eos
+        element:
+          id: flowSpecComponent
+          meta: { rfc: 8955, section: "4.2" }
+          fields:
+            - id: flowSpecCompType
+              name: Component Type
+              type:
+                kind: enum
+                bits: 8
+                variants:
+                  1: "Destination Prefix"
+                  2: "Source Prefix"
+                  3: "IP Protocol"
+                  4: "Port"
+                  5: "Destination Port"
+                  6: "Source Port"
+                  7: "ICMP Type"
+                  8: "ICMP Code"
+                  9: "TCP Flags"
+                  10: "Packet Length"
+                  11: "DSCP"
+                  12: "Fragment"
+              category: type
+              doc: "Flow Specification Component Type. 1=Destination Prefix (NLRI prefix match on packet destination address), 2=Source Prefix (source address match), 3=IP Protocol (next-header value, e.g. 6=TCP, 17=UDP), 4=Port (source or destination port, operator-encoded), 5=Destination Port, 6=Source Port, 7=ICMP Type, 8=ICMP Code, 9=TCP Flags (bitmask), 10=Packet Length, 11=DSCP, 12=Fragment (IS-F/DONT-F/IS-LAST/FIRST). Components with types 3–12 use a list of operator+value pairs for numeric or bitmask matching, enabling range and set expressions without explicit comparison operators in the encoding. [RFC 8955 §4.2 / §4.2.1–§4.2.12]"
+              values:
+                - { value: 1, name: DST_PREFIX, label: "Destination Prefix", meta: { rfc: 8955, section: "4.2.1" } }
+                - { value: 2, name: SRC_PREFIX, label: "Source Prefix", meta: { rfc: 8955, section: "4.2.2" } }
+                - { value: 3, name: IP_PROTO, label: "IP Protocol", meta: { rfc: 8955, section: "4.2.3" } }
+                - { value: 9, name: TCP_FLAGS, label: "TCP Flags", meta: { rfc: 8955, section: "4.2.9" } }
+                - { value: 12, name: FRAGMENT, label: "Fragment", meta: { rfc: 8955, section: "4.2.12" } }
+            - kind: switch
+              id: flowSpecCompValue
+              on: { kind: ref, field: flowSpecCompType }
+              cases:
+                "1,2":
+                  id: prefixValue
+                  meta: { rfc: 8955, section: "4.2.1" }
+                  fields:
+                    - id: prefixLength
+                      name: Prefix Length
+                      type: { kind: int, bits: 8 }
+                      category: length
+                      doc: "Length in bits of the IPv4 prefix that follows. The prefix itself occupies ceil(prefixLength/8) octets; only the most-significant prefixLength bits are significant and trailing pad bits in the last octet are zero. Length and prefix are encoded exactly as in a BGP UPDATE NLRI prefix. (RFC 8956 prepends an extra one-octet offset field for the IPv6 case; RFC 8955 IPv4 has no offset octet.) [RFC 8955 §4.2.1–§4.2.2]"
+                    - id: prefixBytes
+                      name: Prefix
+                      type:
+                        kind: bytes
+                        n: { kind: op, op: "/", a: { kind: op, op: "+", a: { kind: ref, field: prefixLength }, b: { kind: lit, value: 7 } }, b: { kind: lit, value: 8 } }
+                      category: addressing
+                      display: hex
+                      doc: "The prefix pattern bytes, ceil(prefixLength/8) octets long, holding the most-significant prefixLength bits of the IPv4 address to match (Destination Prefix for Type 1, Source Prefix for Type 2). A prefixLength of 0 yields zero prefix octets and matches all addresses. [RFC 8955 §4.2.1–§4.2.2]"
+                _:
+                  id: opListValue
+                  meta: { rfc: 8955, section: "4.2.3" }
+                  fields:
+                    - kind: repeat
+                      id: flowSpecOps
+                      count:
+                        until: { kind: op, op: "!=", a: { kind: op, op: "&", a: { kind: ref, field: flowSpecOp }, b: { kind: lit, value: 128 } }, b: { kind: lit, value: 0 } }
+                      element:
+                        id: flowSpecOpPair
+                        meta: { rfc: 8955, section: "4.2.1.1" }
+                        fields:
+                          - id: flowSpecOp
+                            name: Operator
+                            type: { kind: int, bits: 8 }
+                            category: flags
+                            doc: "Operator byte for a numeric/bitmask {operator, value} pair (Component Types 3–12). Bit 7 (0x80, end-of-list 'e') is set on the final pair of the component. Bit 6 (0x40, 'a') selects AND (set) or OR (unset) with the preceding pair. Bits 5–4 (0x30, 'len') encode the width of the value octets that follow: 00=1, 01=2, 10=4, 11=8 octets. Bit 3 is reserved (numeric) or 'not' (bitmask, 0x02). Bits 2–0 are the lt/gt/eq comparison flags (numeric) or the match/not flags (bitmask). The repeat terminates once a pair whose end-of-list bit (0x80) is set has been parsed. [RFC 8955 §4.2.1.1 / §4.2.10]"
+                            values:
+                              - { value: 128, name: END_OF_LIST, label: "End-of-list (e) bit set", level: must, meta: { rfc: 8955, section: "4.2.1.1" } }
+                          - id: flowSpecOpValue
+                            name: Value
+                            type:
+                              kind: bytes
+                              n:
+                                kind: lookup
+                                key: { kind: op, op: ">>", a: { kind: op, op: "&", a: { kind: ref, field: flowSpecOp }, b: { kind: lit, value: 48 } }, b: { kind: lit, value: 4 } }
+                                table: { "0": 1, "1": 2, "2": 4, "3": 8 }
+                            category: variable
+                            display: hex
+                            doc: "The comparison/bitmask value for this pair, 1, 2, 4, or 8 octets wide as selected by the operator byte's len subfield (bits 5–4): 00→1, 01→2, 10→4, 11→8 octets. For numeric components the value is compared against the packet field using the lt/gt/eq flags; for bitmask components (TCP Flags Type 9, Fragment Type 12) it is the bitmask tested per the match/not flags. [RFC 8955 §4.2.1.1 / §4.2.10]"

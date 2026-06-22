@@ -1,14 +1,18 @@
-# yaml-language-server: $schema=../../schemas/psdl.schema.json
+# yaml-language-server: $schema=../node_modules/@packet-schema/core/schemas/psdl-0.5.yaml
+version: "0.5"
 name: IPv4 Header
 rowBits: 32
 byteOrder: BE
 description: IPv4 header (RFC 791) — IHL drives the Options length.
+meta:
+  family: ip
+  tags: [internet-layer, addressing, data-transfer]
 
 # Catalog of IPv4 Option variants reused by the Options repeat below.
 _ipv4_option_variants: &ipv4_option_variants
   "0":
     id: eol
-    name: EOL (End of Option List)
+    doc: EOL (End of Option List)
     fields:
       - id: type
         name: "Type=0"
@@ -17,7 +21,7 @@ _ipv4_option_variants: &ipv4_option_variants
         doc: Option type byte. 0 marks the End of Option List; any padding after it up to the header boundary is ignored. [RFC 791]
   "1":
     id: nop
-    name: NOP (No Operation)
+    doc: NOP (No Operation)
     fields:
       - id: type
         name: "Type=1"
@@ -26,7 +30,7 @@ _ipv4_option_variants: &ipv4_option_variants
         doc: Option type byte. 1 is a No-Operation pad, commonly inserted to align a following option on a 32-bit boundary. [RFC 791]
   "7":
     id: recordRoute
-    name: Record Route
+    doc: Record Route
     fields:
       - id: type
         name: "Type=7"
@@ -60,7 +64,7 @@ _ipv4_option_variants: &ipv4_option_variants
         doc: Recorded IPv4 address slot — filled in by a router as the datagram passes through. [RFC 791]
   "131":
     id: looseSourceRoute
-    name: Loose Source Route
+    doc: Loose Source Route
     fields:
       - id: type
         name: "Type=131"
@@ -89,7 +93,7 @@ _ipv4_option_variants: &ipv4_option_variants
         doc: IPv4 address of a gateway on the source-specified route. [RFC 791]
   "137":
     id: strictSourceRoute
-    name: Strict Source Route
+    doc: Strict Source Route
     fields:
       - id: type
         name: "Type=137"
@@ -118,7 +122,7 @@ _ipv4_option_variants: &ipv4_option_variants
         doc: IPv4 address of a gateway on the source-specified route. [RFC 791]
   "68":
     id: timestamp
-    name: Timestamp
+    doc: Timestamp
     fields:
       - id: type
         name: "Type=68"
@@ -186,6 +190,7 @@ body:
     doc: Identifies fragments that belong to the same original datagram so the receiver can reassemble them. Assigned by the sender and shared by all fragments of one packet. [RFC 791]
   - kind: group
     id: flagsBits
+    name: Flags
     children:
       - id: flags_reserved
         name: R
@@ -232,24 +237,29 @@ body:
     type: { kind: int, bits: 32 }
     category: addressing
     doc: IPv4 address of the intended recipient. [RFC 791]
-  - kind: repeat
-    id: options
-    name: Options
-    category: variable
-    element:
-      id: optionRecord
-      fields:
-        - kind: switch
-          id: byType
-          on: { kind: ref, field: optType }
-          cases: *ipv4_option_variants
-    count: { kind: ref, field: ipv4OptionsCount }
-
-constraints:
-  - lhs:
+  - kind: bounded
+    id: optionsArea
+    name: Options Area
+    # Header bytes = IHL × 4; the fixed header is 20 bytes, so the option area
+    # spans IHL × 4 − 20 bytes. When IHL = 5 this is 0 and no options are parsed.
+    bytes:
       kind: op
-      op: "*"
-      a: { kind: ref, field: ihl }
-      b: { kind: lit, value: 4 }
-    rhs: { kind: ref, field: headerBytes }
-    doc: IHL counts 32-bit words; total header bytes = IHL × 4.
+      op: "-"
+      a: { kind: op, op: "*", a: { kind: ref, field: ihl }, b: { kind: lit, value: 4 } }
+      b: { kind: lit, value: 20 }
+    doc: "Length-delimited region holding the IPv4 options, bounded by the IHL field: IHL × 4 − 20 bytes. The option repeat runs to the end of this scope; trailing End-of-Option-List / padding bytes that no option describes are absorbed by the scope boundary. [RFC 791 §3.1]"
+    fields:
+      - kind: repeat
+        id: options
+        name: Options
+        category: variable
+        count: eos
+        doc: "Zero or more IPv4 options, each discriminated by its leading option-type byte. Present only when IHL > 5. [RFC 791 §3.1]"
+        element:
+          id: optionRecord
+          fields:
+            - kind: switch
+              id: byType
+              on: { kind: peek, bits: 8 }
+              doc: "Selects the option layout from the leading option-type byte, peeked without consuming it; each arm re-reads it as its first field. [RFC 791 §3.1]"
+              cases: *ipv4_option_variants

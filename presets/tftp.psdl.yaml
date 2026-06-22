@@ -1,0 +1,117 @@
+# yaml-language-server: $schema=../node_modules/@packet-schema/core/schemas/psdl-0.5.yaml
+version: "0.5"
+name: TFTP
+rowBits: 32
+byteOrder: BE
+description: Trivial File Transfer Protocol packet (RFC 1350). Each UDP datagram begins with a 2-byte Opcode that selects one of five packet types — RRQ (1), WRQ (2), DATA (3), ACK (4), ERROR (5). RRQ/WRQ carry a null-terminated Filename followed by a null-terminated Mode string (e.g. "netascii", "octet", "mail"). DATA carries a 2-byte Block Number and up to 512 bytes of file data; a short block (< 512 bytes) signals end-of-transfer. ACK carries only the 2-byte Block Number being acknowledged (Block 0 acknowledges a WRQ). ERROR carries a 2-byte Error Code and a null-terminated human-readable error message.
+meta:
+  rfc: { defined: 1350, updates: [{ rfc: 2347, section: "1" }] }
+  section: "5"
+  aliases: [tftp]
+  family: tftp
+  tags: [application, udp-based, data-transfer]
+
+body:
+  - id: opcode
+    name: Opcode
+    type:
+      kind: enum
+      bits: 16
+      variants:
+        1: RRQ (Read Request)
+        2: WRQ (Write Request)
+        3: DATA
+        4: ACK
+        5: ERROR
+    category: type
+    doc: "2-byte packet type selector. 1=RRQ (read request), 2=WRQ (write request), 3=DATA, 4=ACK, 5=ERROR. Opcodes 0 and 6–65535 are not defined by RFC 1350. [RFC 1350 §5]"
+
+  - kind: switch
+    id: tftpBody
+    on: { kind: ref, field: opcode }
+    cases:
+      "1":
+        id: rrqPacket
+        doc: "RRQ — Read Request"
+        fields:
+          - id: rrqFilename
+            name: Filename
+            type: { kind: bytes, n: { delimiter: [0] } }
+            display: ascii
+            category: variable
+            doc: "Null-terminated name of the file to read, encoded in netascii or octet as specified by Mode. The field spans up to and including the terminating zero byte (0x00), which is consumed as part of the field per RFC 1350's NUL-delimited string format. [RFC 1350 §5]"
+          - id: rrqMode
+            name: Mode
+            type: { kind: bytes, n: { delimiter: [0] } }
+            display: ascii
+            category: variable
+            doc: "Null-terminated transfer mode string. Case-insensitive; defined values are \"netascii\" (8-bit ASCII with CR/LF normalisation), \"octet\" (raw binary), and \"mail\" (deprecated). Spans up to and including its terminating zero byte (0x00). [RFC 1350 §5]"
+      "2":
+        id: wrqPacket
+        doc: "WRQ — Write Request"
+        fields:
+          - id: wrqFilename
+            name: Filename
+            type: { kind: bytes, n: { delimiter: [0] } }
+            display: ascii
+            category: variable
+            doc: "Null-terminated name of the file to write on the server. Same encoding rules as RRQ Filename. Spans up to and including its terminating zero byte (0x00). [RFC 1350 §5]"
+          - id: wrqMode
+            name: Mode
+            type: { kind: bytes, n: { delimiter: [0] } }
+            display: ascii
+            category: variable
+            doc: "Null-terminated transfer mode string (\"netascii\", \"octet\", or \"mail\"). Same encoding rules as RRQ Mode. Spans up to and including its terminating zero byte (0x00). [RFC 1350 §5]"
+      "3":
+        id: dataPacket
+        doc: "DATA"
+        fields:
+          - id: dataBlockNumber
+            name: Block Number
+            type: { kind: int, bits: 16 }
+            category: identifier
+            doc: "Sequential block counter starting at 1 for the first DATA packet. Wraps around from 65535 to 0 for transfers longer than 32 MB. The receiver ACKs each block with the same Block Number. [RFC 1350 §5]"
+          - id: dataPayload
+            name: Data
+            type: { kind: bytes, n: { kind: remaining } }
+            category: variable
+            doc: "File data for this block — all remaining bytes of the datagram. Normally 512 bytes; a block shorter than 512 bytes (including zero bytes) signals end-of-file and is the last DATA packet. The block runs to the end of the UDP payload, so its length is the remaining bytes in the packet. [RFC 1350 §5]"
+      "4":
+        id: ackPacket
+        doc: "ACK"
+        fields:
+          - id: ackBlockNumber
+            name: Block Number
+            type: { kind: int, bits: 16 }
+            category: identifier
+            doc: "Block Number of the DATA packet being acknowledged. ACK 0 acknowledges a WRQ (write request). ACK N causes the sender to transmit block N+1. [RFC 1350 §5]"
+      "5":
+        id: errorPacket
+        doc: "ERROR"
+        fields:
+          - id: errorCode
+            name: Error Code
+            type:
+              kind: enum
+              bits: 16
+              variants:
+                0: Not defined (see error message)
+                1: File not found
+                2: Access violation
+                3: Disk full or allocation exceeded
+                4: Illegal TFTP operation
+                5: Unknown transfer ID
+                6: File already exists
+                7: No such user
+            category: type
+            doc: "Numeric error code identifying the class of error. 0=undefined (see ErrMsg), 1=file not found, 2=access violation, 3=disk full, 4=illegal TFTP operation, 5=unknown transfer ID, 6=file already exists, 7=no such user. [RFC 1350 §5]"
+          - id: errMsg
+            name: ErrMsg
+            type: { kind: bytes, n: { delimiter: [0] } }
+            display: ascii
+            category: variable
+            doc: "Human-readable, null-terminated ASCII string describing the error. Intended for display to the user; not interpreted by the protocol. Spans up to and including its terminating zero byte (0x00). [RFC 1350 §5]"
+      "_":
+        id: unknownPacket
+        doc: "Unknown / Reserved"
+        fields: []

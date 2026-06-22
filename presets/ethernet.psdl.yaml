@@ -1,19 +1,25 @@
-# yaml-language-server: $schema=../../schemas/psdl.schema.json
+# yaml-language-server: $schema=../node_modules/@packet-schema/core/schemas/psdl-0.5.yaml
+version: "0.5"
 name: Ethernet II Frame Header
 rowBits: 32
 byteOrder: BE
 description: Ethernet II frame header — 14 bytes.
+meta:
+  family: ethernet
+  tags: [link-layer, framing, addressing]
 body:
   - id: dstMac
     name: Destination MAC
-    type: { kind: bits, n: 48 }
+    type: { kind: bytes, n: { kind: lit, value: 6 } }
+    display: addr
     category: addressing
-    doc: "48-bit destination MAC address — where the frame is delivered on the local link. The least-significant bit of the first byte distinguishes unicast (0) from multicast (1); all-ones ff:ff:ff:ff:ff:ff is the broadcast address. [IEEE 802.3]"
+    doc: "48-bit destination MAC address — where the frame is delivered on the local link. Transmitted byte-by-byte in order (not byte-swapped), so modelled as bytes(6). The least-significant bit of the first byte distinguishes unicast (0) from multicast (1); all-ones ff:ff:ff:ff:ff:ff is the broadcast address. [IEEE 802.3]"
   - id: srcMac
     name: Source MAC
-    type: { kind: bits, n: 48 }
+    type: { kind: bytes, n: { kind: lit, value: 6 } }
+    display: addr
     category: addressing
-    doc: "48-bit source MAC address — the hardware address of the sending interface. Always a unicast address (the multicast bit is 0). [IEEE 802.3]"
+    doc: "48-bit source MAC address — the hardware address of the sending interface. Transmitted byte-by-byte in order (not byte-swapped), so modelled as bytes(6). Always a unicast address (the multicast bit is 0). [IEEE 802.3]"
   - id: etherType
     name: EtherType
     type: { kind: int, bits: 16 }

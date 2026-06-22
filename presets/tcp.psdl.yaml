@@ -1,8 +1,12 @@
-# yaml-language-server: $schema=../../schemas/psdl.schema.json
+# yaml-language-server: $schema=../node_modules/@packet-schema/core/schemas/psdl-0.5.yaml
+version: "0.5"
 name: TCP Header
 rowBits: 32
 byteOrder: BE
 description: TCP header (RFC 9293).
+meta:
+  family: tcp
+  tags: [transport, reliability, data-transfer, control-plane]
 
 _tcp_option_variants: &tcp_option_variants
   "0":
@@ -37,7 +41,7 @@ _tcp_option_variants: &tcp_option_variants
       - id: mss
         name: MSS
         type: { kind: int, bits: 16 }
-        category: length
+        category: identifier
         doc: "Maximum Segment Size in bytes — the largest amount of TCP payload the sender can accept in one segment. [RFC 9293]"
   "3":
     id: windowScale
@@ -116,6 +120,30 @@ _tcp_option_variants: &tcp_option_variants
         type: { kind: int, bits: 32 }
         category: identifier
         doc: "Timestamp Echo Reply (TSecr) — echoes back the most recent TSval received from the peer; valid only when the ACK flag is set. [RFC 7323]"
+  "_":
+    id: optionGeneric
+    fields:
+      - id: kind
+        name: Kind
+        type: { kind: bits, n: 8 }
+        category: type
+        doc: "Option Kind for an option not modeled explicitly here — e.g. MD5 Signature (19, RFC 2385), User Timeout (28, RFC 5482), TCP-AO (29, RFC 5925), Multipath TCP (30, RFC 8684), or TCP Fast Open Cookie (34, RFC 7413). Receivers skip unrecognized options using the Length field. [RFC 9293 §3.1]"
+      - id: length
+        name: Length
+        type: { kind: bits, n: 8 }
+        category: length
+        doc: "Total option length in bytes, including the Kind and Length bytes. Used to advance past unrecognized options. [RFC 9293 §3.1]"
+      - id: value
+        name: Value
+        type:
+          kind: bytes
+          n:
+            kind: op
+            op: "-"
+            a: { kind: ref, field: length }
+            b: { kind: lit, value: 2 }
+        category: variable
+        doc: "Option data, exactly Length − 2 bytes. Interpretation depends on the option Kind. [RFC 9293 §3.1]"
 
 body:
   - id: srcPort
@@ -151,6 +179,7 @@ body:
     doc: "Reserved for future use; must be sent as zero. [RFC 9293]"
   - kind: group
     id: flagsBits
+    name: Flags
     children:
       - id: flags_cwr
         name: CWR
@@ -207,24 +236,32 @@ body:
     type: { kind: int, bits: 16 }
     category: identifier
     doc: "Offset from the Sequence Number to the last byte of urgent data. Significant only when the URG flag is set. [RFC 9293]"
-  - kind: repeat
-    id: options
+  # Options region: (Data Offset × 4) − 20 fixed-header bytes. Each option is
+  # selected by peeking its 1-byte Kind; the list runs to the end of the
+  # length-delimited region (count: eos inside the bounded scope), and an
+  # in-stream EOL (Kind=0) simply ends meaningful options before that boundary.
+  - kind: bounded
+    id: optionsRegion
     name: Options
-    category: variable
-    element:
-      id: optionRecord
-      fields:
-        - kind: switch
-          id: byKind
-          on: { kind: ref, field: optKind }
-          cases: *tcp_option_variants
-    count: { kind: ref, field: tcpOptionsCount }
-
-constraints:
-  - lhs:
+    bytes:
       kind: op
-      op: "*"
-      a: { kind: ref, field: dataOffset }
-      b: { kind: lit, value: 4 }
-    rhs: { kind: ref, field: tcpHeaderBytes }
-    doc: Data Offset counts 32-bit words; tcpHeaderBytes = Data Offset × 4.
+      op: "-"
+      a:
+        kind: op
+        op: "*"
+        a: { kind: ref, field: dataOffset }
+        b: { kind: lit, value: 4 }
+      b: { kind: lit, value: 20 }
+    fields:
+      - kind: repeat
+        id: options
+        name: Options
+        category: variable
+        count: eos
+        element:
+          id: optionRecord
+          fields:
+            - kind: switch
+              id: byKind
+              on: { kind: peek, bits: 8 }
+              cases: *tcp_option_variants

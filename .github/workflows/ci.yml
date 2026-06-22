@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# @packet-schema/presets depends on @packet-schema/core via `file:../core`
+# (core is not yet published to a registry). CI therefore checks out core as a
+# sibling directory so the file: link resolves, builds it, then validates the
+# presets against core's canonical PSDL 0.5 schema.
+#
+# The core checkout needs a token with read access to the (private)
+# Packet-Schema/core repository. Add a repository secret named CORE_PAT
+# (a fine-grained PAT or classic PAT with `repo`/`contents:read` scope).
+# Once core is published to npm this whole sibling-checkout dance can be
+# replaced with a plain registry dependency + a single `npm ci`.
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [20, 22]
+    steps:
+      - name: Checkout presets
+        uses: actions/checkout@v4
+        with:
+          path: presets
+
+      - name: Checkout core (sibling for file:../core)
+        uses: actions/checkout@v4
+        with:
+          repository: Packet-Schema/core
+          ref: main
+          path: core
+          token: ${{ secrets.CORE_PAT }}
+
+      - name: Setup Node ${{ matrix.node }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+          cache-dependency-path: presets/package-lock.json
+
+      - name: Build core
+        working-directory: core
+        run: |
+          npm ci
+          npm run build
+
+      - name: Install presets
+        working-directory: presets
+        run: npm ci
+
+      - name: Validate presets against PSDL 0.5
+        working-directory: presets
+        run: npm run check
+
+      - name: Build presets (YAML → PRESETS + tsc)
+        working-directory: presets
+        run: npm run build
+
+      - name: Typecheck
+        working-directory: presets
+        run: npm run typecheck

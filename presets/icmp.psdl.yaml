@@ -1,16 +1,33 @@
-# yaml-language-server: $schema=../../schemas/psdl.schema.json
+# yaml-language-server: $schema=../node_modules/@packet-schema/core/schemas/psdl-0.5.yaml
+version: "0.5"
 name: ICMP Echo (IPv4)
 rowBits: 32
-byteOrder: Network byte order (big-endian, MSB-first). The Identifier and Sequence Number are 16-bit big-endian.
-description: Internet Control Message Protocol echo request/reply layout (RFC 792). Carried directly inside IPv4 with Protocol=1.
+byteOrder: BE
+description: Internet Control Message Protocol echo request/reply layout (RFC 792). Carried directly inside IPv4 with Protocol=1. The Identifier and Sequence Number are 16-bit big-endian.
+meta:
+  family: icmp
+  tags: [internet-layer, error-reporting, control-plane]
 body:
   - id: type
     name: Type
     type:
-      kind: bits
-      n: 8
+      kind: enum
+      bits: 8
+      variants:
+        0:
+          label: Echo Reply
+          doc: Reply to an Echo Request (ping reply).
+        3:
+          label: Destination Unreachable
+          doc: Datagram could not be delivered; Code refines the reason.
+        8:
+          label: Echo Request
+          doc: Echo Request (ping); elicits an Echo Reply.
+        11:
+          label: Time Exceeded
+          doc: TTL reached 0 or fragment reassembly timed out; used by traceroute.
     category: type
-    doc: ICMP message type — selects the kind of control/error message. e.g. 8=Echo Request (ping), 0=Echo Reply, 3=Destination Unreachable, 11=Time Exceeded (used by traceroute). [RFC 792]
+    doc: ICMP message type — selects the kind of control/error message. This preset describes the Echo Request/Reply layout (Type 8 / Type 0); other types reuse the same first 4 octets but differ after the Checksum. [RFC 792]
   - id: code
     name: Code
     type:

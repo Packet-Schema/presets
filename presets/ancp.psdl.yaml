@@ -1,0 +1,382 @@
+# yaml-language-server: $schema=../node_modules/@packet-schema/core/schemas/psdl-0.5.yaml
+version: "0.5"
+name: ANCP (Access Node Control Protocol)
+rowBits: 32
+byteOrder: BE
+meta:
+  rfc: 6320
+  aliases: [ancp]
+  family: ancp
+  tags: [application, tcp-based, control-plane, management, configuration]
+description: "Access Node Control Protocol (ANCP) packet (RFC 6320). ANCP provides a TCP/IP control channel between a Network Access Server (NAS) and an Access Node (AN) such as a DSLAM or OLT. Every general ANCP message begins with a three-word (12-byte) common header (RFC 6320 §3.6): Word 1 = Version (8 bits, value 50) + Message Type (8 bits) + Result (4 bits) + Result Code (12 bits); Word 2 = Partition ID (8 bits) + Transaction Identifier (24 bits); Word 3 = I flag (1 bit) + SubMessage Number (15 bits) + Length (16 bits). The Adjacency message (RFC 6320 §3.5.1) uses a distinct format that, after the shared Version + Message Type octets, carries Timer (8 bits) + M flag (1 bit) + Code (7 bits) instead of Result/Result Code. The body content varies by Message Type: 10=Adjacency (capability negotiation and keepalive), 80=Port Up (line event notification), 81=Port Down (line event notification), 32=Port Management (line configuration). The PSDL model exposes the shared Version + Message Type octets, then a switch on ancpMessageType supplies the remainder of the header and the per-type body with the relevant TLV extensions and line attributes. ANCP enables DSLAM and OLT management by the NAS for DSL, PON, and Ethernet aggregation deployments."
+
+body:
+  - kind: group
+    id: ancpCommonHeader
+    name: ANCP Common Header
+    children:
+      - id: ancpVersion
+        name: Version
+        type: { kind: int, bits: 8 }
+        category: type
+        defaultValue: 50
+        doc: "ANCP protocol version. MUST be set to 50 for ANCP as defined in RFC 6320; receivers MUST discard messages with any other version value. [RFC 6320 §3.1, §3.6]"
+
+      - id: ancpMessageType
+        name: Message Type
+        type:
+          kind: enum
+          bits: 8
+          variants:
+            10: "Adjacency"
+            80: "Port Up"
+            81: "Port Down"
+            32: "Port Management"
+        category: type
+        defaultValue: 10
+        doc: "ANCP message type code. 10=Adjacency protocol message for neighbour discovery and capability negotiation; 80=Port Up event notification from Access Node to NAS; 81=Port Down event notification from Access Node to NAS; 32=Port Management command from NAS to Access Node for line configuration. Additional types may be defined by extensions. [RFC 6320 §3.5.1, §3.6; IANA ANCP Message Types registry]"
+
+  - kind: switch
+    id: ancpBody
+    on: { kind: ref, field: ancpMessageType }
+    cases:
+      "10":
+        id: ancpAdjacency
+        doc: "Adjacency Message (RFC 6320 §3.5.1)"
+        fields:
+          - id: ancpAdjTimer
+            name: Timer
+            type: { kind: int, bits: 8 }
+            category: variable
+            defaultValue: 0
+            doc: "Adjacency timer value in 100 ms units. Advertises the sender's desired keepalive (Adjacency) interval. A value of zero indicates that the sender does not wish to use the timer mechanism. [RFC 6320 §3.5.1]"
+
+          - id: ancpAdjMFlag
+            name: M Flag
+            type: { kind: int, bits: 1 }
+            category: flags
+            defaultValue: 0
+            doc: "M (Method) flag. Indicates the negotiated keepalive/loss-of-adjacency method selected by the sender. [RFC 6320 §3.5.1]"
+
+          - id: ancpAdjCode
+            name: Code
+            type:
+              kind: enum
+              bits: 7
+              variants:
+                1: "SYN"
+                2: "SYN-ACK"
+                3: "ACK"
+                4: "RSTACK"
+            category: type
+            defaultValue: 1
+            doc: "Adjacency protocol code (7 bits). 1=SYN (initiate adjacency), 2=SYN-ACK (acknowledge SYN and echo capabilities), 3=ACK (complete three-way handshake), 4=RSTACK (reset adjacency). Establishes a verified bidirectional control channel before exchanging ANCP operational messages. [RFC 6320 §3.5.1]"
+
+          - id: ancpSenderName
+            name: Sender Name
+            type: { kind: bytes, n: { kind: lit, value: 6 } }
+            display: addr
+            category: identifier
+            doc: "48-bit identifier of the sending entity, typically a MAC address of the Access Node or NAS interface. Used to identify the ANCP peer and detect misconfigurations when the adjacency is established or re-established. [RFC 6320 §3.5.1]"
+
+          - id: ancpReceiverName
+            name: Receiver Name
+            type: { kind: bytes, n: { kind: lit, value: 6 } }
+            display: addr
+            category: identifier
+            doc: "48-bit identifier of the expected receiving entity, typically the peer's MAC address as learned from a previously received Adjacency message. Set to all-zeros in the initial SYN. Used to verify that both sides agree on the peer identity. [RFC 6320 §3.5.1]"
+
+          - id: ancpSenderPort
+            name: Sender Port
+            type: { kind: int, bits: 32 }
+            category: addressing
+            doc: "Logical port number on the sending entity associated with this adjacency session. Assists in identifying the specific interface participating in the ANCP control channel when a node has multiple ports. [RFC 6320 §3.5.1]"
+
+          - id: ancpReceiverPort
+            name: Receiver Port
+            type: { kind: int, bits: 32 }
+            category: addressing
+            doc: "Logical port number on the receiving entity as learned from a previously received Adjacency message. Set to zero in the initial SYN. Echoed back to confirm bidirectional port identification. [RFC 6320 §3.5.1]"
+
+          - id: ancpAdjPType
+            name: PType
+            type: { kind: int, bits: 4 }
+            category: type
+            defaultValue: 0
+            doc: "Partition Type (4 bits). Identifies the partitioning scheme used by the sender for the Sender Instance/Partition ID fields that follow. [RFC 6320 §3.5.1]"
+
+          - id: ancpAdjPFlag
+            name: P Flag
+            type: { kind: int, bits: 4 }
+            category: flags
+            defaultValue: 0
+            doc: "P (Partition) flag bits (4 bits) qualifying the PType field. [RFC 6320 §3.5.1]"
+
+          - id: ancpAdjSenderInstance
+            name: Sender Instance
+            type: { kind: int, bits: 24 }
+            category: identifier
+            doc: "24-bit instance identifier of the sending ANCP entity, allowing demultiplexing of ANCP sessions and detection of instance wraparound. Each side independently assigns its own Sender Instance. [RFC 6320 §3.5.1]"
+
+          - id: ancpAdjPartitionId
+            name: Partition ID
+            type: { kind: int, bits: 8 }
+            category: identifier
+            doc: "8-bit partition identifier carried in the Adjacency message, selecting the logical partition within the Access Node for capability negotiation. [RFC 6320 §3.5.1]"
+
+          - id: ancpReceiverInstance
+            name: Receiver Instance
+            type: { kind: int, bits: 24 }
+            category: identifier
+            doc: "24-bit instance identifier of the receiving ANCP entity, echoed from the peer's Sender Instance field. Used together with Sender Instance to detect stale sessions. Set to zero in the initial SYN before a peer instance has been observed. [RFC 6320 §3.5.1]"
+
+          - id: ancpAdjReserved
+            name: Reserved
+            type: { kind: int, bits: 8 }
+            category: reserved
+            doc: "Reserved octet preceding the capability count. MUST be set to zero by the sender and ignored by the receiver. [RFC 6320 §3.5.1]"
+
+          - id: ancpAdjNumCaps
+            name: "# of Caps"
+            type: { kind: int, bits: 8 }
+            category: length
+            defaultValue: 0
+            doc: "Number of capability fields carried in the capability block that follows. [RFC 6320 §3.5.1]"
+
+          - id: ancpAdjTotalLength
+            name: Total Length
+            type: { kind: int, bits: 16 }
+            category: length
+            doc: "Total length in bytes of the capability block that follows this field. A value of zero indicates no capabilities are present. [RFC 6320 §3.5.1]"
+
+          - kind: bounded
+            id: ancpAdjCapScope
+            name: Capability Block
+            bytes: { kind: ref, field: ancpAdjTotalLength }
+            doc: "Capability block bounded by the Total Length field. Each capability is encoded as Capability Type (16 bits) + Capability Length (16 bits) + Capability Data padded to a 4-byte boundary. [RFC 6320 §3.5.1, §3.5.1.1]"
+            fields:
+              - id: ancpCapabilities
+                name: Capabilities
+                type: { kind: bytes, n: { kind: remaining } }
+                category: variable
+                doc: "Variable-length capability fields. Each capability is encoded as Capability Type (16 bits) + Capability Length (16 bits) + Capability Data (padded to a 4-byte boundary). Defined capabilities include Dynamic Topology Discovery, Line Configuration, NAS-Initiated Request/Response, and OAM. [RFC 6320 §3.5.1, §3.5.1.1]"
+
+      "80":
+        id: ancpPortUp
+        doc: "Port Up Message Body"
+        fields:
+          - id: ancpPortUpResult
+            name: Result
+            type:
+              kind: enum
+              bits: 4
+              variants:
+                0: "Ignore"
+                1: "Nack"
+                2: "AckAll"
+                3: "Success"
+                4: "Failure"
+            category: type
+            defaultValue: 0
+            doc: "Result field (4 bits) of the general ANCP header. Indicates how the request is to be processed / the outcome reported: Ignore, Nack, AckAll, Success, or Failure. [RFC 6320 §3.6]"
+
+          - id: ancpPortUpResultCode
+            name: Result Code
+            type: { kind: int, bits: 12 }
+            category: type
+            defaultValue: 0
+            doc: "Result Code (12 bits) of the general ANCP header, providing detailed status when the Result field reports a failure. A value of zero indicates no specific code. [RFC 6320 §3.6, §3.6.1.6]"
+
+          - id: ancpPortUpPartitionId
+            name: Partition ID
+            type: { kind: int, bits: 8 }
+            category: identifier
+            doc: "8-bit Partition ID (general ANCP header Word 2) identifying the logical partition within the Access Node on which the port event occurred. [RFC 6320 §3.6]"
+
+          - id: ancpPortUpTransactionId
+            name: Transaction Identifier
+            type: { kind: int, bits: 24 }
+            category: identifier
+            doc: "24-bit Transaction Identifier (general ANCP header Word 2) used to correlate requests and responses. [RFC 6320 §3.6]"
+
+          - id: ancpPortUpIFlag
+            name: I Flag
+            type: { kind: int, bits: 1 }
+            category: flags
+            defaultValue: 0
+            doc: "I flag (general ANCP header Word 3, bit 0). When set, indicates this message is part of a multi-part (fragmented) ANCP message. [RFC 6320 §3.6]"
+
+          - id: ancpPortUpSubMessageNumber
+            name: SubMessage Number
+            type: { kind: int, bits: 15 }
+            category: identifier
+            defaultValue: 0
+            doc: "SubMessage Number (15 bits) of the general ANCP header, sequencing the parts of a fragmented ANCP message. [RFC 6320 §3.6]"
+
+          - id: ancpPortUpLength
+            name: Length
+            type: { kind: int, bits: 16 }
+            category: length
+            doc: "Length (16 bits) of the general ANCP header, giving the number of payload bytes following the 12-byte common header. [RFC 6320 §3.6]"
+
+          - kind: bounded
+            id: ancpPortUpScope
+            name: Port Up Payload
+            bytes: { kind: ref, field: ancpPortUpLength }
+            doc: "Port Up message payload bounded by the header Length field, carrying TLVs that describe the access port identity and DSL/PON line attributes. [RFC 6320 §3.6, §3.6.1]"
+            fields:
+              - id: ancpPortUpExtensions
+                name: Extensions
+                type: { kind: bytes, n: { kind: remaining } }
+                category: variable
+                doc: "Variable-length TLV extensions for the Port Up message, describing the access port identity and DSL/PON line attributes such as actual data rate, attainable data rate, SNR margin, and loop attenuation. Each TLV is encoded as Type (16 bits) + Length (16 bits) + Value. [RFC 6320 §3.6.1]"
+
+      "81":
+        id: ancpPortDown
+        doc: "Port Down Message Body"
+        fields:
+          - id: ancpPortDownResult
+            name: Result
+            type:
+              kind: enum
+              bits: 4
+              variants:
+                0: "Ignore"
+                1: "Nack"
+                2: "AckAll"
+                3: "Success"
+                4: "Failure"
+            category: type
+            defaultValue: 0
+            doc: "Result field (4 bits) of the general ANCP header. Indicates how the request is to be processed / the outcome reported: Ignore, Nack, AckAll, Success, or Failure. [RFC 6320 §3.6]"
+
+          - id: ancpPortDownResultCode
+            name: Result Code
+            type: { kind: int, bits: 12 }
+            category: type
+            defaultValue: 0
+            doc: "Result Code (12 bits) of the general ANCP header, providing detailed status for the port down event. A value of zero indicates no specific code. [RFC 6320 §3.6, §3.6.1.6]"
+
+          - id: ancpPortDownPartitionId
+            name: Partition ID
+            type: { kind: int, bits: 8 }
+            category: identifier
+            doc: "8-bit Partition ID (general ANCP header Word 2) identifying the logical partition within the Access Node on which the port down event occurred. [RFC 6320 §3.6]"
+
+          - id: ancpPortDownTransactionId
+            name: Transaction Identifier
+            type: { kind: int, bits: 24 }
+            category: identifier
+            doc: "24-bit Transaction Identifier (general ANCP header Word 2) used to correlate requests and responses. [RFC 6320 §3.6]"
+
+          - id: ancpPortDownIFlag
+            name: I Flag
+            type: { kind: int, bits: 1 }
+            category: flags
+            defaultValue: 0
+            doc: "I flag (general ANCP header Word 3, bit 0). When set, indicates this message is part of a multi-part (fragmented) ANCP message. [RFC 6320 §3.6]"
+
+          - id: ancpPortDownSubMessageNumber
+            name: SubMessage Number
+            type: { kind: int, bits: 15 }
+            category: identifier
+            defaultValue: 0
+            doc: "SubMessage Number (15 bits) of the general ANCP header, sequencing the parts of a fragmented ANCP message. [RFC 6320 §3.6]"
+
+          - id: ancpPortDownLength
+            name: Length
+            type: { kind: int, bits: 16 }
+            category: length
+            doc: "Length (16 bits) of the general ANCP header, giving the number of payload bytes following the 12-byte common header. [RFC 6320 §3.6]"
+
+          - kind: bounded
+            id: ancpPortDownScope
+            name: Port Down Payload
+            bytes: { kind: ref, field: ancpPortDownLength }
+            doc: "Port Down message payload bounded by the header Length field, carrying TLVs that identify the deactivated port and optional final line statistics. [RFC 6320 §3.6, §3.6.1]"
+            fields:
+              - id: ancpPortDownExtensions
+                name: Extensions
+                type: { kind: bytes, n: { kind: remaining } }
+                category: variable
+                doc: "Variable-length TLV extensions for the Port Down message, identifying the deactivated port and optionally carrying final line statistics (actual rate, SNR margin, loop attenuation) measured just before the line dropped. Each TLV is Type (16 bits) + Length (16 bits) + Value. [RFC 6320 §3.6.1]"
+
+      "32":
+        id: ancpPortManagement
+        doc: "Port Management Message Body"
+        fields:
+          - id: ancpPortMgmtResult
+            name: Result
+            type:
+              kind: enum
+              bits: 4
+              variants:
+                0: "Ignore"
+                1: "Nack"
+                2: "AckAll"
+                3: "Success"
+                4: "Failure"
+            category: type
+            defaultValue: 0
+            doc: "Result field (4 bits) of the general ANCP header. Indicates how the request is to be processed / the outcome reported: Ignore, Nack, AckAll, Success, or Failure. In request messages sent by the NAS this field selects the desired acknowledgement behaviour. [RFC 6320 §3.6]"
+
+          - id: ancpPortMgmtResultCode
+            name: Result Code
+            type: { kind: int, bits: 12 }
+            category: type
+            defaultValue: 0
+            doc: "Result Code (12 bits) of the general ANCP header, providing detailed status when a management operation fails. A value of zero indicates no specific code. [RFC 6320 §3.6, §3.6.1.6]"
+
+          - id: ancpPortMgmtPartitionId
+            name: Partition ID
+            type: { kind: int, bits: 8 }
+            category: identifier
+            doc: "8-bit Partition ID (general ANCP header Word 2) identifying the logical partition within the Access Node to which the management command applies. [RFC 6320 §3.6]"
+
+          - id: ancpPortMgmtTransactionId
+            name: Transaction Identifier
+            type: { kind: int, bits: 24 }
+            category: identifier
+            doc: "24-bit Transaction Identifier (general ANCP header Word 2) used to correlate the management request with its response. [RFC 6320 §3.6]"
+
+          - id: ancpPortMgmtIFlag
+            name: I Flag
+            type: { kind: int, bits: 1 }
+            category: flags
+            defaultValue: 0
+            doc: "I flag (general ANCP header Word 3, bit 0). When set, indicates this message is part of a multi-part (fragmented) ANCP message. [RFC 6320 §3.6]"
+
+          - id: ancpPortMgmtSubMessageNumber
+            name: SubMessage Number
+            type: { kind: int, bits: 15 }
+            category: identifier
+            defaultValue: 0
+            doc: "SubMessage Number (15 bits) of the general ANCP header, sequencing the parts of a fragmented ANCP message. [RFC 6320 §3.6]"
+
+          - id: ancpPortMgmtLength
+            name: Length
+            type: { kind: int, bits: 16 }
+            category: length
+            doc: "Length (16 bits) of the general ANCP header, giving the number of payload bytes following the 12-byte common header. [RFC 6320 §3.6]"
+
+          - kind: bounded
+            id: ancpPortMgmtScope
+            name: Port Management Payload
+            bytes: { kind: ref, field: ancpPortMgmtLength }
+            doc: "Port Management message payload bounded by the header Length field, carrying the port identifier TLV and any line configuration TLVs. [RFC 6320 §3.6, §3.6.1]"
+            fields:
+              - id: ancpPortMgmtExtensions
+                name: Extensions
+                type: { kind: bytes, n: { kind: remaining } }
+                category: variable
+                doc: "Variable-length TLV extensions for the Port Management message. Contains TLVs that identify the target port and carry configuration parameters such as desired data rate, service profile name, or administrative state command for DSL, VDSL2, GPON, or XGS-PON access lines. Each TLV is Type (16 bits) + Length (16 bits) + Value. [RFC 6320 §3.6.1]"
+
+      "_":
+        id: ancpUnknownBody
+        doc: "Message Body"
+        fields:
+        - id: ancpRawBody
+          name: Body
+          type: { kind: bytes, n: { kind: remaining } }
+          category: variable
+          doc: "Raw message body for ANCP message types not explicitly decoded in this PSDL model. Consumes the remaining bytes of the message. Preserves forward compatibility with future ANCP message type extensions. [RFC 6320 §3.6]"

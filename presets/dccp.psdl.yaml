@@ -1,0 +1,56 @@
+# yaml-language-server: $schema=../node_modules/@packet-schema/core/schemas/psdl-0.5.yaml
+version: "0.5"
+name: DCCP Generic Header
+rowBits: 32
+byteOrder: BE
+meta:
+  family: dccp
+  tags: [transport, reliability, qos]
+description: DCCP (Datagram Congestion Control Protocol) generic header (RFC 4340). Supports 24-bit sequence numbers (X=0) and 48-bit sequence numbers (X=1).
+body:
+  - { id: srcPort, name: Source Port, type: { kind: int, bits: 16 }, category: addressing, doc: "Source port number identifying the sending application." }
+  - { id: dstPort, name: Destination Port, type: { kind: int, bits: 16 }, category: addressing, doc: "Destination port number identifying the receiving application." }
+  - { id: dataOffset, name: Data Offset, type: { kind: int, bits: 8 }, category: length, doc: "Offset from the start of the packet to the data area, measured in 32-bit words." }
+  - { id: ccVal, name: CCVal, type: { kind: int, bits: 4 }, category: variable, doc: "Used by the CCID for congestion-control-specific purposes." }
+  - { id: csCov, name: CsCov, type: { kind: int, bits: 4 }, category: variable, doc: "Checksum coverage: 0 means the checksum covers the entire packet; 1-15 indicate partial coverage of that many 4-byte words." }
+  - { id: checksum, name: Checksum, type: { kind: int, bits: 16 }, category: checksum, doc: "One's complement checksum of the DCCP header, payload, and pseudo-header." }
+  - kind: group
+    id: flagsGroup
+    name: Flags
+    children:
+      - { id: res, name: Reserved, type: { kind: int, bits: 3 }, category: reserved, doc: "Reserved bits; must be set to zero by senders and ignored by receivers." }
+      - id: type
+        name: Type
+        type:
+          kind: enum
+          bits: 4
+          variants:
+            0: "Request (DCCP-Request)"
+            1: "Response (DCCP-Response)"
+            2: "Data (DCCP-Data)"
+            3: "Ack (DCCP-Ack)"
+            4: "DataAck (DCCP-DataAck)"
+            5: "CloseReq (DCCP-CloseReq)"
+            6: "Close (DCCP-Close)"
+            7: "Reset (DCCP-Reset)"
+            8: "Sync (DCCP-Sync)"
+            9: "SyncAck (DCCP-SyncAck)"
+        category: type
+        doc: "Packet type. 0=Request, 1=Response, 2=Data, 3=Ack, 4=DataAck, 5=CloseReq, 6=Close, 7=Reset, 8=Sync, 9=SyncAck; types 10-15 are reserved and MUST NOT be sent. [RFC 4340 §5.1]"
+      - { id: x, name: X, type: { kind: int, bits: 1 }, category: flags, doc: "Extended sequence numbers flag: 0 uses 24-bit sequence numbers, 1 uses 48-bit sequence numbers." }
+  - kind: switch
+    id: seqNum
+    on: { kind: ref, field: "x" }
+    doc: "Sequence Number layout depends on X. X=0: a 24-bit Sequence Number directly after the flags byte (12-byte generic header). X=1: an 8-bit Reserved field followed by a contiguous 48-bit Sequence Number (16-byte generic header). [RFC 4340 §5.1]"
+    cases:
+      "0":
+        id: shortSeq
+        doc: "Short sequence number form (X=0)."
+        fields:
+          - { id: seqNum24, name: Sequence Number, type: { kind: int, bits: 24 }, category: identifier, doc: "Complete 24-bit sequence number; used when X=0." }
+      "1":
+        id: longSeq
+        doc: "Long sequence number form (X=1)."
+        fields:
+          - { id: reserved2, name: Reserved, type: { kind: int, bits: 8 }, category: reserved, doc: "Reserved field present only when X=1; must be set to zero by senders and ignored by receivers." }
+          - { id: seqNum48, name: Sequence Number, type: { kind: int, bits: 48 }, category: identifier, doc: "Contiguous 48-bit sequence number (16 bits completing word 3 plus 32 bits in word 4); present only when X=1." }

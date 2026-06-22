@@ -1,8 +1,12 @@
-# yaml-language-server: $schema=../../schemas/psdl.schema.json
+# yaml-language-server: $schema=../node_modules/@packet-schema/core/schemas/psdl-0.5.yaml
+version: "0.5"
 name: OSPFv2 Hello Packet
 rowBits: 32
-byteOrder: Network byte order (big-endian, MSB-first).
+byteOrder: BE
 description: OSPFv2 Hello packet (RFC 2328 Appendix A.3.1 / A.3.2). 24-byte OSPF common header followed by the Hello-specific body, sent over IP protocol 89 to the AllSPFRouters (224.0.0.5) or AllDRouters (224.0.0.6) multicast group. Hello packets discover neighbors and maintain adjacencies; the Neighbor list at the tail enumerates every router from which a valid Hello has been received during the last RouterDeadInterval.
+meta:
+  family: ospf
+  tags: [internet-layer, routing, control-plane, neighbor-discovery]
 body:
   - id: version
     name: Version
@@ -42,6 +46,10 @@ body:
     category: type
     defaultValue: 0
     doc: Authentication scheme applied per-interface. 0=Null (no authentication), 1=Simple password, 2=Cryptographic (MD5/HMAC). [RFC 2328 §D.1]
+    values:
+      - { value: 0, name: NULL_AUTH, label: "Null authentication", level: may, meta: { rfc: 2328, section: "D.3" } }
+      - { value: 1, name: SIMPLE, label: "Simple password", level: may, meta: { rfc: 2328, section: "D.3" } }
+      - { value: 2, name: CRYPTOGRAPHIC, label: "Cryptographic authentication", level: may, meta: { rfc: 2328, section: "D.3" } }
   - id: authentication
     name: Authentication
     type: { kind: bits, n: 64 }
@@ -108,6 +116,8 @@ body:
     category: identifier
     defaultValue: 1
     doc: Per-interface priority used to elect the Designated Router. Higher value wins, ties broken by larger Router ID. Priority 0 means "never become DR or BDR". [RFC 2328 §A.3.2]
+    values:
+      - { value: 0, name: INELIGIBLE, label: "Ineligible (never DR/BDR)", level: must, meta: { rfc: 2328, section: "9.3" } }
   - id: routerDeadInterval
     name: Router Dead Interval
     type: { kind: int, bits: 32 }
@@ -124,17 +134,23 @@ body:
     type: { kind: int, bits: 32 }
     category: addressing
     doc: Interface address of the Backup Designated Router (dotted-quad). 0.0.0.0 if no BDR has been elected. The BDR takes over instantly if the DR fails. [RFC 2328 §A.3.2]
-  - kind: repeat
-    id: neighbors
+  - kind: bounded
+    id: neighborList
     name: Neighbor List
-    category: variable
-    doc: Zero or more 32-bit Router IDs of neighbors from whom a valid Hello has been received within the last RouterDeadInterval. The two-way state is established once a router sees its own ID listed here in a neighbor's Hello. [RFC 2328 §A.3.2]
-    element:
-      id: neighborRecord
-      fields:
-        - id: neighborId
-          name: Neighbor Router ID
-          type: { kind: int, bits: 32 }
-          category: identifier
-          doc: Router ID of one neighbor. [RFC 2328 §A.3.2]
-    count: { kind: ref, field: ospfNeighborCount }
+    doc: Length-delimited region holding the Neighbor list. Its byte budget is the OSPF Packet Length minus the 24-byte common header and the 20-byte fixed Hello body (Network Mask … Backup Designated Router), i.e. packetLength − 44; the contained repeat runs to the end of this region. [RFC 2328 §A.3.2]
+    bytes: { kind: op, op: "-", a: { kind: ref, field: packetLength }, b: { kind: lit, value: 44 } }
+    fields:
+      - kind: repeat
+        id: neighbors
+        name: Neighbors
+        category: variable
+        doc: Zero or more 32-bit Router IDs of neighbors from whom a valid Hello has been received within the last RouterDeadInterval. The two-way state is established once a router sees its own ID listed here in a neighbor's Hello. [RFC 2328 §A.3.2]
+        count: eos
+        element:
+          id: neighborRecord
+          fields:
+            - id: neighborId
+              name: Neighbor Router ID
+              type: { kind: int, bits: 32 }
+              category: identifier
+              doc: Router ID of one neighbor. [RFC 2328 §A.3.2]

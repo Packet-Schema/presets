@@ -1,8 +1,9 @@
 // Build script: presets/*.psdl.yaml → src/presets.generated.ts
 //
-// Validates each YAML file against schemas/psdl.schema.json (Ajv 2020-12),
-// then emits a TS module exporting PRESETS: Record<string, Packet>.
-// Run via `npm run build:presets` (also wired into prebuild / pretest).
+// Validates each YAML file against the canonical PSDL 0.5 schema (resolved from
+// @packet-schema/core — not vendored here), then emits a TS module exporting
+// PRESETS: Record<string, Packet>. Run via `npm run build:presets` (also wired
+// into prebuild / pretest).
 
 import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { basename, join, dirname } from "node:path";
@@ -10,15 +11,14 @@ import { fileURLToPath } from "node:url";
 import { parse as parseYaml } from "yaml";
 import Ajv2020 from "ajv/dist/2020.js";
 import addFormats from "ajv-formats";
+import { loadSchema, SCHEMA_VERSION } from "./schema.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
 const PRESETS_DIR = join(ROOT, "presets");
-const SCHEMA_PATH = join(ROOT, "schemas", "psdl.schema.json");
 const OUT_PATH = join(ROOT, "src", "presets.generated.ts");
 
-const FORMAT_TAG = "psdl";
-const FORMAT_VERSION = "0.4";
+const FORMAT_VERSION = SCHEMA_VERSION;
 
 type AjvError = { instancePath?: string; message?: string };
 
@@ -27,14 +27,14 @@ function keyFromFilename(file: string): string {
 }
 
 function main(): void {
-  const schema = JSON.parse(readFileSync(SCHEMA_PATH, "utf8")) as object;
+  const schema = loadSchema();
 
   const AjvCtor =
     (Ajv2020 as unknown as { default?: typeof Ajv2020 }).default ?? Ajv2020;
   const addFormatsFn =
     (addFormats as unknown as { default?: typeof addFormats }).default ??
     addFormats;
-  const ajv = new AjvCtor({ allErrors: true, strict: true });
+  const ajv = new AjvCtor({ allErrors: true, strict: false });
   addFormatsFn(ajv);
   const validate = ajv.compile(schema);
 
@@ -67,7 +67,10 @@ function main(): void {
       Object.entries(raw).filter(([k]) => !k.startsWith("_")),
     );
 
-    const forValidation = { format: FORMAT_TAG, version: FORMAT_VERSION, ...stripped };
+    // PSDL 0.5 dropped the top-level `format` key and forbids unknown
+    // top-level properties (unevaluatedProperties: false). Inject only the
+    // version (if the file does not declare its own).
+    const forValidation = { version: FORMAT_VERSION, ...stripped };
     if (!validate(forValidation)) {
       const errs = (validate.errors ?? [] as AjvError[])
         .map((e) => `  ${e.instancePath ?? ""}: ${e.message ?? ""}`)

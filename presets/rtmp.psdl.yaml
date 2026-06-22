@@ -1,0 +1,190 @@
+# yaml-language-server: $schema=../node_modules/@packet-schema/core/schemas/psdl-0.5.yaml
+version: "0.5"
+name: RTMP Chunk
+rowBits: 32
+byteOrder: BE
+description: "Real-Time Messaging Protocol (RTMP) chunk format (Adobe RTMP Specification 1.0, December 2012). RTMP multiplexes audio, video, and data messages over a persistent TCP connection (default port 1935) by splitting them into chunks. Each chunk begins with a Basic Header that encodes the chunk format (fmt) and Chunk Stream ID (csid), followed by a format-dependent Message Header carrying timestamp, length, and type information, and finally the chunk payload data. The fmt field selects one of four Message Header layouts: Type 0 (11 bytes), Type 1 (7 bytes), Type 2 (3 bytes), and Type 3 (no header)."
+meta:
+  family: rtmp
+  tags: [application, tcp-based, data-transfer, signaling]
+
+body:
+  - kind: group
+    id: rtmpBasicHeader
+    name: Basic Header
+    children:
+      - id: fmt
+        name: Format
+        type:
+          kind: enum
+          bits: 2
+          variants:
+            0: "Type 0 – full message header"
+            1: "Type 1 – timestamp delta + length + type"
+            2: "Type 2 – timestamp delta only"
+            3: "Type 3 – no message header"
+        category: type
+        doc: "Chunk type selector. 0=full 11-byte message header (new stream or discontinuous timestamp); 1=7-byte header (same stream ID, new length/type); 2=3-byte header (same length/type, new timestamp delta); 3=no header (continuation of previous chunk). [Adobe RTMP Specification 1.0 §5.3.1]"
+      - id: csid
+        name: Chunk Stream ID
+        type:
+          kind: enum
+          bits: 6
+          variants:
+            0: "2-byte Basic Header (csid 64–319)"
+            1: "3-byte Basic Header (csid 64–65599)"
+        category: identifier
+        doc: "Chunk Stream ID in the 1-byte Basic Header form. Values 2–63 are the stream ID directly. Value 0 indicates a 2-byte Basic Header where the following byte carries csid-64. Value 1 indicates a 3-byte Basic Header where the following two bytes carry csid-64 in little-endian order. [Adobe RTMP Specification 1.0 §5.3.1.1]"
+
+  - kind: switch
+    id: rtmpCsidExt
+    name: Extended Chunk Stream ID
+    on: { kind: ref, field: csid }
+    cases:
+      "0":
+        id: rtmpCsid2
+        doc: "2-byte Basic Header: one extra byte carrying csid-64."
+        fields:
+          - id: csidByte
+            name: Chunk Stream ID (2-byte form)
+            type: { kind: int, bits: 8 }
+            category: identifier
+            doc: "Second byte of a 2-byte Basic Header. The Chunk Stream ID equals this value plus 64, giving a range of 64–319. [Adobe RTMP Specification 1.0 §5.3.1.1]"
+      "1":
+        id: rtmpCsid3
+        doc: "3-byte Basic Header: two extra bytes carrying csid-64 in little-endian order."
+        fields:
+          - id: csidWord
+            name: Chunk Stream ID (3-byte form)
+            type: { kind: int, bits: 16 }
+            byteOrder: LE
+            category: identifier
+            doc: "Third and second bytes of a 3-byte Basic Header, read little-endian. The Chunk Stream ID equals this value plus 64, giving a range of 64–65599. [Adobe RTMP Specification 1.0 §5.3.1.1]"
+
+  - kind: switch
+    id: rtmpMessageHeader
+    name: Message Header
+    on: { kind: ref, field: fmt }
+    cases:
+      "0":
+        id: rtmpMsgHdr0
+        doc: "Type 0 message header (11 bytes): absolute timestamp, message length, message type, and message stream ID."
+        fields:
+          - id: timestamp0
+            name: Timestamp
+            type: { kind: int, bits: 24 }
+            category: variable
+            doc: "Absolute timestamp of the message in milliseconds. If this field equals 0xFFFFFF (16777215) the real value is carried in the Extended Timestamp field that follows the message header. [Adobe RTMP Specification 1.0 §5.3.1.2]"
+          - id: messageLength0
+            name: Message Length
+            type: { kind: int, bits: 24 }
+            category: length
+            doc: "Total length of the enclosing RTMP message in bytes (not the chunk-fragment length). Used together with the negotiated chunk size (default 128 bytes) to determine how many chunks carry the full message. [Adobe RTMP Specification 1.0 §5.3.1.2]"
+          - id: messageTypeId0
+            name: Message Type ID
+            type:
+              kind: enum
+              bits: 8
+              variants:
+                1: "Set Chunk Size"
+                2: "Abort Message"
+                3: "Acknowledgement"
+                4: "User Control Message"
+                5: "Window Acknowledgement Size"
+                6: "Set Peer Bandwidth"
+                8: "Audio Message"
+                9: "Video Message"
+                15: "Data Message (AMF3)"
+                16: "Shared Object Message (AMF3)"
+                17: "Command Message (AMF3)"
+                18: "Data Message (AMF0)"
+                19: "Shared Object Message (AMF0)"
+                20: "Command Message (AMF0)"
+                22: "Aggregate Message"
+            category: type
+            doc: "Identifies the type of message carried in this chunk. Audio (8) and Video (9) carry codec-specific data; Command (20/17) carries AMF-encoded RPC calls such as connect, createStream, play, and publish; Aggregate (22) bundles multiple sub-messages. [Adobe RTMP Specification 1.0 §5.3.1.2, §7]"
+          - id: messageStreamId
+            name: Message Stream ID
+            type: { kind: int, bits: 32 }
+            byteOrder: LE
+            category: identifier
+            doc: "Identifies the logical message stream to which this chunk belongs. Stored little-endian — the only little-endian field in the RTMP chunk header. Present only in Type 0 headers; subsequent chunks on the same stream inherit it. [Adobe RTMP Specification 1.0 §5.3.1.2]"
+      "1":
+        id: rtmpMsgHdr1
+        doc: "Type 1 message header (7 bytes): timestamp delta, message length, and message type. Inherits the message stream ID from the previous chunk."
+        fields:
+          - id: timestamp1
+            name: Timestamp Delta
+            type: { kind: int, bits: 24 }
+            category: variable
+            doc: "Timestamp delta relative to the previous chunk on the same stream, in milliseconds. If this field equals 0xFFFFFF (16777215) the real delta is carried in the Extended Timestamp field that follows. [Adobe RTMP Specification 1.0 §5.3.1.2]"
+          - id: messageLength1
+            name: Message Length
+            type: { kind: int, bits: 24 }
+            category: length
+            doc: "Total length of the enclosing RTMP message in bytes (not the chunk-fragment length). [Adobe RTMP Specification 1.0 §5.3.1.2]"
+          - id: messageTypeId1
+            name: Message Type ID
+            type:
+              kind: enum
+              bits: 8
+              variants:
+                1: "Set Chunk Size"
+                2: "Abort Message"
+                3: "Acknowledgement"
+                4: "User Control Message"
+                5: "Window Acknowledgement Size"
+                6: "Set Peer Bandwidth"
+                8: "Audio Message"
+                9: "Video Message"
+                15: "Data Message (AMF3)"
+                16: "Shared Object Message (AMF3)"
+                17: "Command Message (AMF3)"
+                18: "Data Message (AMF0)"
+                19: "Shared Object Message (AMF0)"
+                20: "Command Message (AMF0)"
+                22: "Aggregate Message"
+            category: type
+            doc: "Identifies the type of message carried in this chunk. [Adobe RTMP Specification 1.0 §5.3.1.2, §7]"
+      "2":
+        id: rtmpMsgHdr2
+        doc: "Type 2 message header (3 bytes): timestamp delta only. Inherits message length, type, and stream ID from the previous chunk."
+        fields:
+          - id: timestamp2
+            name: Timestamp Delta
+            type: { kind: int, bits: 24 }
+            category: variable
+            doc: "Timestamp delta relative to the previous chunk on the same stream, in milliseconds. If this field equals 0xFFFFFF (16777215) the real delta is carried in the Extended Timestamp field that follows. [Adobe RTMP Specification 1.0 §5.3.1.2]"
+
+  - kind: virtual
+    id: tsSentinel
+    name: Extended Timestamp Present
+    expr:
+      kind: cond
+      test: { kind: op, op: "==", a: { kind: ref, field: fmt }, b: { kind: lit, value: 0 } }
+      t: { kind: op, op: "==", a: { kind: ref, field: timestamp0 }, b: { kind: lit, value: 16777215 } }
+      f:
+        kind: cond
+        test: { kind: op, op: "==", a: { kind: ref, field: fmt }, b: { kind: lit, value: 1 } }
+        t: { kind: op, op: "==", a: { kind: ref, field: timestamp1 }, b: { kind: lit, value: 16777215 } }
+        f:
+          kind: cond
+          test: { kind: op, op: "==", a: { kind: ref, field: fmt }, b: { kind: lit, value: 2 } }
+          t: { kind: op, op: "==", a: { kind: ref, field: timestamp2 }, b: { kind: lit, value: 16777215 } }
+          f: { kind: lit, value: 0 }
+    doc: "True when the active 24-bit timestamp/delta field equals 0xFFFFFF, signalling that the real 32-bit value is carried in the Extended Timestamp field. Type 3 chunks (fmt=3) carry no timestamp field here, so the Extended Timestamp is governed by the inherited message header and is treated as absent by this preset. [Adobe RTMP Specification 1.0 §5.3.1.3]"
+
+  - kind: optional
+    when: { kind: ref, field: tsSentinel }
+    container:
+      id: extendedTimestamp
+      name: Extended Timestamp
+      type: { kind: int, bits: 32 }
+      category: variable
+      doc: "Full 32-bit timestamp (Type 0) or 32-bit timestamp delta (Type 1/2) used when the 24-bit timestamp field equals 0xFFFFFF. Allows streams longer than approximately 49.7 days of monotonic timestamp without a discontinuity. [Adobe RTMP Specification 1.0 §5.3.1.3]"
+
+  - id: chunkData
+    name: Chunk Data
+    type: { kind: bytes, n: { kind: remaining } }
+    category: payload-marker
+    doc: "Payload bytes of this chunk fragment, up to the negotiated chunk size (default 128 bytes, adjustable via Set Chunk Size message type 1). The fragment length is bounded by the negotiated chunk size, not by the Message Length field (which gives the full message size across all fragments), so this preset consumes the remaining captured bytes. For audio and video messages the payload begins with a codec tag byte defined by the Flash Video (FLV) specification; for AMF command messages the payload is AMF0 or AMF3 encoded. [Adobe RTMP Specification 1.0 §5.3.2, §6.1]"

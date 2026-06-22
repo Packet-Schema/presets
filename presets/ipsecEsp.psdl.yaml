@@ -1,0 +1,76 @@
+# yaml-language-server: $schema=../node_modules/@packet-schema/core/schemas/psdl-0.5.yaml
+version: "0.5"
+name: IPsec ESP Header / Trailer
+rowBits: 32
+byteOrder: BE
+description: IP Encapsulating Security Payload (RFC 4303). ESP provides confidentiality (encryption), connectionless integrity, data-origin authentication, anti-replay protection, and optional traffic-flow confidentiality. The visible header contains only SPI and Sequence Number; the Payload Data, Padding, Pad Length, Next Header, and ICV are all protected by the negotiated cipher-suite (e.g. AES-GCM, AES-CBC+HMAC-SHA-1). In Transport mode the original IP payload is encrypted; in Tunnel mode the entire inner IP datagram is encrypted. Carried inside IP as Protocol number 50.
+meta:
+  family: ipsec
+  tags: [internet-layer, security, encapsulation, tunnel]
+body:
+  - id: spi
+    name: Security Parameters Index (SPI)
+    type: { kind: int, bits: 32 }
+    category: identifier
+    doc: "Arbitrary 32-bit value that, combined with the destination IP address and security protocol (ESP), uniquely identifies the Security Association. Values 1..255 are reserved; 0 is reserved for local use. Chosen by the receiving node during IKE negotiation; the sending node copies it into every packet. A receiver uses SPI to look up the SA and hence the decryption key and algorithm. [RFC 4303 §2.1]"
+  - id: sequenceNumber
+    name: Sequence Number
+    type: { kind: int, bits: 32 }
+    category: identifier
+    doc: "Monotonically increasing counter initialized to 0 when the SA is established (first packet SN=1). The sender increments it for each packet; the receiver uses a sliding-window check to detect replayed or duplicate packets (anti-replay service). The SA must be renegotiated before the counter wraps. Extended Sequence Numbers (64-bit) are negotiated via IKEv2 and the high-order 32 bits are implicit. [RFC 4303 §2.2]"
+  - kind: virtual
+    id: icvLen
+    name: ICV Length (SA-determined)
+    expr: { kind: lit, value: 16 }
+    doc: "ICV byte length. This value is NOT carried on the ESP wire — it is fixed by the integrity algorithm negotiated for the Security Association (looked up via the SPI). Common values: 16 bytes for AEAD tags (AES-GCM, AES-CCM, ChaCha20-Poly1305) and AES-256-GMAC; 12 bytes for HMAC-SHA-1-96 / AES-XCBC-MAC-96. Modeled here as a zero-width virtual field (representative 16-byte AEAD tag) so the encrypted region can be split from the trailing ICV. [RFC 4303 §2.7, §3.3.3]"
+  - kind: encrypted
+    id: espEncrypted
+    name: Encrypted Region
+    contextNote: Encrypted & integrity-protected with the negotiated ESP cipher suite (decryption requires the SA key looked up via SPI). Spans Payload Data, Padding, Pad Length and Next Header.
+    wireBits:
+      # The encrypted region runs from here to the start of the ICV. The total
+      # ESP length is supplied by the outer IP layer (top-level body budget), so
+      # the region size is (remaining bytes - ICV length) * 8 bits.
+      kind: op
+      op: "*"
+      a:
+        kind: op
+        op: "-"
+        a: { kind: remaining }
+        b: { kind: ref, field: icvLen }
+      b: { kind: lit, value: 8 }
+    category: payload-marker
+    plaintext:
+      id: espPlaintext
+      fields:
+        - id: payloadData
+          name: Payload Data + Padding
+          # Consume the whole plaintext except the trailing 2 bytes
+          # (Pad Length + Next Header), which are end-anchored (§ End-anchored
+          # fields). Padding cannot be split from Payload Data forward-only
+          # because its length (Pad Length) sits at the end of the region, so
+          # the two are modeled together here.
+          type:
+            kind: bytes
+            n:
+              kind: op
+              op: "-"
+              a: { kind: remaining }
+              b: { kind: lit, value: 2 }
+          category: payload-marker
+          doc: "Encrypted payload plus any trailing Padding. Payload Data — in Transport mode the upper-layer protocol data (TCP segment, UDP datagram, etc.); in Tunnel mode the entire inner IP datagram. Padding (0–255 bytes, filled with the incrementing sequence 1, 2, 3, …) is appended to satisfy block-cipher alignment and/or to obscure the true payload length for traffic-flow confidentiality. The boundary between payload and padding is recovered from Pad Length after decryption; PSDL's forward-only model cannot split them on the wire, so they share one field. The encryption algorithm and key are determined by the SA. [RFC 4303 §2.3, §2.4]"
+        - id: padLength
+          name: Pad Length
+          type: { kind: int, bits: 8 }
+          category: length
+          doc: "Number of padding bytes immediately preceding this field. Zero means no padding. Used by the receiver to locate the Next Header field and to strip the padding after decryption. [RFC 4303 §2.5]"
+        - id: nextHeader
+          name: Next Header
+          type: { kind: int, bits: 8 }
+          category: type
+          doc: "Protocol type of the Payload Data. In Transport mode: the IP Protocol Number of the upper-layer protocol (TCP=6, UDP=17, ICMPv6=58, etc.). In Tunnel mode: IPv4=4 or IPv6=41. This field is part of the encrypted region and is revealed only after decryption, preventing passive observers from identifying the encapsulated protocol. [RFC 4303 §2.6]"
+  - id: icv
+    name: Integrity Check Value (ICV)
+    type: { kind: bytes, n: { kind: ref, field: icvLen } }
+    category: checksum
+    doc: "Authentication data produced by the integrity algorithm; sits outside the encrypted region. For combined-mode algorithms (AES-GCM, AES-CCM, ChaCha20-Poly1305) the ICV is the AEAD authentication tag — typically 16 bytes. For ESP-with-integrity (e.g. AES-CBC + HMAC-SHA-1-96) the ICV is the HMAC output — typically 12 bytes. The ICV covers the SPI, Sequence Number, and encrypted payload (but not the outer IP header). Its length is SA-determined (see ICV Length), not carried on the wire. [RFC 4303 §2.8]"
