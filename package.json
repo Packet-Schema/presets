@@ -19,10 +19,11 @@
     "build:presets": "tsx scripts/build.ts",
     "build": "npm run build:presets && tsc",
     "prebuild": "npm run build:presets",
-    "check": "tsx scripts/check.ts && tsx scripts/semcheck.ts && tsx scripts/taxcheck.ts",
+    "check": "tsx scripts/check.ts && tsx scripts/semcheck.ts && tsx scripts/taxcheck.ts && tsx scripts/normcheck.ts",
     "check:schema": "tsx scripts/check.ts",
     "check:semantic": "tsx scripts/semcheck.ts",
     "check:taxonomy": "tsx scripts/taxcheck.ts",
+    "check:normalize": "tsx scripts/normcheck.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

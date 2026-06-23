@@ -223,8 +223,11 @@ body:
     name: Encrypted Payload
     contextNote: AEAD-protected QUIC frames — requires Initial / 0-RTT / Handshake / 1-RTT keys depending on packet type.
     wireBits:
+      # Frame Type (8 bits) + one modeled 128-bit frame body = 136 bits. The real
+      # protected payload runs to the end of the datagram; this fixed budget
+      # matches the single illustrative frame modeled below.
       kind: lit
-      value: 128
+      value: 136
     category: payload-marker
     plaintext:
       id: frames
