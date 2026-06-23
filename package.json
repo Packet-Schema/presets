@@ -23,8 +23,8 @@
     "check:schema": "tsx scripts/check.ts",
     "check:semantic": "tsx scripts/semcheck.ts",
     "check:taxonomy": "tsx scripts/taxcheck.ts",
-    "typecheck": "tsc --noEmit",
-    "check:normalize": "tsx scripts/normcheck.ts"
+    "check:normalize": "tsx scripts/normcheck.ts",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@packet-schema/core": "file:../core"

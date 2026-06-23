@@ -42,7 +42,7 @@ function main(): void {
       normalize(res.packet, new Map(), { viewMode: "semantic", totalBits: TOTAL_BITS });
     } catch (e) {
       failed++;
-      console.error(`✗ ${basename(file)}\n    ${String((e as Error).message ?? e)}`);
+      console.error(`✗ ${basename(file)}\n    ${e instanceof Error ? e.message : String(e)}`);
     }
   }
 
