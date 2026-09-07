@@ -5,20 +5,28 @@ on:
     branches: [main]
   pull_request:
 
-# @packet-schema/presets depends on @packet-schema/core via `file:../core`
-# (core is not yet published to a registry). CI therefore checks out core as a
-# sibling directory so the file: link resolves, builds it, then validates the
-# presets against core's canonical PSDL 0.5 schema.
+# @packet-schema/presets depends on @packet-schema/core via `file:../core`, so
+# CI checks out core as a sibling directory to make the file: link resolve,
+# builds it, then validates the presets against core's canonical PSDL 0.5
+# schema.
 #
-# The core checkout needs a token with read access to the (private)
-# Packet-Schema/core repository. Add a repository secret named CORE_PAT
-# (a fine-grained PAT or classic PAT with `repo`/`contents:read` scope).
-# Once core is published to npm this whole sibling-checkout dance can be
-# replaced with a plain registry dependency + a single `npm ci`.
+# The checkout uses the default GITHUB_TOKEN: Packet-Schema/core is a PUBLIC
+# repository, so no extra credential is needed. It previously asked for a
+# `CORE_PAT` secret on the premise that core was private — that secret was
+# never set, so `token:` resolved to an empty string and actions/checkout
+# failed with "Input required and not supplied: token" on EVERY run, main
+# included. The 4-stage gate below had therefore never actually run in CI.
+#
+# core is now published to npm, so this sibling-checkout dance can be replaced
+# with a plain registry dependency + a single `npm ci` once presets is pinned
+# to a published core version.
 
 jobs:
   build-test:
     runs-on: ubuntu-latest
+    # Least privilege. Reading a public sibling repo needs nothing more.
+    permissions:
+      contents: read
     strategy:
       matrix:
         node: [20, 22]
@@ -34,7 +42,6 @@ jobs:
           repository: Packet-Schema/core
           ref: main
           path: core
-          token: ${{ secrets.CORE_PAT }}
 
       - name: Setup Node ${{ matrix.node }}
         uses: actions/setup-node@v4
