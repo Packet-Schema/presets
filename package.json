@@ -2,6 +2,16 @@
   "name": "@packet-schema/presets",
   "version": "0.1.0",
   "description": "Built-in PSDL presets for Packet Schema (TCP, UDP, IPv4/6, TLS, QUIC, DNS, …)",
+  "license": "MIT",
+  "author": "Taquan Aoki",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Packet-Schema/presets.git"
+  },
+  "homepage": "https://github.com/Packet-Schema/presets#readme",
+  "bugs": {
+    "url": "https://github.com/Packet-Schema/presets/issues"
+  },
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
