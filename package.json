@@ -1,6 +1,6 @@
 {
   "name": "@packet-schema/presets",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Built-in PSDL presets for Packet Schema (TCP, UDP, IPv4/6, TLS, QUIC, DNS, …)",
   "license": "MIT",
   "author": "Taquan Aoki",
@@ -11,6 +11,10 @@
   "homepage": "https://github.com/Packet-Schema/presets#readme",
   "bugs": {
     "url": "https://github.com/Packet-Schema/presets/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   },
   "type": "module",
   "main": "./dist/index.js",
@@ -34,10 +38,11 @@
     "check:semantic": "tsx scripts/semcheck.ts",
     "check:taxonomy": "tsx scripts/taxcheck.ts",
     "check:normalize": "tsx scripts/normcheck.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run check && npm run build"
   },
   "dependencies": {
-    "@packet-schema/core": "file:../core"
+    "@packet-schema/core": "^0.1.1"
   },
   "devDependencies": {
     "ajv": "^8.17.1",
