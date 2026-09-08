@@ -15,10 +15,13 @@ const PRESETS_DIR = join(__dirname, "..", "presets");
 
 function main(): void {
   const argv = process.argv.slice(2);
-  const files = argv.length > 0 ? argv : readdirSync(PRESETS_DIR)
-    .filter((f) => f.endsWith(".psdl.yaml"))
-    .sort()
-    .map((f) => join(PRESETS_DIR, f));
+  const files =
+    argv.length > 0
+      ? argv
+      : readdirSync(PRESETS_DIR)
+          .filter((f) => f.endsWith(".psdl.yaml"))
+          .sort()
+          .map((f) => join(PRESETS_DIR, f));
 
   let failed = 0;
   for (const file of files) {

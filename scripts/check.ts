@@ -16,9 +16,10 @@ import { readdirSync, readFileSync } from "node:fs";
 import { basename, join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse as parseYaml } from "yaml";
-import Ajv2020, { type ValidateFunction } from "ajv/dist/2020.js";
+import Ajv2020 from "ajv/dist/2020.js";
 import addFormats from "ajv-formats";
-import { loadSchema, SCHEMA_VERSION } from "./schema.js";
+import { loadSchema, resolveAjv, SCHEMA_VERSION } from "./schema.js";
+import type { AjvLike, AjvValidator } from "./schema.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PRESETS_DIR = join(__dirname, "..", "presets");
@@ -48,7 +49,8 @@ const KIND_DEF: Record<string, string> = {
 
 type Json = unknown;
 type Obj = Record<string, unknown>;
-const isObj = (v: Json): v is Obj => typeof v === "object" && v !== null && !Array.isArray(v);
+const isObj = (v: Json): v is Obj =>
+  typeof v === "object" && v !== null && !Array.isArray(v);
 
 // Deep-clone the schema, replacing every { $ref: "#/$defs/X" } (X in STUB)
 // with `true` so a parent validator does not descend into that child.
@@ -58,7 +60,8 @@ function stubRefs(node: Json): Json {
     const ref = node.$ref;
     if (typeof ref === "string") {
       const m = /^#\/\$defs\/(.+)$/.exec(ref);
-      if (m && STUB.has(m[1])) return true;
+      const name = m?.[1];
+      if (name !== undefined && STUB.has(name)) return true;
     }
     const out: Obj = {};
     for (const [k, v] of Object.entries(node)) out[k] = stubRefs(v);
@@ -89,26 +92,27 @@ function fmt(e: AjvError): string {
 }
 
 class Checker {
-  private ajv: InstanceType<typeof Ajv2020>;
+  private ajv: AjvLike;
   private shallowDefs: Obj;
-  private cache = new Map<string, ValidateFunction>();
+  private cache = new Map<string, AjvValidator>();
   errors: string[] = [];
 
   constructor(schema: Obj) {
-    const AjvCtor = (Ajv2020 as unknown as { default?: typeof Ajv2020 }).default ?? Ajv2020;
-    const addFormatsFn = (addFormats as unknown as { default?: typeof addFormats }).default ?? addFormats;
+    const { AjvCtor, addFormatsFn } = resolveAjv(Ajv2020, addFormats);
     this.ajv = new AjvCtor({ allErrors: true, strict: false });
     addFormatsFn(this.ajv);
     this.shallowDefs = stubRefs(schema.$defs) as Obj;
   }
 
   // Shallow validator for a named $def (children stubbed).
-  private vdef(def: string): ValidateFunction {
-    let v = this.cache.get(def);
-    if (!v) {
-      v = this.ajv.compile({ $ref: `#/$defs/${def}`, $defs: this.shallowDefs });
-      this.cache.set(def, v);
-    }
+  private vdef(def: string): AjvValidator {
+    const cached = this.cache.get(def);
+    if (cached !== undefined) return cached;
+    const v = this.ajv.compile({
+      $ref: `#/$defs/${def}`,
+      $defs: this.shallowDefs,
+    }) as AjvValidator;
+    this.cache.set(def, v);
     return v;
   }
 
@@ -131,19 +135,25 @@ class Checker {
   packet(pkt: Obj, rootSchema: Obj): void {
     const shallowRoot = stubRefs(rootSchema) as Obj;
     shallowRoot.$defs = this.shallowDefs;
-    const v = this.ajv.compile(shallowRoot);
+    const v = this.ajv.compile(shallowRoot) as AjvValidator;
     if (!v(pkt)) {
       for (const e of (v.errors ?? []) as AjvError[]) {
         this.errors.push(`${e.instancePath || "/"}: ${fmt(e)}`);
       }
     }
-    if (Array.isArray(pkt.body)) pkt.body.forEach((c, i) => this.container(c, `/body/${i}`));
+    if (Array.isArray(pkt.body))
+      pkt.body.forEach((c, i) => this.container(c, `/body/${i}`));
     if (isObj(pkt.defs)) {
-      for (const [k, d] of Object.entries(pkt.defs)) this.struct(d, `/defs/${k}`, "NamedStruct");
+      for (const [k, d] of Object.entries(pkt.defs))
+        this.struct(d, `/defs/${k}`, "NamedStruct");
     }
   }
 
-  private struct(node: Json, path: string, def: "Struct" | "NamedStruct" = "Struct"): void {
+  private struct(
+    node: Json,
+    path: string,
+    def: "Struct" | "NamedStruct" = "Struct",
+  ): void {
     this.check(def, node, path);
     if (isObj(node) && Array.isArray(node.fields)) {
       node.fields.forEach((c, i) => this.container(c, `${path}/fields/${i}`));
@@ -165,23 +175,33 @@ class Checker {
 
     switch (kind) {
       case "group":
-        if (Array.isArray(node.children)) node.children.forEach((c, i) => this.container(c, `${path}/children/${i}`));
+        if (Array.isArray(node.children))
+          node.children.forEach((c, i) =>
+            this.container(c, `${path}/children/${i}`),
+          );
         break;
       case "optional":
-        if (node.container !== undefined) this.container(node.container, `${path}/container`);
+        if (node.container !== undefined)
+          this.container(node.container, `${path}/container`);
         break;
       case "bounded":
-        if (Array.isArray(node.fields)) node.fields.forEach((c, i) => this.container(c, `${path}/fields/${i}`));
+        if (Array.isArray(node.fields))
+          node.fields.forEach((c, i) =>
+            this.container(c, `${path}/fields/${i}`),
+          );
         break;
       case "repeat":
-        if (node.element !== undefined) this.struct(node.element, `${path}/element`);
+        if (node.element !== undefined)
+          this.struct(node.element, `${path}/element`);
         break;
       case "encrypted":
-        if (node.plaintext !== undefined) this.struct(node.plaintext, `${path}/plaintext`);
+        if (node.plaintext !== undefined)
+          this.struct(node.plaintext, `${path}/plaintext`);
         break;
       case "switch":
         if (isObj(node.cases)) {
-          for (const [k, arm] of Object.entries(node.cases)) this.struct(arm, `${path}/cases/${k}`);
+          for (const [k, arm] of Object.entries(node.cases))
+            this.struct(arm, `${path}/cases/${k}`);
         }
         break;
       default:
@@ -193,10 +213,13 @@ class Checker {
 function main(): void {
   const schema = loadSchema();
   const argv = process.argv.slice(2);
-  const files = argv.length > 0 ? argv : readdirSync(PRESETS_DIR)
-    .filter((f) => f.endsWith(".psdl.yaml"))
-    .sort()
-    .map((f) => join(PRESETS_DIR, f));
+  const files =
+    argv.length > 0
+      ? argv
+      : readdirSync(PRESETS_DIR)
+          .filter((f) => f.endsWith(".psdl.yaml"))
+          .sort()
+          .map((f) => join(PRESETS_DIR, f));
 
   let failed = 0;
   for (const file of files) {
@@ -208,7 +231,9 @@ function main(): void {
       failed++;
       continue;
     }
-    const stripped = Object.fromEntries(Object.entries(raw).filter(([k]) => !k.startsWith("_")));
+    const stripped = Object.fromEntries(
+      Object.entries(raw).filter(([k]) => !k.startsWith("_")),
+    );
     const doc: Obj = { version: SCHEMA_VERSION, ...stripped };
 
     const checker = new Checker(schema as Obj);
@@ -219,7 +244,8 @@ function main(): void {
     }
     failed++;
     console.error(`✗ ${basename(file)}`);
-    for (const l of [...new Set(checker.errors)].sort()) console.error(`    ${l}`);
+    for (const l of [...new Set(checker.errors)].sort())
+      console.error(`    ${l}`);
   }
 
   if (failed > 0) {
