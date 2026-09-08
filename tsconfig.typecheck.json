@@ -8,7 +8,7 @@
   // inherited `exclude: ["scripts"]` silently wins over an `include` that
   // names them, which makes this file a no-op that still exits 0.
   "extends": "./tsconfig.json",
-  "compilerOptions": { "noEmit": true },
+  "compilerOptions": { "noEmit": true, "rootDir": ".", "types": ["node"] },
   "include": ["src", "scripts"],
   "exclude": ["node_modules", "dist"]
 }
