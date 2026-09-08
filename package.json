@@ -47,7 +47,7 @@
     "@packet-schema/core": "^0.1.1"
   },
   "devDependencies": {
-    "@types/node": "^24.13.3",
+    "@types/node": "^26.4.1",
     "ajv": "^8.17.1",
     "ajv-formats": "^3.0.1",
     "prettier": "^3.9.6",
