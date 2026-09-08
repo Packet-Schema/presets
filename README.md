@@ -23,15 +23,15 @@ Object.keys(PRESETS).length; // → 184
 
 L2 から L7、暗号化トランスポート、ルーティング / 管理プロトコルまで。ファミリ数 88。代表例:
 
-| 領域 | 例 |
-|---|---|
-| L2 / L3 | ethernet, arp, ipv4, ipv6, icmp, icmpv6 |
-| トランスポート | tcp, udp, sctp, quic, dccp |
-| 名前解決 / 時刻 | dns, mdns, ntp, ptp |
-| ルーティング | bgpUpdateFull, ospf, isisLsp, rip, pgm |
-| トンネル | gre, vxlan, geneve, l2tp, capwap, amt |
-| セキュリティ | tlsHandshake, ipsecEsp, ikev2, ocspRequest, kerberosAsReq |
-| 管理 / 計測 | snmpV2c, snmpv3, ipfix, sflow, bfd, rtcpSdes |
+| 領域            | 例                                                        |
+| --------------- | --------------------------------------------------------- |
+| L2 / L3         | ethernet, arp, ipv4, ipv6, icmp, icmpv6                   |
+| トランスポート  | tcp, udp, sctp, quic, dccp                                |
+| 名前解決 / 時刻 | dns, mdns, ntp, ptp                                       |
+| ルーティング    | bgpUpdateFull, ospf, isisLsp, rip, pgm                    |
+| トンネル        | gre, vxlan, geneve, l2tp, capwap, amt                     |
+| セキュリティ    | tlsHandshake, ipsecEsp, ikev2, ocspRequest, kerberosAsReq |
+| 管理 / 計測     | snmpV2c, snmpv3, ipfix, sflow, bfd, rtcpSdes              |
 
 一覧は `ls presets/` が最短。
 
@@ -72,11 +72,11 @@ body:
 
 タグは 3 軸:
 
-| 軸 | 個数 | 例 |
-|---|---|---|
-| **layer** | 必ず 1 つ | `link`, `internet`, `transport`, `application` |
-| **substrate** | 任意 | `tunnel`, `encrypted` |
-| **function** | 1〜3 個 | `addressing`, `routing`, `data-transfer`, `management` |
+| 軸            | 個数      | 例                                                     |
+| ------------- | --------- | ------------------------------------------------------ |
+| **layer**     | 必ず 1 つ | `link`, `internet`, `transport`, `application`         |
+| **substrate** | 任意      | `tunnel`, `encrypted`                                  |
+| **function**  | 1〜3 個   | `addressing`, `routing`, `data-transfer`, `management` |
 
 ### 3. ゲートを通す
 
@@ -86,11 +86,11 @@ npm run check
 
 4 段を順に走らせる。落ちた段で止まるので、上から潰す:
 
-| 段 | スクリプト | 見るもの |
-|---|---|---|
-| `check:schema` | `check.ts` | JSON Schema。`kind` でノードを判別して、そのノード自身の形だけを検証するので、`oneOf` の全分岐エラーに埋もれない |
-| `check:semantic` | `semcheck.ts` | core の `parsePsdl`（§11.1 バリデータ）。**スキーマでは取れないもの** — 未宣言の ref、前方参照・順序違反、peek の位置、checksum 幅、値辞書の規則 |
-| `check:taxonomy` | `taxcheck.ts` | 上の語彙登録と「layer タグはちょうど 1 つ」 |
+| 段                | スクリプト     | 見るもの                                                                                                                                                                       |
+| ----------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `check:schema`    | `check.ts`     | JSON Schema。`kind` でノードを判別して、そのノード自身の形だけを検証するので、`oneOf` の全分岐エラーに埋もれない                                                               |
+| `check:semantic`  | `semcheck.ts`  | core の `parsePsdl`（§11.1 バリデータ）。**スキーマでは取れないもの** — 未宣言の ref、前方参照・順序違反、peek の位置、checksum 幅、値辞書の規則                               |
+| `check:taxonomy`  | `taxcheck.ts`  | 上の語彙登録と「layer タグはちょうど 1 つ」                                                                                                                                    |
 | `check:normalize` | `normcheck.ts` | core の `normalize()` を **semantic ビュー**で実行。encrypted スコープの過剰消費（plaintext bits > wireBits）や bounded の過剰読み出しなど、**レイアウト時にしか出ない**エラー |
 
 個別に走らせるなら `npm run check:semantic` のように。特定ファイルだけなら `npx tsx scripts/semcheck.ts presets/foo.psdl.yaml`。

@@ -35,6 +35,9 @@ jobs:
 
       - run: npm ci
 
+      - name: Format check
+        run: npm run format:check
+
       - name: Validate presets against PSDL 0.5
         run: npm run check
 

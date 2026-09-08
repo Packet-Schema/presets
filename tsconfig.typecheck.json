@@ -1,0 +1,14 @@
+{
+  // Type-checks everything, including `scripts/` — the build and the 4-stage
+  // gate. The main tsconfig excludes them because they must not land in
+  // `dist`, but that also meant the gate implementation was never
+  // type-checked at all.
+  //
+  // NOTE: `exclude` must be restated. It is NOT additive with `include` — an
+  // inherited `exclude: ["scripts"]` silently wins over an `include` that
+  // names them, which makes this file a no-op that still exits 0.
+  "extends": "./tsconfig.json",
+  "compilerOptions": { "noEmit": true },
+  "include": ["src", "scripts"],
+  "exclude": ["node_modules", "dist"]
+}

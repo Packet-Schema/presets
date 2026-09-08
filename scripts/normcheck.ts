@@ -27,8 +27,13 @@ const TOTAL_BITS = 1024 * 1024 * 8;
 
 function main(): void {
   const argv = process.argv.slice(2);
-  const files = argv.length > 0 ? argv : readdirSync(PRESETS_DIR)
-    .filter((f) => f.endsWith(".psdl.yaml")).sort().map((f) => join(PRESETS_DIR, f));
+  const files =
+    argv.length > 0
+      ? argv
+      : readdirSync(PRESETS_DIR)
+          .filter((f) => f.endsWith(".psdl.yaml"))
+          .sort()
+          .map((f) => join(PRESETS_DIR, f));
 
   let failed = 0;
   for (const file of files) {
@@ -39,10 +44,15 @@ function main(): void {
       continue;
     }
     try {
-      normalize(res.packet, new Map(), { viewMode: "semantic", totalBits: TOTAL_BITS });
+      normalize(res.packet, new Map(), {
+        viewMode: "semantic",
+        totalBits: TOTAL_BITS,
+      });
     } catch (e) {
       failed++;
-      console.error(`✗ ${basename(file)}\n    ${e instanceof Error ? e.message : String(e)}`);
+      console.error(
+        `✗ ${basename(file)}\n    ${e instanceof Error ? e.message : String(e)}`,
+      );
     }
   }
 
